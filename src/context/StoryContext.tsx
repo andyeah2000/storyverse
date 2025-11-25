@@ -802,13 +802,14 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         filename = `${currentProject.name}.json`;
         mimeType = 'application/json';
         break;
-      case 'fountain':
+      case 'fountain': {
         // Convert to Fountain format
         const script = activeScript?.content || '';
         content = `Title: ${currentProject.name}\nAuthor: StoryVerse Export\n\n${script}`;
         filename = `${currentProject.name}.fountain`;
         mimeType = 'text/plain';
         break;
+      }
       case 'pdf':
         // For PDF we'd need a proper library - for now, create printable HTML
         content = `

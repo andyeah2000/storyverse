@@ -19,14 +19,18 @@ export default [
         },
       },
       globals: {
+        // Browser globals
         window: 'readonly',
         document: 'readonly',
         console: 'readonly',
         localStorage: 'readonly',
+        sessionStorage: 'readonly',
         setTimeout: 'readonly',
         setInterval: 'readonly',
         clearTimeout: 'readonly',
         clearInterval: 'readonly',
+        requestAnimationFrame: 'readonly',
+        cancelAnimationFrame: 'readonly',
         fetch: 'readonly',
         URL: 'readonly',
         Blob: 'readonly',
@@ -34,14 +38,45 @@ export default [
         FileReader: 'readonly',
         FormData: 'readonly',
         navigator: 'readonly',
+        crypto: 'readonly',
+        alert: 'readonly',
+        confirm: 'readonly',
+        prompt: 'readonly',
+        // Audio/Media APIs
         AudioContext: 'readonly',
+        AudioBuffer: 'readonly',
+        AudioBufferSourceNode: 'readonly',
         MediaRecorder: 'readonly',
+        MediaStream: 'readonly',
+        ScriptProcessorNode: 'readonly',
+        AnalyserNode: 'readonly',
+        GainNode: 'readonly',
+        // Encoding
         btoa: 'readonly',
         atob: 'readonly',
+        TextEncoder: 'readonly',
+        TextDecoder: 'readonly',
+        // DOM types
+        HTMLElement: 'readonly',
         HTMLTextAreaElement: 'readonly',
         HTMLInputElement: 'readonly',
         HTMLDivElement: 'readonly',
+        HTMLImageElement: 'readonly',
+        Node: 'readonly',
+        NodeList: 'readonly',
+        Element: 'readonly',
+        Event: 'readonly',
+        KeyboardEvent: 'readonly',
+        MouseEvent: 'readonly',
         React: 'readonly',
+        // Node types (for TypeScript)
+        NodeJS: 'readonly',
+        // Web APIs
+        WebSocket: 'readonly',
+        Image: 'readonly',
+        ResizeObserver: 'readonly',
+        IntersectionObserver: 'readonly',
+        MutationObserver: 'readonly',
       },
     },
     plugins: {
@@ -53,7 +88,6 @@ export default [
       // TypeScript
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/prefer-const': 'error',
       
       // React
       'react/react-in-jsx-scope': 'off',
@@ -67,6 +101,8 @@ export default [
       'prefer-const': 'error',
       'no-var': 'error',
       'eqeqeq': ['error', 'always'],
+      'no-unused-vars': 'off', // Use TypeScript version instead
+      'no-empty': ['error', { allowEmptyCatch: true }], // Allow empty catch blocks
     },
     settings: {
       react: {

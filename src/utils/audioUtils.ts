@@ -46,7 +46,7 @@ export function createPcmBlob(data: Float32Array): Blob {
   const int16 = new Int16Array(l);
   for (let i = 0; i < l; i++) {
     // Convert float [-1.0, 1.0] back to 16-bit integer
-    let s = Math.max(-1, Math.min(1, data[i] ?? 0));
+    const s = Math.max(-1, Math.min(1, data[i] ?? 0));
     int16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
   }
   return {

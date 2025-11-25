@@ -23,7 +23,6 @@ import Layout from './components/Layout';
 
 // Lazy loaded pages for code splitting
 const Contact = lazy(() => import('./components/Contact'));
-const Settings = lazy(() => import('./components/Settings'));
 const Pricing = lazy(() => import('./components/Pricing'));
 const About = lazy(() => import('./components/About'));
 const Onboarding = lazy(() => import('./components/Onboarding'));
@@ -109,13 +108,6 @@ const AppRouter = () => {
         <Route path="/onboarding" element={
           <ProtectedRoute>
             <Onboarding />
-          </ProtectedRoute>
-        } />
-        
-        {/* Settings - Protected */}
-        <Route path="/settings" element={
-          <ProtectedRoute>
-            <Settings />
           </ProtectedRoute>
         } />
         

@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStory } from '../context/StoryContext';
 import { Source } from '../types';
 import { 
@@ -48,6 +49,7 @@ interface FolderNode {
 // ============================================
 
 const FileExplorer: React.FC = () => {
+  const navigate = useNavigate();
   const { 
     sources, 
     notes,
@@ -57,6 +59,7 @@ const FileExplorer: React.FC = () => {
     moodBoard,
     addSource,
     deleteSource,
+    updateSource,
     theme,
     currentProject
   } = useStory();
@@ -70,6 +73,46 @@ const FileExplorer: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isCreating, setIsCreating] = useState<string | null>(null);
   const [newItemName, setNewItemName] = useState('');
+  const [editingFile, setEditingFile] = useState<Source | null>(null);
+
+  // Route mapping for workspace items
+  const routeMap: Record<string, string> = {
+    'beat-sheet': '/app/beats',
+    'outline': '/app/outline', 
+    'story-map': '/app/map',
+    'notes-folder': '/app/notes',
+    'mood-board': '/app/mood-board',
+  };
+
+  // Handle file/view open on double-click
+  const handleFileOpen = useCallback((nodeId: string, nodeData?: any) => {
+    // Check if it's a workspace route item
+    if (routeMap[nodeId]) {
+      navigate(routeMap[nodeId]);
+      return;
+    }
+
+    // Check if it's a note
+    if (nodeId.startsWith('note-')) {
+      navigate('/app/notes');
+      return;
+    }
+
+    // Check if it's a source file - open in editor
+    if (nodeId.startsWith('source-')) {
+      const sourceId = nodeId.replace('source-', '');
+      const source = sources.find(s => s.id === sourceId);
+      if (source) {
+        if (source.type === 'script') {
+          // Navigate to editor for scripts
+          navigate('/app');
+        } else {
+          // For other sources, show in a preview/edit mode
+          setEditingFile(source);
+        }
+      }
+    }
+  }, [navigate, sources, routeMap]);
 
   // Build folder structure
   const folderStructure = useMemo((): FolderNode[] => {
@@ -421,6 +464,7 @@ const FileExplorer: React.FC = () => {
             newItemName={newItemName}
             onToggle={toggleFolder}
             onSelect={setSelectedId}
+            onDoubleClick={handleFileOpen}
             onContextMenu={handleContextMenu}
             onStartCreate={setIsCreating}
             onCreateItem={handleCreateItem}
@@ -429,6 +473,84 @@ const FileExplorer: React.FC = () => {
           />
         ))}
       </div>
+
+      {/* File Preview/Edit Modal */}
+      {editingFile && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+          <div className={cn(
+            "w-full max-w-2xl max-h-[80vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col",
+            theme === 'dark' ? 'bg-stone-900' : 'bg-white'
+          )}>
+            <div className={cn(
+              "h-14 px-6 flex items-center justify-between border-b shrink-0",
+              theme === 'dark' ? 'border-stone-800' : 'border-stone-100'
+            )}>
+              <div className="flex items-center gap-3">
+                <span className={cn(
+                  "px-2 py-0.5 rounded text-xs font-medium capitalize",
+                  theme === 'dark' ? 'bg-stone-800 text-stone-300' : 'bg-stone-100 text-stone-600'
+                )}>
+                  {editingFile.type}
+                </span>
+                <h3 className={cn(
+                  "font-semibold",
+                  theme === 'dark' ? 'text-white' : 'text-stone-900'
+                )}>
+                  {editingFile.title}
+                </h3>
+              </div>
+              <button
+                onClick={() => setEditingFile(null)}
+                className={cn(
+                  "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                  theme === 'dark' ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-stone-100 text-stone-500'
+                )}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto p-6">
+              <textarea
+                value={editingFile.content}
+                onChange={(e) => setEditingFile({ ...editingFile, content: e.target.value })}
+                className={cn(
+                  "w-full h-full min-h-[300px] p-4 rounded-xl text-sm outline-none resize-none border",
+                  theme === 'dark'
+                    ? 'bg-stone-800 border-stone-700 text-stone-100 placeholder:text-stone-500'
+                    : 'bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400'
+                )}
+                placeholder="Enter content..."
+              />
+            </div>
+            <div className={cn(
+              "h-14 px-6 flex items-center justify-end gap-3 border-t shrink-0",
+              theme === 'dark' ? 'border-stone-800' : 'border-stone-100'
+            )}>
+              <button
+                onClick={() => setEditingFile(null)}
+                className={cn(
+                  "h-9 px-4 rounded-lg text-sm font-medium transition-colors",
+                  theme === 'dark' ? 'text-stone-400 hover:bg-stone-800' : 'text-stone-600 hover:bg-stone-100'
+                )}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  updateSource(editingFile.id, { content: editingFile.content });
+                  setEditingFile(null);
+                }}
+                className={cn(
+                  "h-9 px-4 rounded-lg text-sm font-medium transition-colors",
+                  theme === 'dark' ? 'bg-white text-stone-900 hover:bg-stone-100' : 'bg-stone-900 text-white hover:bg-stone-800'
+                )}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Quick Actions */}
       <div className={cn(
@@ -509,6 +631,7 @@ interface TreeNodeProps {
   newItemName: string;
   onToggle: (id: string) => void;
   onSelect: (id: string) => void;
+  onDoubleClick: (id: string, data?: any) => void;
   onContextMenu: (e: React.MouseEvent, id: string) => void;
   onStartCreate: (folderId: string) => void;
   onCreateItem: (parentId: string, type: Source['type']) => void;
@@ -526,6 +649,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
   newItemName,
   onToggle,
   onSelect,
+  onDoubleClick,
   onContextMenu,
   onStartCreate,
   onCreateItem,
@@ -536,6 +660,9 @@ const TreeNode: React.FC<TreeNodeProps> = ({
   const isSelected = selectedId === node.id;
   const isFolder = node.type === 'folder';
   const hasChildren = node.children && node.children.length > 0;
+
+  // Check if this is a navigable workspace item
+  const isWorkspaceItem = ['beat-sheet', 'outline', 'story-map', 'notes-folder', 'mood-board'].includes(node.id);
 
   const getTypeFromFolderId = (id: string): Source['type'] => {
     switch (id) {
@@ -557,12 +684,20 @@ const TreeNode: React.FC<TreeNodeProps> = ({
           "flex items-center h-7 px-2 rounded cursor-pointer group transition-colors",
           isSelected
             ? theme === 'dark' ? 'bg-stone-700' : 'bg-stone-200'
-            : theme === 'dark' ? 'hover:bg-stone-800' : 'hover:bg-stone-100'
+            : theme === 'dark' ? 'hover:bg-stone-800' : 'hover:bg-stone-100',
+          // Highlight navigable items
+          isWorkspaceItem && !isSelected && (theme === 'dark' ? 'hover:bg-stone-700/50' : 'hover:bg-stone-150')
         )}
         style={{ paddingLeft: `${depth * 12 + 8}px` }}
         onClick={() => {
-          if (isFolder) onToggle(node.id);
+          if (isFolder && !isWorkspaceItem) onToggle(node.id);
           onSelect(node.id);
+        }}
+        onDoubleClick={() => {
+          // Double-click opens files or navigates to views
+          if (!isFolder || isWorkspaceItem) {
+            onDoubleClick(node.id, node.data);
+          }
         }}
         onContextMenu={(e) => node.data && onContextMenu(e, node.id)}
       >
@@ -663,6 +798,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
           newItemName={newItemName}
           onToggle={onToggle}
           onSelect={onSelect}
+          onDoubleClick={onDoubleClick}
           onContextMenu={onContextMenu}
           onStartCreate={onStartCreate}
           onCreateItem={onCreateItem}

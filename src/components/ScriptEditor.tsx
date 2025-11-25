@@ -1001,61 +1001,67 @@ const ScriptEditor: React.FC = () => {
           </div>
         )}
         
-        {/* Editor - Clean Single-Page Layout */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Line Numbers - Synchronized */}
+        {/* Editor - Clean Single-Page Layout with synchronized scrolling */}
+        <div className="flex-1 flex overflow-hidden relative">
+          {/* Scrollable Container for both line numbers and editor */}
           <div 
-            ref={lineNumbersRef}
-            className={cn(
-              "w-11 shrink-0 pt-3 overflow-hidden select-none border-r",
-              isDark ? 'bg-stone-900/80 text-stone-500 border-stone-800' : 'bg-stone-50 text-stone-400 border-stone-200'
-            )}
+            className="flex-1 flex overflow-auto"
+            onScroll={(e) => {
+              // Sync line numbers scroll with container
+              if (lineNumbersRef.current) {
+                lineNumbersRef.current.style.transform = `translateY(-${e.currentTarget.scrollTop}px)`;
+              }
+            }}
           >
-            {content.split('\n').map((_, i) => (
-              <div 
-                key={i} 
-                className={cn(
-                  "text-[11px] font-mono h-[1.6rem] flex items-center justify-end pr-3",
-                  // Page break indicator every 55 lines
-                  (i + 1) % 55 === 0 && isDark ? 'bg-stone-800/50' : 'bg-stone-100'
-                )}
-              >
-                {i + 1}
-              </div>
-            ))}
-          </div>
-
-          {/* Textarea Container */}
-          <div className={cn(
-            "flex-1 overflow-auto",
-            isDark ? 'bg-stone-900' : 'bg-white'
-          )}>
-            <textarea
-              ref={textareaRef}
-              id="script-editor-textarea"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              onSelect={(e) => {
-                const target = e.target as HTMLTextAreaElement;
-                setCursorPosition(target.selectionStart);
-                setSelectionStart(target.selectionStart);
-                setSelectionEnd(target.selectionEnd);
-              }}
-              onScroll={(e) => {
-                // Sync line numbers scroll
-                if (lineNumbersRef.current) {
-                  lineNumbersRef.current.scrollTop = e.currentTarget.scrollTop;
-                }
-              }}
+            {/* Line Numbers - Fixed position, moves via transform */}
+            <div 
               className={cn(
-                "w-full min-h-full py-3 px-4 resize-none outline-none leading-[1.6rem]",
-                getFontSize(),
-                getFontFamily(),
-                isDark 
-                  ? 'bg-stone-900 text-stone-100 placeholder:text-stone-500 caret-white' 
-                  : 'bg-white text-stone-800 placeholder:text-stone-400 caret-stone-900'
+                "w-12 shrink-0 select-none border-r sticky left-0 z-10",
+                isDark ? 'bg-stone-900 text-stone-500 border-stone-800' : 'bg-stone-50 text-stone-400 border-stone-200'
               )}
-              placeholder="FADE IN:
+            >
+              <div ref={lineNumbersRef} className="pt-3">
+                {content.split('\n').map((_, i) => (
+                  <div 
+                    key={i} 
+                    className={cn(
+                      "text-[11px] font-mono leading-6 h-6 flex items-center justify-end pr-3",
+                      // Page break indicator every 55 lines
+                      (i + 1) % 55 === 0 && (isDark ? 'bg-stone-800/50' : 'bg-stone-200/50')
+                    )}
+                  >
+                    {i + 1}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Textarea */}
+            <div className={cn(
+              "flex-1 min-w-0",
+              isDark ? 'bg-stone-900' : 'bg-white'
+            )}>
+              <textarea
+                ref={textareaRef}
+                id="script-editor-textarea"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                onSelect={(e) => {
+                  const target = e.target as HTMLTextAreaElement;
+                  setCursorPosition(target.selectionStart);
+                  setSelectionStart(target.selectionStart);
+                  setSelectionEnd(target.selectionEnd);
+                }}
+                className={cn(
+                  "w-full min-h-full py-3 px-4 resize-none outline-none leading-6",
+                  getFontSize(),
+                  getFontFamily(),
+                  isDark 
+                    ? 'bg-stone-900 text-stone-100 placeholder:text-stone-500 caret-white' 
+                    : 'bg-white text-stone-800 placeholder:text-stone-400 caret-stone-900'
+                )}
+                style={{ minHeight: `${Math.max(content.split('\n').length + 10, 30) * 24}px` }}
+                placeholder="FADE IN:
 
 EXT. LOCATION - DAY
 
@@ -1063,8 +1069,9 @@ Description of the scene...
 
                     CHARACTER
           Dialogue goes here."
-              spellCheck={false}
-            />
+                spellCheck={false}
+              />
+            </div>
           </div>
         </div>
 

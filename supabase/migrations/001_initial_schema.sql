@@ -3,9 +3,6 @@
 -- Run this in your Supabase SQL Editor
 -- ============================================
 
--- Enable RLS (Row Level Security)
-ALTER DATABASE postgres SET "app.jwt_secret" TO 'your-jwt-secret';
-
 -- ============================================
 -- PROJECTS TABLE
 -- ============================================

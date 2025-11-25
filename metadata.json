@@ -1,0 +1,7 @@
+{
+  "name": "StoryVerse",
+  "description": "The ultimate screenplay universe builder. Write, analyze tension arcs, track word usage, and ensure universe coherence with AI assistance.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

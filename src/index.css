@@ -398,3 +398,369 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* ============================================
+   APPLE-QUALITY DESIGN SYSTEM
+   ============================================ */
+
+/* Apple-style Button System */
+.btn-apple {
+  @apply relative inline-flex items-center justify-center gap-2;
+  @apply px-5 py-2.5 rounded-xl font-medium text-sm;
+  @apply transition-all duration-200 ease-out;
+  @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
+  @apply disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-apple:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.btn-apple-primary {
+  @apply bg-stone-900 text-white dark:bg-white dark:text-stone-900;
+  @apply hover:bg-stone-800 dark:hover:bg-stone-100;
+  @apply focus-visible:ring-stone-900 dark:focus-visible:ring-white;
+}
+
+.btn-apple-secondary {
+  @apply bg-stone-100 text-stone-900 dark:bg-stone-800 dark:text-white;
+  @apply hover:bg-stone-200 dark:hover:bg-stone-700;
+  @apply focus-visible:ring-stone-500;
+}
+
+.btn-apple-ghost {
+  @apply bg-transparent text-stone-600 dark:text-stone-400;
+  @apply hover:bg-stone-100 dark:hover:bg-stone-800;
+  @apply focus-visible:ring-stone-500;
+}
+
+.btn-apple-danger {
+  @apply bg-red-500 text-white;
+  @apply hover:bg-red-600;
+  @apply focus-visible:ring-red-500;
+}
+
+/* Apple-style Input System */
+.input-apple {
+  @apply w-full px-4 py-3 rounded-xl text-sm;
+  @apply bg-stone-100 dark:bg-stone-800;
+  @apply border border-transparent;
+  @apply text-stone-900 dark:text-white;
+  @apply placeholder:text-stone-400 dark:placeholder:text-stone-500;
+  @apply transition-all duration-200;
+  @apply focus:outline-none focus:border-stone-300 dark:focus:border-stone-600;
+  @apply focus:ring-4 focus:ring-stone-900/5 dark:focus:ring-white/5;
+}
+
+.input-apple:hover:not(:focus) {
+  @apply bg-stone-200/50 dark:bg-stone-700/50;
+}
+
+/* Apple-style Card System */
+.card-apple {
+  @apply bg-white dark:bg-stone-900;
+  @apply rounded-2xl;
+  @apply border border-stone-200 dark:border-stone-800;
+  @apply transition-all duration-300;
+}
+
+.card-apple-elevated {
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.dark .card-apple-elevated {
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.card-apple-interactive {
+  @apply hover:border-stone-300 dark:hover:border-stone-700;
+  @apply cursor-pointer;
+}
+
+.card-apple-interactive:hover {
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 16px 64px rgba(0, 0, 0, 0.04);
+}
+
+.dark .card-apple-interactive:hover {
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 16px 64px rgba(0, 0, 0, 0.3);
+}
+
+.card-apple-interactive:active {
+  transform: scale(0.99);
+}
+
+/* Apple-style Navigation */
+.nav-item-apple {
+  @apply relative px-3 py-2 rounded-lg text-sm font-medium;
+  @apply text-stone-600 dark:text-stone-400;
+  @apply transition-all duration-200;
+  @apply hover:text-stone-900 dark:hover:text-white;
+  @apply hover:bg-stone-100 dark:hover:bg-stone-800;
+}
+
+.nav-item-apple.active {
+  @apply text-stone-900 dark:text-white;
+  @apply bg-stone-100 dark:bg-stone-800;
+}
+
+.nav-item-apple::after {
+  content: '';
+  @apply absolute bottom-0 left-1/2 -translate-x-1/2;
+  @apply w-0 h-0.5 bg-stone-900 dark:bg-white;
+  @apply rounded-full transition-all duration-200;
+}
+
+.nav-item-apple.active::after,
+.nav-item-apple:hover::after {
+  @apply w-4;
+}
+
+/* Apple-style Badge */
+.badge-apple {
+  @apply inline-flex items-center px-2 py-0.5;
+  @apply text-xs font-medium rounded-full;
+  @apply bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400;
+}
+
+.badge-apple-primary {
+  @apply bg-stone-900 text-white dark:bg-white dark:text-stone-900;
+}
+
+/* Apple-style Tooltip */
+.tooltip-apple {
+  @apply absolute z-50 px-3 py-1.5;
+  @apply text-xs font-medium;
+  @apply bg-stone-900 text-white dark:bg-white dark:text-stone-900;
+  @apply rounded-lg;
+  @apply opacity-0 invisible;
+  @apply transition-all duration-200;
+  @apply pointer-events-none;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+*:hover > .tooltip-apple {
+  @apply opacity-100 visible;
+}
+
+/* Apple-style Divider */
+.divider-apple {
+  @apply h-px w-full;
+  @apply bg-gradient-to-r from-transparent via-stone-200 to-transparent;
+  @apply dark:via-stone-800;
+}
+
+/* Apple-style Modal Backdrop */
+.backdrop-apple {
+  @apply fixed inset-0 z-40;
+  @apply bg-black/30 dark:bg-black/50;
+  @apply backdrop-blur-sm;
+  animation: fade-in 0.2s ease-out;
+}
+
+/* Apple-style Modal */
+.modal-apple {
+  @apply fixed z-50 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2;
+  @apply w-full max-w-lg max-h-[90vh];
+  @apply bg-white dark:bg-stone-900;
+  @apply rounded-2xl;
+  @apply overflow-hidden;
+  box-shadow: 
+    0 24px 80px rgba(0, 0, 0, 0.15),
+    0 8px 32px rgba(0, 0, 0, 0.1);
+  animation: scale-in 0.25s ease-out;
+}
+
+.dark .modal-apple {
+  box-shadow: 
+    0 24px 80px rgba(0, 0, 0, 0.5),
+    0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Apple-style Toggle */
+.toggle-apple {
+  @apply relative w-11 h-6 rounded-full;
+  @apply bg-stone-200 dark:bg-stone-700;
+  @apply transition-colors duration-200;
+  @apply cursor-pointer;
+}
+
+.toggle-apple::after {
+  content: '';
+  @apply absolute top-0.5 left-0.5;
+  @apply w-5 h-5 rounded-full;
+  @apply bg-white shadow-sm;
+  @apply transition-transform duration-200;
+}
+
+.toggle-apple.active {
+  @apply bg-stone-900 dark:bg-white;
+}
+
+.toggle-apple.active::after {
+  transform: translateX(20px);
+  @apply dark:bg-stone-900;
+}
+
+/* Apple-style Tabs */
+.tabs-apple {
+  @apply flex gap-1 p-1;
+  @apply bg-stone-100 dark:bg-stone-800;
+  @apply rounded-xl;
+}
+
+.tab-apple {
+  @apply flex-1 px-4 py-2;
+  @apply text-sm font-medium text-center;
+  @apply text-stone-500 dark:text-stone-400;
+  @apply rounded-lg;
+  @apply transition-all duration-200;
+}
+
+.tab-apple.active {
+  @apply bg-white dark:bg-stone-700;
+  @apply text-stone-900 dark:text-white;
+  @apply shadow-sm;
+}
+
+/* Subtle Hover Glow */
+.hover-glow {
+  @apply transition-all duration-300;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.03),
+              0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.dark .hover-glow:hover {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05),
+              0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Smooth Content Reveal */
+.content-reveal {
+  @apply overflow-hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.content-reveal.open {
+  max-height: 1000px;
+  opacity: 1;
+}
+
+/* Apple-style Progress */
+.progress-apple {
+  @apply h-1 w-full rounded-full overflow-hidden;
+  @apply bg-stone-200 dark:bg-stone-700;
+}
+
+.progress-apple-bar {
+  @apply h-full rounded-full;
+  @apply bg-stone-900 dark:bg-white;
+  @apply transition-all duration-300 ease-out;
+}
+
+/* Text Balance for Headlines */
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+/* Responsive Typography Scale */
+.text-display {
+  @apply text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight;
+}
+
+.text-headline {
+  @apply text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight;
+}
+
+.text-title {
+  @apply text-xl sm:text-2xl font-semibold tracking-tight;
+}
+
+.text-body-lg {
+  @apply text-base sm:text-lg text-stone-600 dark:text-stone-400;
+}
+
+.text-body {
+  @apply text-sm sm:text-base text-stone-600 dark:text-stone-400;
+}
+
+.text-caption {
+  @apply text-xs sm:text-sm text-stone-500 dark:text-stone-500;
+}
+
+/* Icon Button */
+.icon-btn {
+  @apply w-9 h-9 rounded-xl;
+  @apply flex items-center justify-center;
+  @apply text-stone-500 dark:text-stone-400;
+  @apply hover:bg-stone-100 dark:hover:bg-stone-800;
+  @apply hover:text-stone-900 dark:hover:text-white;
+  @apply transition-all duration-200;
+  @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-stone-500;
+}
+
+.icon-btn:active {
+  transform: scale(0.92);
+}
+
+/* Status Indicator */
+.status-dot {
+  @apply w-2 h-2 rounded-full;
+}
+
+.status-dot-success {
+  @apply bg-emerald-500;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+}
+
+.status-dot-warning {
+  @apply bg-amber-500;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.5);
+}
+
+.status-dot-error {
+  @apply bg-red-500;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+}
+
+/* Smooth List Items */
+.list-item-smooth {
+  @apply transition-all duration-200;
+}
+
+.list-item-smooth:hover {
+  @apply bg-stone-50 dark:bg-stone-800/50;
+}
+
+/* Empty State */
+.empty-state {
+  @apply flex flex-col items-center justify-center;
+  @apply py-12 px-6 text-center;
+}
+
+.empty-state-icon {
+  @apply w-12 h-12 mb-4;
+  @apply text-stone-300 dark:text-stone-600;
+}
+
+.empty-state-title {
+  @apply text-sm font-medium text-stone-500 dark:text-stone-400 mb-1;
+}
+
+.empty-state-description {
+  @apply text-xs text-stone-400 dark:text-stone-500;
+}

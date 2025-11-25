@@ -36,6 +36,8 @@ const Notes = lazy(() => import('./components/Notes'));
 const MoodBoard = lazy(() => import('./components/MoodBoard'));
 const MindMap = lazy(() => import('./components/MindMap'));
 const VoiceAgent = lazy(() => import('./components/VoiceAgent'));
+const Characters = lazy(() => import('./components/Characters'));
+const Wiki = lazy(() => import('./components/Wiki'));
 
 // Loading fallback
 const PageLoader = () => (
@@ -75,6 +77,8 @@ const AppRoutes = () => {
               <Route path="table-read" element={<AudioPage />} />
               <Route path="notes" element={<Notes />} />
               <Route path="mood-board" element={<MoodBoard />} />
+              <Route path="characters" element={<Characters />} />
+              <Route path="wiki" element={<Wiki />} />
             </Route>
           </Routes>
           <VoiceAgent />

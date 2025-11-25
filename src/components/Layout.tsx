@@ -22,7 +22,9 @@ import {
   LogOut,
   ChevronDown,
   Menu,
-  X
+  X,
+  Users,
+  Globe
 } from 'lucide-react';
 import FileExplorer from './FileExplorer';
 import SettingsModal from './SettingsModal';
@@ -63,6 +65,8 @@ const Layout: React.FC = () => {
 
   const navItems = [
     { to: '/app', icon: <PenTool size={18} strokeWidth={1.75} />, label: 'Editor', end: true },
+    { to: '/app/characters', icon: <Users size={18} strokeWidth={1.75} />, label: 'Characters' },
+    { to: '/app/wiki', icon: <Globe size={18} strokeWidth={1.75} />, label: 'Wiki' },
     { to: '/app/beats', icon: <Sparkles size={18} strokeWidth={1.75} />, label: 'Beat Sheet' },
     { to: '/app/outline', icon: <Layers size={18} strokeWidth={1.75} />, label: 'Outline' },
     { to: '/app/map', icon: <Map size={18} strokeWidth={1.75} />, label: 'Story Map' },
@@ -185,6 +189,8 @@ const Layout: React.FC = () => {
             theme === 'dark' ? 'bg-stone-800/50' : 'bg-stone-100/80'
           )}>
             <NavButton to="/app" icon={<PenTool size={14} strokeWidth={1.75} />} label="Editor" theme={theme} end />
+            <NavButton to="/app/characters" icon={<Users size={14} strokeWidth={1.75} />} label="Chars" theme={theme} />
+            <NavButton to="/app/wiki" icon={<Globe size={14} strokeWidth={1.75} />} label="Wiki" theme={theme} />
             <NavButton to="/app/beats" icon={<Sparkles size={14} strokeWidth={1.75} />} label="Beats" theme={theme} />
             <NavButton to="/app/outline" icon={<Layers size={14} strokeWidth={1.75} />} label="Outline" theme={theme} />
             <NavButton to="/app/map" icon={<Map size={14} strokeWidth={1.75} />} label="Map" theme={theme} />

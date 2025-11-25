@@ -82,6 +82,8 @@ const FileExplorer: React.FC = () => {
     'story-map': '/app/map',
     'notes-folder': '/app/notes',
     'mood-board': '/app/mood-board',
+    'characters': '/app/characters',
+    'story-bible': '/app/wiki',
   };
 
   // Handle file/view open on double-click

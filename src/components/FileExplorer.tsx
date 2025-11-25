@@ -87,7 +87,7 @@ const FileExplorer: React.FC = () => {
   };
 
   // Handle file/view open on double-click
-  const handleFileOpen = useCallback((nodeId: string, nodeData?: any) => {
+  const handleFileOpen = useCallback((nodeId: string, _nodeData?: unknown) => {
     // Check if it's a workspace route item
     if (routeMap[nodeId]) {
       navigate(routeMap[nodeId]);

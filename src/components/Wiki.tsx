@@ -14,18 +14,14 @@ import {
   ArrowLeft,
   ArrowRight,
   Clock,
-  Star,
-  Plus,
   Edit3,
   Trash2,
   X,
-  ChevronRight,
   Hash,
   Sparkles,
   Loader2,
   Wand2,
   ExternalLink,
-  History,
   Globe,
   Layers
 } from 'lucide-react';
@@ -201,7 +197,8 @@ const Wiki: React.FC = () => {
 
   const goBack = () => {
     if (historyIndex >= 0) {
-      setSelectedArticle(history[historyIndex]);
+      const article = history[historyIndex];
+      if (article) setSelectedArticle(article);
       setHistoryIndex(historyIndex - 1);
     }
   };
@@ -209,7 +206,8 @@ const Wiki: React.FC = () => {
   const goForward = () => {
     if (historyIndex < history.length - 1) {
       setHistoryIndex(historyIndex + 1);
-      setSelectedArticle(history[historyIndex + 1]);
+      const article = history[historyIndex + 1];
+      if (article) setSelectedArticle(article);
     }
   };
 

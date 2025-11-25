@@ -17,28 +17,14 @@ import {
   Edit3,
   Trash2,
   Link2,
-  Crown,
   Zap,
-  Star,
   Eye,
   BookOpen,
   ArrowRight,
-  Wand2,
-  Image as ImageIcon,
-  Upload
+  Wand2
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { getGeminiClient } from '../services/geminiService';
-
-// Character stat types for RPG-style display
-interface CharacterStats {
-  strength: number;
-  intelligence: number;
-  charisma: number;
-  wisdom: number;
-  dexterity: number;
-  constitution: number;
-}
 
 interface Relationship {
   targetId: string;
@@ -72,7 +58,6 @@ const Characters: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingField, setGeneratingField] = useState<string | null>(null);
-  const [showRelationshipModal, setShowRelationshipModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
 
   const isDark = theme === 'dark';
@@ -130,42 +115,6 @@ const Characters: React.FC = () => {
     });
     
     return relationships;
-  };
-
-  // Generate character stats from content using AI
-  const generateStats = async (character: Source): Promise<CharacterStats> => {
-    try {
-      const client = getGeminiClient();
-      const response = await client.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: [{
-          role: 'user',
-          parts: [{ text: `Based on this character description, generate RPG-style stats (1-20 scale):
-
-Character: ${character.title}
-Description: ${character.content}
-${character.characterDetails ? `
-Role: ${character.characterDetails.role}
-Motivation: ${character.characterDetails.motivation}
-Backstory: ${character.characterDetails.backstory}
-` : ''}
-
-Return ONLY a JSON object with these exact keys and number values (1-20):
-{"strength": X, "intelligence": X, "charisma": X, "wisdom": X, "dexterity": X, "constitution": X}` }]
-        }]
-      });
-
-      const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      const match = text.match(/\{[\s\S]*\}/);
-      if (match) {
-        return JSON.parse(match[0]);
-      }
-    } catch (e) {
-      console.error('Stats generation failed:', e);
-    }
-    
-    // Default stats
-    return { strength: 10, intelligence: 10, charisma: 10, wisdom: 10, dexterity: 10, constitution: 10 };
   };
 
   // AI Generate full character profile

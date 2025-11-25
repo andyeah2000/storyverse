@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  /* Typography - Timeless, refined */
+  /* Typography - Apple-inspired */
   --font-sans: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "SF Mono", "Fira Code", "Consolas", monospace;
   --font-serif: "New York", "Georgia", serif;
@@ -18,8 +18,41 @@
   --color-stone-600: #57534e;
   --color-stone-700: #44403c;
   --color-stone-800: #292524;
+  --color-stone-850: #1f1c1a;
   --color-stone-900: #1c1917;
   --color-stone-950: #0c0a09;
+  
+  /* Spacing Scale - Apple 4pt grid */
+  --spacing-0: 0;
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+  --spacing-16: 64px;
+  --spacing-20: 80px;
+  --spacing-24: 96px;
+  
+  /* Border Radius - Apple style */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+  --radius-3xl: 32px;
+  --radius-full: 9999px;
+  
+  /* Transitions - Apple curves */
+  --ease-apple: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
 }
 
 @layer base {
@@ -66,15 +99,117 @@
 }
 
 @layer components {
-  /* Glass effect for cards */
-  .glass {
-    @apply bg-white/70 dark:bg-stone-900/70 backdrop-blur-xl;
+  /* ========================================
+     APPLE-STYLE BUTTONS
+     ======================================== */
+  
+  /* Primary Button - Solid black/white */
+  .btn-primary {
+    @apply relative inline-flex items-center justify-center gap-2;
+    @apply px-5 py-2.5 rounded-full font-medium text-sm;
+    @apply bg-stone-900 text-white dark:bg-white dark:text-stone-900;
+    @apply transition-all duration-200;
+    @apply hover:bg-stone-800 dark:hover:bg-stone-100;
+    @apply active:scale-[0.97] active:bg-stone-950 dark:active:bg-stone-200;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
   }
   
-  /* Subtle shadow system */
+  /* Secondary Button - Outline */
+  .btn-secondary {
+    @apply relative inline-flex items-center justify-center gap-2;
+    @apply px-5 py-2.5 rounded-full font-medium text-sm;
+    @apply bg-transparent text-stone-900 dark:text-white;
+    @apply border border-stone-300 dark:border-stone-700;
+    @apply transition-all duration-200;
+    @apply hover:bg-stone-100 dark:hover:bg-stone-800;
+    @apply active:scale-[0.97];
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  /* Ghost Button - No border */
+  .btn-ghost {
+    @apply relative inline-flex items-center justify-center gap-2;
+    @apply px-4 py-2 rounded-lg font-medium text-sm;
+    @apply text-stone-600 dark:text-stone-400;
+    @apply transition-all duration-200;
+    @apply hover:bg-stone-100 dark:hover:bg-stone-800;
+    @apply hover:text-stone-900 dark:hover:text-white;
+    @apply active:scale-[0.97];
+  }
+  
+  /* Icon Button */
+  .btn-icon {
+    @apply inline-flex items-center justify-center;
+    @apply w-9 h-9 rounded-lg;
+    @apply text-stone-500 dark:text-stone-400;
+    @apply transition-all duration-150;
+    @apply hover:bg-stone-100 dark:hover:bg-stone-800;
+    @apply hover:text-stone-900 dark:hover:text-white;
+    @apply active:scale-95;
+  }
+  
+  .btn-icon-sm {
+    @apply w-7 h-7 rounded-md;
+  }
+  
+  .btn-icon-lg {
+    @apply w-11 h-11 rounded-xl;
+  }
+  
+  /* ========================================
+     INPUTS - Apple Style
+     ======================================== */
+  
+  .input {
+    @apply w-full px-4 py-3 rounded-xl;
+    @apply bg-stone-100 dark:bg-stone-900;
+    @apply border border-transparent;
+    @apply text-stone-900 dark:text-white;
+    @apply placeholder:text-stone-400 dark:placeholder:text-stone-600;
+    @apply transition-all duration-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-white/10;
+    @apply focus:border-stone-300 dark:focus:border-stone-700;
+  }
+  
+  .input-sm {
+    @apply px-3 py-2 rounded-lg text-sm;
+  }
+  
+  /* ========================================
+     CARDS - Apple Style
+     ======================================== */
+  
+  .card {
+    @apply bg-white dark:bg-stone-900;
+    @apply rounded-2xl;
+    @apply border border-stone-200 dark:border-stone-800;
+    @apply transition-all duration-300;
+  }
+  
+  .card-hover {
+    @apply hover:border-stone-300 dark:hover:border-stone-700;
+    @apply hover:shadow-lg;
+  }
+  
+  .card-interactive {
+    @apply cursor-pointer;
+    @apply hover:scale-[1.02] active:scale-[0.98];
+    @apply hover:shadow-xl;
+  }
+  
+  /* Glass effect for cards */
+  .glass {
+    @apply bg-white/80 dark:bg-stone-900/80 backdrop-blur-2xl;
+    @apply border border-white/20 dark:border-stone-800/50;
+  }
+  
+  /* ========================================
+     SHADOWS - Refined
+     ======================================== */
+  
   .shadow-subtle {
     box-shadow: 
-      0 1px 2px rgba(0, 0, 0, 0.04),
+      0 1px 2px rgba(0, 0, 0, 0.03),
       0 2px 4px rgba(0, 0, 0, 0.02);
   }
   
@@ -86,26 +221,53 @@
   
   .shadow-elevated {
     box-shadow: 
-      0 2px 8px rgba(0, 0, 0, 0.04),
-      0 4px 16px rgba(0, 0, 0, 0.04);
+      0 4px 12px rgba(0, 0, 0, 0.05),
+      0 8px 24px rgba(0, 0, 0, 0.03);
   }
   
   .dark .shadow-elevated {
     box-shadow: 
-      0 2px 8px rgba(0, 0, 0, 0.3),
-      0 4px 16px rgba(0, 0, 0, 0.2);
+      0 4px 12px rgba(0, 0, 0, 0.3),
+      0 8px 24px rgba(0, 0, 0, 0.2);
   }
   
   .shadow-floating {
     box-shadow: 
-      0 8px 32px rgba(0, 0, 0, 0.08),
-      0 16px 64px rgba(0, 0, 0, 0.04);
+      0 12px 40px rgba(0, 0, 0, 0.08),
+      0 24px 80px rgba(0, 0, 0, 0.05);
   }
   
   .dark .shadow-floating {
     box-shadow: 
-      0 8px 32px rgba(0, 0, 0, 0.4),
-      0 16px 64px rgba(0, 0, 0, 0.3);
+      0 12px 40px rgba(0, 0, 0, 0.5),
+      0 24px 80px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* ========================================
+     BADGES
+     ======================================== */
+  
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full;
+    @apply text-xs font-medium;
+    @apply bg-stone-100 text-stone-700;
+    @apply dark:bg-stone-800 dark:text-stone-300;
+  }
+  
+  .badge-primary {
+    @apply bg-stone-900 text-white dark:bg-white dark:text-stone-900;
+  }
+  
+  /* ========================================
+     DIVIDERS
+     ======================================== */
+  
+  .divider {
+    @apply h-px bg-stone-200 dark:bg-stone-800;
+  }
+  
+  .divider-y {
+    @apply w-px bg-stone-200 dark:bg-stone-800;
   }
 }
 
@@ -175,16 +337,26 @@
   }
 }
 
-/* Animation keyframes */
+/* ========================================
+   APPLE-STYLE ANIMATIONS
+   ======================================== */
+
+/* Fade animations */
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* Slide animations */
 @keyframes slide-up {
   from { 
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(16px);
   }
   to { 
     opacity: 1;
@@ -195,7 +367,7 @@
 @keyframes slide-down {
   from { 
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-16px);
   }
   to { 
     opacity: 1;
@@ -203,10 +375,10 @@
   }
 }
 
-@keyframes slide-in-right {
+@keyframes slide-in-left {
   from { 
     opacity: 0;
-    transform: translateX(20px);
+    transform: translateX(-24px);
   }
   to { 
     opacity: 1;
@@ -214,10 +386,22 @@
   }
 }
 
+@keyframes slide-in-right {
+  from { 
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Scale animations */
 @keyframes scale-in {
   from { 
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.92);
   }
   to { 
     opacity: 1;
@@ -225,9 +409,60 @@
   }
 }
 
+@keyframes scale-out {
+  from { 
+    opacity: 1;
+    transform: scale(1);
+  }
+  to { 
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+
+/* Spring scale - Apple bounce */
+@keyframes scale-spring {
+  0% { 
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  50% { 
+    transform: scale(1.02);
+  }
+  100% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Modal/Dialog animation */
+@keyframes modal-in {
+  from { 
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to { 
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Backdrop blur in */
+@keyframes backdrop-in {
+  from { 
+    opacity: 0;
+    backdrop-filter: blur(0);
+  }
+  to { 
+    opacity: 1;
+    backdrop-filter: blur(20px);
+  }
+}
+
+/* Continuous animations */
 @keyframes pulse-subtle {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+  50% { opacity: 0.6; }
 }
 
 @keyframes shimmer {
@@ -236,95 +471,188 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-6px); }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
 
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes bounce-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* Glow effects */
 @keyframes glow-pulse {
   0%, 100% { 
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.08);
   }
   50% { 
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.12);
   }
 }
 
 @keyframes glow-pulse-dark {
   0%, 100% { 
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.03);
   }
   50% { 
-    box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 40px rgba(255, 255, 255, 0.08);
   }
 }
 
-/* Animation classes */
-.animate-fade-in {
-  animation: fade-in 0.3s ease-out;
+/* Ripple effect */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
 }
 
+/* Typing cursor */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* ========================================
+   ANIMATION CLASSES
+   ======================================== */
+
+/* Fade */
+.animate-fade-in {
+  animation: fade-in 0.3s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+.animate-fade-out {
+  animation: fade-out 0.2s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+/* Slide */
 .animate-slide-up {
-  animation: slide-up 0.4s ease-out;
+  animation: slide-up 0.4s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
 }
 
 .animate-slide-down {
-  animation: slide-down 0.4s ease-out;
+  animation: slide-down 0.4s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.4s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
 }
 
 .animate-slide-in-right {
-  animation: slide-in-right 0.4s ease-out;
+  animation: slide-in-right 0.4s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
 }
 
+/* Scale */
 .animate-scale-in {
-  animation: scale-in 0.2s ease-out;
+  animation: scale-in 0.25s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
 }
 
+.animate-scale-spring {
+  animation: scale-spring 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Modal */
+.animate-modal-in {
+  animation: modal-in 0.3s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+.animate-backdrop-in {
+  animation: backdrop-in 0.3s ease-out forwards;
+}
+
+/* Continuous */
 .animate-pulse-subtle {
   animation: pulse-subtle 2s ease-in-out infinite;
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  background: linear-gradient(
+    90deg, 
+    transparent 0%, 
+    rgba(255,255,255,0.08) 50%, 
+    transparent 100%
+  );
   background-size: 200% 100%;
-  animation: shimmer 2s infinite;
+  animation: shimmer 1.5s ease-in-out infinite;
 }
 
 .animate-float {
-  animation: float 3s ease-in-out infinite;
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-rotate {
+  animation: rotate 1s linear infinite;
+}
+
+.animate-bounce-gentle {
+  animation: bounce-gentle 1s ease-in-out infinite;
 }
 
 .animate-glow {
-  animation: glow-pulse 2s ease-in-out infinite;
+  animation: glow-pulse 3s ease-in-out infinite;
 }
 
 .dark .animate-glow {
-  animation: glow-pulse-dark 2s ease-in-out infinite;
+  animation: glow-pulse-dark 3s ease-in-out infinite;
 }
 
-/* Stagger animation delays for lists */
-.stagger-1 { animation-delay: 0.05s; }
-.stagger-2 { animation-delay: 0.1s; }
-.stagger-3 { animation-delay: 0.15s; }
-.stagger-4 { animation-delay: 0.2s; }
-.stagger-5 { animation-delay: 0.25s; }
-.stagger-6 { animation-delay: 0.3s; }
+.animate-blink {
+  animation: blink 1s step-end infinite;
+}
 
-/* Micro-interaction transitions */
+/* Stagger animation delays - Apple style increments */
+.stagger-1 { animation-delay: 0.03s; }
+.stagger-2 { animation-delay: 0.06s; }
+.stagger-3 { animation-delay: 0.09s; }
+.stagger-4 { animation-delay: 0.12s; }
+.stagger-5 { animation-delay: 0.15s; }
+.stagger-6 { animation-delay: 0.18s; }
+.stagger-7 { animation-delay: 0.21s; }
+.stagger-8 { animation-delay: 0.24s; }
+
+/* Fill mode for staggered animations */
+.animate-stagger {
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+/* ========================================
+   MICRO-INTERACTIONS
+   ======================================== */
+
+/* Hover lift - subtle elevation */
 .hover-lift {
-  @apply transition-all duration-200;
+  @apply transition-all duration-300;
+  transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .hover-lift:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  transform: translateY(-3px);
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.08),
+    0 6px 12px rgba(0, 0, 0, 0.04);
 }
 
 .dark .hover-lift:hover {
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.4),
+    0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
+/* Hover scale */
 .hover-scale {
   @apply transition-transform duration-200;
+  transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .hover-scale:hover {
@@ -335,13 +663,41 @@
   transform: scale(0.98);
 }
 
-/* Button press effect */
+/* Button press effect - Apple style */
 .press-effect {
-  @apply transition-all duration-100;
+  @apply transition-transform duration-100;
+  transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .press-effect:active {
-  transform: scale(0.97);
+  transform: scale(0.96);
+}
+
+/* Hover glow */
+.hover-glow {
+  @apply transition-shadow duration-300;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+}
+
+.dark .hover-glow:hover {
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.05);
+}
+
+/* Interactive card */
+.interactive {
+  @apply transition-all duration-200;
+  transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.interactive:hover {
+  transform: translateY(-2px);
+}
+
+.interactive:active {
+  transform: translateY(0) scale(0.99);
 }
 
 /* Smooth card reveal on scroll */

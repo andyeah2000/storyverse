@@ -21,7 +21,9 @@ import {
   Eye,
   BookOpen,
   ArrowRight,
-  Wand2
+  Wand2,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { getGeminiClient } from '../services/geminiService';
@@ -59,8 +61,132 @@ const Characters: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingField, setGeneratingField] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanProgress, setScanProgress] = useState('');
+  const [focusMode, setFocusMode] = useState(false);
 
   const isDark = theme === 'dark';
+
+  // Get all content to scan
+  const getAllContent = () => {
+    const scripts = sources.filter(s => s.type === 'script').map(s => s.content).join('\n\n');
+    const lore = sources.filter(s => s.type === 'lore').map(s => `${s.title}: ${s.content}`).join('\n');
+    const locations = sources.filter(s => s.type === 'location').map(s => s.title).join(', ');
+    const existingChars = sources.filter(s => s.type === 'character').map(s => s.title).join(', ');
+    
+    return { scripts, lore, locations, existingChars };
+  };
+
+  // AI Auto-Scan: Extract all characters from content
+  const autoScanCharacters = async () => {
+    setIsScanning(true);
+    setScanProgress('Analyzing your story content...');
+    
+    try {
+      const client = getGeminiClient();
+      const { scripts, lore, locations, existingChars } = getAllContent();
+      
+      if (!scripts && !lore) {
+        setScanProgress('No content found. Add a script or lore first!');
+        setTimeout(() => setIsScanning(false), 2000);
+        return;
+      }
+
+      setScanProgress('Extracting characters from your story...');
+      
+      const response = await client.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: [{
+          role: 'user',
+          parts: [{ text: `Analyze this story content and extract ALL characters mentioned. Create detailed profiles for each.
+
+STORY CONTENT:
+${scripts || 'No script yet'}
+
+EXISTING LORE:
+${lore || 'None'}
+
+LOCATIONS IN STORY:
+${locations || 'None'}
+
+ALREADY CREATED CHARACTERS (skip these):
+${existingChars || 'None'}
+
+For EACH new character found (not in the already created list), generate a complete profile.
+Return as a JSON array:
+[
+  {
+    "name": "Character Name",
+    "role": "protagonist|antagonist|supporting|minor",
+    "age": "age or estimate",
+    "appearance": "physical description based on context clues",
+    "personality": "personality based on their actions/dialogue",
+    "backstory": "inferred backstory",
+    "motivation": "what drives them",
+    "flaw": "their weakness",
+    "arc": "their journey in the story",
+    "relationships": "connections to other characters"
+  }
+]
+
+Extract even minor characters mentioned by name. Be thorough.
+Return ONLY the JSON array, nothing else.` }]
+        }]
+      });
+
+      const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const match = text.match(/\[[\s\S]*\]/);
+      
+      if (match) {
+        const characters = JSON.parse(match[0]);
+        setScanProgress(`Found ${characters.length} new characters. Creating profiles...`);
+        
+        for (let i = 0; i < characters.length; i++) {
+          const char = characters[i];
+          setScanProgress(`Creating ${char.name} (${i + 1}/${characters.length})...`);
+          
+          // Check if character already exists
+          const exists = sources.some(s => 
+            s.type === 'character' && 
+            s.title.toLowerCase() === char.name.toLowerCase()
+          );
+          
+          if (!exists) {
+            addSource({
+              title: char.name,
+              content: `${char.appearance || ''}\n\n${char.personality || ''}\n\n${char.backstory || ''}`.trim(),
+              type: 'character',
+              tags: [char.role],
+              characterDetails: {
+                age: char.age,
+                role: char.role as CharacterDetails['role'],
+                motivation: char.motivation,
+                flaw: char.flaw,
+                arc: char.arc,
+                relationships: char.relationships,
+                backstory: char.backstory,
+              }
+            });
+            
+            // Small delay to prevent overwhelming
+            await new Promise(r => setTimeout(r, 100));
+          }
+        }
+        
+        setScanProgress(`✓ Created ${characters.length} character profiles!`);
+      } else {
+        setScanProgress('No new characters found in your content.');
+      }
+    } catch (e) {
+      console.error('Auto-scan failed:', e);
+      setScanProgress('Scan failed. Make sure you have a Gemini API key configured.');
+    } finally {
+      setTimeout(() => {
+        setIsScanning(false);
+        setScanProgress('');
+      }, 2000);
+    }
+  };
 
   // Get all characters
   const characters = useMemo(() => 
@@ -251,7 +377,8 @@ Return only the ${field} content, nothing else.` }]
 
   return (
     <div className={cn(
-      "h-full flex rounded-2xl shadow-subtle border overflow-hidden",
+      "flex rounded-2xl shadow-subtle border overflow-hidden",
+      focusMode ? "fixed inset-0 z-50 m-4" : "h-full",
       isDark ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200/60'
     )}>
       
@@ -384,20 +511,54 @@ Return only the ${field} content, nothing else.` }]
 
         {/* Quick Add */}
         <div className={cn(
-          "p-3 border-t",
+          "p-3 border-t space-y-2",
           isDark ? 'border-stone-800' : 'border-stone-100'
         )}>
+          {/* Auto-Scan Button */}
+          <button
+            onClick={autoScanCharacters}
+            disabled={isScanning}
+            className={cn(
+              "w-full h-9 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition-all",
+              isDark
+                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:opacity-90 disabled:opacity-50'
+                : 'bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:opacity-90 disabled:opacity-50'
+            )}
+          >
+            {isScanning ? (
+              <>
+                <Loader2 size={14} className="animate-spin" />
+                Scanning...
+              </>
+            ) : (
+              <>
+                <Wand2 size={14} />
+                Auto-Scan Story
+              </>
+            )}
+          </button>
+          
+          {/* Progress Message */}
+          {scanProgress && (
+            <p className={cn(
+              "text-[10px] text-center px-2",
+              isDark ? 'text-stone-400' : 'text-stone-500'
+            )}>
+              {scanProgress}
+            </p>
+          )}
+          
           <button
             onClick={() => setIsCreating(true)}
             className={cn(
               "w-full h-9 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition-colors",
               isDark
-                ? 'bg-white text-stone-900 hover:bg-stone-100'
-                : 'bg-stone-900 text-white hover:bg-stone-800'
+                ? 'bg-stone-800 text-stone-300 hover:bg-stone-700'
+                : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
             )}
           >
-            <Sparkles size={14} />
-            AI Create Character
+            <Plus size={14} />
+            Create Manually
           </button>
         </div>
       </div>
@@ -459,6 +620,18 @@ Return only the ${field} content, nothing else.` }]
               </div>
               
               <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setFocusMode(!focusMode)}
+                  className={cn(
+                    "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                    focusMode
+                      ? isDark ? 'bg-white text-stone-900' : 'bg-stone-900 text-white'
+                      : isDark ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-stone-100 text-stone-500'
+                  )}
+                  title={focusMode ? 'Exit focus mode' : 'Focus mode'}
+                >
+                  {focusMode ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                </button>
                 <button
                   onClick={() => setEditMode(!editMode)}
                   className={cn(

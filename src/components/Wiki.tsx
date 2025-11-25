@@ -23,7 +23,9 @@ import {
   Wand2,
   ExternalLink,
   Globe,
-  Layers
+  Layers,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { getGeminiClient } from '../services/geminiService';
@@ -95,8 +97,110 @@ const Wiki: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [newArticle, setNewArticle] = useState({ title: '', type: 'lore' as CategoryType });
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanProgress, setScanProgress] = useState('');
+  const [focusMode, setFocusMode] = useState(false);
 
   const isDark = theme === 'dark';
+
+  // Get all content for scanning
+  const getAllContent = () => {
+    const scripts = sources.filter(s => s.type === 'script').map(s => s.content).join('\n\n');
+    const existingTitles = sources.map(s => s.title.toLowerCase());
+    return { scripts, existingTitles };
+  };
+
+  // AI Auto-Scan: Extract everything from the story
+  const autoScanUniverse = async () => {
+    setIsScanning(true);
+    setScanProgress('Reading your story...');
+    
+    try {
+      const client = getGeminiClient();
+      const { scripts, existingTitles } = getAllContent();
+      
+      if (!scripts) {
+        setScanProgress('No script found. Write something first!');
+        setTimeout(() => setIsScanning(false), 2000);
+        return;
+      }
+
+      setScanProgress('Analyzing story for locations, factions, events, concepts...');
+      
+      const response = await client.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: [{
+          role: 'user',
+          parts: [{ text: `Analyze this story/script and extract ALL world-building elements. Create wiki entries for everything.
+
+STORY CONTENT:
+${scripts}
+
+ALREADY EXISTING ENTRIES (skip these exact titles):
+${existingTitles.join(', ') || 'None'}
+
+Extract and create detailed wiki entries for:
+1. LOCATIONS - Every place mentioned (cities, buildings, planets, rooms, etc.)
+2. FACTIONS - Organizations, groups, families, companies, governments
+3. EVENTS - Important happenings, battles, ceremonies, historical events
+4. CONCEPTS - Technologies, magic systems, cultural practices, rules of the world
+5. LORE - History, legends, background information
+
+Return as JSON array:
+[
+  {
+    "title": "Name of the entry",
+    "type": "location|faction|event|concept|lore",
+    "content": "Detailed 2-3 paragraph description written in encyclopedic style. Include all relevant details from the story. Make connections to other elements."
+  }
+]
+
+Be thorough - extract EVERYTHING mentioned, even briefly. Create rich, interconnected entries.
+Return ONLY the JSON array.` }]
+        }]
+      });
+
+      const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const match = text.match(/\[[\s\S]*\]/);
+      
+      if (match) {
+        const entries = JSON.parse(match[0]);
+        setScanProgress(`Found ${entries.length} wiki entries. Creating...`);
+        
+        let created = 0;
+        for (let i = 0; i < entries.length; i++) {
+          const entry = entries[i];
+          setScanProgress(`Creating "${entry.title}" (${i + 1}/${entries.length})...`);
+          
+          // Check if already exists
+          const exists = existingTitles.includes(entry.title.toLowerCase());
+          
+          if (!exists && entry.title && entry.content) {
+            addSource({
+              title: entry.title,
+              content: entry.content,
+              type: entry.type as CategoryType,
+              tags: []
+            });
+            created++;
+            await new Promise(r => setTimeout(r, 100));
+          }
+        }
+        
+        setScanProgress(`✓ Created ${created} wiki entries!`);
+      } else {
+        setScanProgress('No new entries found.');
+      }
+    } catch (e) {
+      console.error('Auto-scan failed:', e);
+      setScanProgress('Scan failed. Check your API key.');
+    } finally {
+      setTimeout(() => {
+        setIsScanning(false);
+        setScanProgress('');
+      }, 2500);
+    }
+  };
 
   // Filter sources (exclude scripts from wiki by default)
   const wikiSources = useMemo(() => 
@@ -366,7 +470,8 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
 
   return (
     <div className={cn(
-      "h-full flex rounded-2xl shadow-subtle border overflow-hidden",
+      "flex rounded-2xl shadow-subtle border overflow-hidden",
+      focusMode ? "fixed inset-0 z-50 m-4" : "h-full",
       isDark ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200/60'
     )}>
       
@@ -495,16 +600,50 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
 
         {/* Create Button */}
         <div className={cn(
-          "p-3 border-t",
+          "p-3 border-t space-y-2",
           isDark ? 'border-stone-800' : 'border-stone-100'
         )}>
+          {/* Auto-Scan Universe Button */}
+          <button
+            onClick={autoScanUniverse}
+            disabled={isScanning}
+            className={cn(
+              "w-full h-9 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition-all",
+              isDark
+                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:opacity-90 disabled:opacity-50'
+                : 'bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:opacity-90 disabled:opacity-50'
+            )}
+          >
+            {isScanning ? (
+              <>
+                <Loader2 size={14} className="animate-spin" />
+                Scanning...
+              </>
+            ) : (
+              <>
+                <Wand2 size={14} />
+                Auto-Build Wiki
+              </>
+            )}
+          </button>
+          
+          {/* Progress Message */}
+          {scanProgress && (
+            <p className={cn(
+              "text-[10px] text-center px-2",
+              isDark ? 'text-stone-400' : 'text-stone-500'
+            )}>
+              {scanProgress}
+            </p>
+          )}
+          
           <button
             onClick={() => setIsCreating(true)}
             className={cn(
               "w-full h-9 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition-colors",
               isDark
-                ? 'bg-white text-stone-900 hover:bg-stone-100'
-                : 'bg-stone-900 text-white hover:bg-stone-800'
+                ? 'bg-stone-800 text-stone-300 hover:bg-stone-700'
+                : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
             )}
           >
             <Sparkles size={14} />
@@ -571,6 +710,20 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
               </div>
               
               <div className="flex items-center gap-2">
+                {/* Focus Mode */}
+                <button
+                  onClick={() => setFocusMode(!focusMode)}
+                  className={cn(
+                    "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                    focusMode
+                      ? isDark ? 'bg-white text-stone-900' : 'bg-stone-900 text-white'
+                      : isDark ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-stone-100 text-stone-500'
+                  )}
+                  title={focusMode ? 'Exit focus mode' : 'Focus mode'}
+                >
+                  {focusMode ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                </button>
+                
                 {/* Expand with AI */}
                 <button
                   onClick={expandArticle}

@@ -772,7 +772,7 @@ const createToolExecutor = (storyContext: ReturnType<typeof useStory>, navigate:
             'editor': '/app', 'beats': '/app/beats', 'outline': '/app/outline',
             'map': '/app/map', 'mindmap': '/app/mindmap', 'co-writer': '/app/co-writer',
             'table-read': '/app/table-read', 'notes': '/app/notes', 'mood-board': '/app/mood-board',
-            'settings': '/app/settings'
+            'settings': '/app/settings', 'characters': '/app/characters', 'wiki': '/app/wiki'
           };
           const page = params.page as string;
           if (!page) return { success: false, message: 'Keine Seite angegeben.', error: 'MISSING_PARAM' };
@@ -783,6 +783,141 @@ const createToolExecutor = (storyContext: ReturnType<typeof useStory>, navigate:
             return { success: true, message: `🧭 Navigiert zu ${page}.` };
           }
           return { success: false, message: `Unbekannte Seite: "${page}". Verfügbar: ${Object.keys(routes).join(', ')}`, error: 'INVALID' };
+        }
+
+        // ════════════════════════════════════════════════════════════
+        // CHARACTERS (Extended)
+        // ════════════════════════════════════════════════════════════
+        case 'create_character': {
+          const name = params.name as string;
+          if (!name) return { success: false, message: 'Kein Name angegeben.', error: 'MISSING_PARAM' };
+          
+          const existing = sources.find(s => s.type === 'character' && s.title.toLowerCase() === name.toLowerCase());
+          if (existing) return { success: false, message: `Charakter "${name}" existiert bereits.`, error: 'DUPLICATE' };
+          
+          const content = [
+            params.role && `Rolle: ${params.role}`,
+            params.age && `Alter: ${params.age}`,
+            params.personality && `Persönlichkeit: ${params.personality}`,
+            params.appearance && `Aussehen: ${params.appearance}`,
+            params.backstory && `Hintergrund: ${params.backstory}`,
+            params.motivation && `Motivation: ${params.motivation}`,
+            params.arc && `Entwicklung: ${params.arc}`
+          ].filter(Boolean).join('\n\n');
+          
+          addSource({
+            title: name,
+            content: content || 'Neuer Charakter',
+            type: 'character',
+            tags: (params.tags as string[]) || [],
+            characterSheet: {
+              name,
+              role: (params.role as string) || '',
+              age: (params.age as string) || '',
+              appearance: (params.appearance as string) || '',
+              personality: (params.personality as string) || '',
+              backstory: (params.backstory as string) || '',
+              motivation: (params.motivation as string) || '',
+              relationships: (params.relationships as string) || '',
+              arc: (params.arc as string) || '',
+              quirks: (params.quirks as string) || ''
+            }
+          });
+          navigate('/app/characters');
+          return { success: true, message: `👤 Charakter "${name}" wurde erstellt.` };
+        }
+
+        case 'update_character': {
+          const name = params.name as string;
+          if (!name) return { success: false, message: 'Kein Name angegeben.', error: 'MISSING_PARAM' };
+          
+          const character = sources.find(s => s.type === 'character' && fuzzyMatch(name, s.title));
+          if (!character) return { success: false, message: `Charakter "${name}" nicht gefunden.`, error: 'NOT_FOUND' };
+          
+          const updates: Record<string, unknown> = {};
+          if (params.newName) updates.title = params.newName;
+          if (params.role || params.personality || params.backstory) {
+            const existingSheet = character.characterSheet || {};
+            const newSheet: Record<string, string> = { ...existingSheet };
+            if (params.role) newSheet.role = params.role as string;
+            if (params.age) newSheet.age = params.age as string;
+            if (params.personality) newSheet.personality = params.personality as string;
+            if (params.appearance) newSheet.appearance = params.appearance as string;
+            if (params.backstory) newSheet.backstory = params.backstory as string;
+            if (params.motivation) newSheet.motivation = params.motivation as string;
+            if (params.arc) newSheet.arc = params.arc as string;
+            if (params.quirks) newSheet.quirks = params.quirks as string;
+            if (params.relationships) newSheet.relationships = params.relationships as string;
+            updates.characterSheet = newSheet;
+            
+            // Update content with new info
+            updates.content = Object.entries(newSheet)
+              .filter(([k, v]) => v && k !== 'name')
+              .map(([k, v]) => `${k.charAt(0).toUpperCase() + k.slice(1)}: ${v}`)
+              .join('\n\n');
+          }
+          
+          updateSource(character.id, updates);
+          return { success: true, message: `👤 Charakter "${character.title}" wurde aktualisiert.` };
+        }
+
+        // ════════════════════════════════════════════════════════════
+        // WIKI / LOCATIONS / LORE (Extended)
+        // ════════════════════════════════════════════════════════════
+        case 'create_location': {
+          const name = params.name as string;
+          if (!name) return { success: false, message: 'Kein Name angegeben.', error: 'MISSING_PARAM' };
+          
+          const existing = sources.find(s => s.type === 'location' && s.title.toLowerCase() === name.toLowerCase());
+          if (existing) return { success: false, message: `Ort "${name}" existiert bereits.`, error: 'DUPLICATE' };
+          
+          addSource({
+            title: name,
+            content: (params.description as string) || 'Neuer Ort',
+            type: 'location',
+            tags: (params.tags as string[]) || [],
+            locationDetails: {
+              climate: (params.climate as string) || '',
+              history: (params.history as string) || '',
+              significance: (params.significance as string) || ''
+            }
+          });
+          navigate('/app/wiki');
+          return { success: true, message: `📍 Ort "${name}" wurde erstellt.` };
+        }
+
+        case 'create_lore': {
+          const name = params.name as string;
+          if (!name) return { success: false, message: 'Kein Name angegeben.', error: 'MISSING_PARAM' };
+          
+          addSource({
+            title: name,
+            content: (params.description as string) || 'Neues Lore-Element',
+            type: 'lore',
+            tags: (params.tags as string[]) || []
+          });
+          navigate('/app/wiki');
+          return { success: true, message: `📜 Lore "${name}" wurde erstellt.` };
+        }
+
+        case 'create_faction': {
+          const name = params.name as string;
+          if (!name) return { success: false, message: 'Kein Name angegeben.', error: 'MISSING_PARAM' };
+          
+          addSource({
+            title: name,
+            content: (params.description as string) || 'Neue Fraktion',
+            type: 'faction',
+            tags: (params.tags as string[]) || [],
+            factionDetails: {
+              goals: (params.ideology as string) || '',
+              leader: (params.leadership as string) || '',
+              allies: params.allies ? [(params.allies as string)] : [],
+              enemies: params.enemies ? [(params.enemies as string)] : []
+            }
+          });
+          navigate('/app/wiki');
+          return { success: true, message: `⚔️ Fraktion "${name}" wurde erstellt.` };
         }
 
         // ════════════════════════════════════════════════════════════

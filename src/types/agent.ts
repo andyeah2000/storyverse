@@ -490,11 +490,109 @@ export const AGENT_TOOLS_DECLARATION = [
       properties: {
         page: {
           type: "string",
-          enum: ["editor", "beats", "outline", "map", "mindmap", "co-writer", "table-read", "notes", "mood-board", "settings"],
+          enum: ["editor", "beats", "outline", "map", "mindmap", "co-writer", "table-read", "notes", "mood-board", "settings", "characters", "wiki"],
           description: "Die Zielseite"
         }
       },
       required: ["page"]
+    }
+  },
+
+  // ╔══════════════════════════════════════════════════════════════╗
+  // ║                   CHARACTERS (Extended)                       ║
+  // ╚══════════════════════════════════════════════════════════════╝
+  {
+    name: "create_character",
+    description: "Erstelle einen detaillierten Charakter mit Profil - navigiert automatisch zur Characters-Seite",
+    parameters: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "Name des Charakters" },
+        role: { type: "string", description: "Rolle (z.B. Protagonist, Antagonist, Mentor)" },
+        age: { type: "string", description: "Alter" },
+        personality: { type: "string", description: "Persönlichkeit und Charakterzüge" },
+        appearance: { type: "string", description: "Aussehen" },
+        backstory: { type: "string", description: "Hintergrundgeschichte" },
+        motivation: { type: "string", description: "Was treibt den Charakter an" },
+        arc: { type: "string", description: "Charakterentwicklung im Verlauf" },
+        quirks: { type: "string", description: "Besondere Eigenheiten" },
+        relationships: { type: "string", description: "Beziehungen zu anderen Charakteren" },
+        tags: { type: "array", items: { type: "string" } }
+      },
+      required: ["name"]
+    }
+  },
+  {
+    name: "update_character",
+    description: "Aktualisiere einen bestehenden Charakter",
+    parameters: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "Name des Charakters (Fuzzy-Match)" },
+        newName: { type: "string" },
+        role: { type: "string" },
+        age: { type: "string" },
+        personality: { type: "string" },
+        appearance: { type: "string" },
+        backstory: { type: "string" },
+        motivation: { type: "string" },
+        arc: { type: "string" },
+        quirks: { type: "string" },
+        relationships: { type: "string" }
+      },
+      required: ["name"]
+    }
+  },
+
+  // ╔══════════════════════════════════════════════════════════════╗
+  // ║                   WIKI / WORLD BUILDING                       ║
+  // ╚══════════════════════════════════════════════════════════════╝
+  {
+    name: "create_location",
+    description: "Erstelle einen neuen Ort/Schauplatz - navigiert automatisch zur Wiki-Seite",
+    parameters: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "Name des Ortes" },
+        description: { type: "string", description: "Beschreibung des Ortes" },
+        climate: { type: "string", description: "Klima/Wetter" },
+        culture: { type: "string", description: "Kultur und Gesellschaft" },
+        history: { type: "string", description: "Geschichte des Ortes" },
+        significance: { type: "string", description: "Bedeutung für die Story" },
+        tags: { type: "array", items: { type: "string" } }
+      },
+      required: ["name"]
+    }
+  },
+  {
+    name: "create_lore",
+    description: "Erstelle ein neues Lore/Weltenbau-Element - navigiert zur Wiki-Seite",
+    parameters: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "Name des Lore-Elements" },
+        description: { type: "string", description: "Detaillierte Beschreibung" },
+        tags: { type: "array", items: { type: "string" } }
+      },
+      required: ["name"]
+    }
+  },
+  {
+    name: "create_faction",
+    description: "Erstelle eine neue Fraktion/Organisation - navigiert zur Wiki-Seite",
+    parameters: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "Name der Fraktion" },
+        description: { type: "string", description: "Beschreibung der Fraktion" },
+        ideology: { type: "string", description: "Ideologie und Werte" },
+        leadership: { type: "string", description: "Führung und Struktur" },
+        resources: { type: "string", description: "Ressourcen und Macht" },
+        allies: { type: "string", description: "Verbündete" },
+        enemies: { type: "string", description: "Feinde" },
+        tags: { type: "array", items: { type: "string" } }
+      },
+      required: ["name"]
     }
   },
 
@@ -540,8 +638,10 @@ Du hast Zugriff auf Tools die dir erlauben:
 - Das Save the Cat! Beat Sheet auszufüllen
 - Die Story Outline zu erstellen und bearbeiten
 - Notizen zu erstellen und verwalten
-- Zwischen verschiedenen Seiten zu navigieren
+- Zwischen verschiedenen Seiten zu navigieren (inkl. Characters und Wiki)
 - ALLES zu durchsuchen
+- Detaillierte Charaktere mit create_character erstellen (navigiert automatisch zur Characters-Seite)
+- Orte, Lore und Fraktionen für das Wiki erstellen
 
 ## WICHTIGE REGELN
 1. Sprich IMMER auf Deutsch
@@ -554,8 +654,10 @@ Du hast Zugriff auf Tools die dir erlauben:
 ## BEISPIELE
 - "Lies mir den Charakter Eva vor" → Benutze read_source um Eva zu finden und lies den Inhalt vor
 - "Was steht im Script?" → Benutze read_script und lies den Inhalt vor
-- "Erstelle einen neuen Charakter" → Benutze create_source mit type=character
+- "Erstelle einen neuen Charakter Max, er ist ein Detektiv" → Benutze create_character mit name="Max" und role="Detektiv"
 - "Füge eine Szene hinzu" → Benutze add_scene mit dem passenden Inhalt
+- "Zeig mir die Characters" → Benutze navigate_to mit page="characters"
+- "Erstelle einen Ort namens Dunkler Wald" → Benutze create_location mit name="Dunkler Wald"
 
 ## KONTEXT
 Du hast Zugriff auf das komplette Story-Universum des Nutzers. Nutze diesen Kontext um Konsistenz zu wahren.

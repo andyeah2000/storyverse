@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Send, Bot, User, Sparkles, Trash2 } from 'lucide-react';
-import { Source, ChatMessage } from '../types';
+import { Source } from '../types';
 import { generateAnswer } from '../services/geminiService';
 import { useStory } from '../context/StoryContext';
 import { cn } from '../lib/utils';
@@ -12,14 +12,12 @@ interface ChatInterfaceProps {
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ sources }) => {
   const { theme, chatHistory, addChatMessage, clearChatHistory } = useStory();
-  const [messages, setMessages] = useState<ChatMessage[]>(chatHistory);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    setMessages(chatHistory);
-  }, [chatHistory]);
+  // Use chatHistory directly as source of truth - no duplicate state
+  const messages = chatHistory;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -37,46 +35,28 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ sources }) => {
       return;
     }
 
-    const userMsg: ChatMessage = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      text: input,
-      timestamp: Date.now()
-    };
-
-    addChatMessage({ role: 'user', text: input });
-    setMessages(prev => [...prev, userMsg]);
+    const userText = input;
     setInput('');
     setIsLoading(true);
 
+    // Add user message to context first
+    addChatMessage({ role: 'user', text: userText });
+
     try {
-      const history = messages.map(m => ({
+      const history = [...chatHistory, { role: 'user' as const, text: userText }].map(m => ({
         role: m.role,
         parts: [{ text: m.text }]
       }));
-      history.push({ role: 'user', parts: [{ text: userMsg.text }]});
 
       const answer = await generateAnswer(history, sources);
 
       if (answer) {
         addChatMessage({ role: 'model', text: answer });
-        setMessages(prev => [...prev, {
-          id: crypto.randomUUID(),
-          role: 'model',
-          text: answer,
-          timestamp: Date.now()
-        }]);
       }
     } catch (error) {
       console.error("Chat error:", error);
       const errorMsg = error instanceof Error ? error.message : "I encountered an error. Please try again.";
       addChatMessage({ role: 'model', text: errorMsg });
-      setMessages(prev => [...prev, {
-        id: crypto.randomUUID(),
-        role: 'model',
-        text: errorMsg,
-        timestamp: Date.now()
-      }]);
     } finally {
       setIsLoading(false);
     }

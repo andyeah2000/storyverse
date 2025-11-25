@@ -20,7 +20,6 @@ import {
   CloudOff,
   FolderOpen,
   LogOut,
-  User,
   ChevronDown,
   Menu,
   X

@@ -39,7 +39,8 @@ StoryVerse is a modern screenwriting application that combines AI assistance wit
 
 - Node.js >= 20.0.0
 - npm >= 10.0.0
-- Gemini API Key ([Get one free](https://aistudio.google.com/apikey))
+- Supabase project (URL + anon key)
+- _(Optional for offline/local-only development)_ Gemini API key if you want to bypass Supabase edge functions when running entirely in the browser
 
 ### Installation
 
@@ -51,11 +52,10 @@ cd storyverse
 # Install dependencies
 npm install
 
-# Create environment file
+# Create environment file and add your Supabase credentials
 cp .env.example .env
-
-# Add your Gemini API key to .env
-# GEMINI_API_KEY=your_key_here
+# VITE_SUPABASE_URL=https://your-project.supabase.co
+# VITE_SUPABASE_ANON_KEY=your-anon-key
 
 # Start development server
 npm run dev
@@ -106,7 +106,6 @@ docker run -p 3000:80 storyverse
    |----------|-------|
    | `VITE_SUPABASE_URL` | Your Supabase project URL |
    | `VITE_SUPABASE_ANON_KEY` | Your Supabase anon key |
-   | `VITE_GEMINI_API_KEY` | Optional - users can set in Settings |
 
 4. **Deploy**
    - Vercel auto-deploys on push to main
@@ -114,10 +113,11 @@ docker run -p 3000:80 storyverse
 ### Supabase Setup
 
 1. Create project at [supabase.com](https://supabase.com)
-2. Go to **SQL Editor** and run the migration:
-   ```sql
-   -- See supabase/migrations/001_initial_schema.sql
+2. Apply all migrations (CLI recommended):
+   ```bash
+   supabase db push
    ```
+   > Alternatively, run every SQL file in `supabase/migrations/` manually (001_initial_schema.sql, 002_project_activity.sql, ...).
 3. Enable **Email Auth** in Authentication > Providers
 4. Get your keys from Settings > API:
    - Project URL → `VITE_SUPABASE_URL`
@@ -135,6 +135,83 @@ npm run dev
 ```
 
 > **Note**: The app works without Supabase for local development. Data is stored in LocalStorage. Configure Supabase for cloud sync and production deployment.
+
+## Development Workflow
+
+### Supabase CLI Setup
+
+1. **Install Supabase CLI**
+   ```bash
+   npm install -g supabase
+   # Or using Homebrew (macOS)
+   brew install supabase/tap/supabase
+   ```
+
+2. **Link to your project**
+   ```bash
+   supabase link --project-ref your-project-ref
+   ```
+
+3. **Local Development**
+   ```bash
+   # Start local Supabase (includes database, auth, storage, edge functions)
+   supabase start
+   
+   # Serve edge functions locally
+   supabase functions serve
+   ```
+
+### Database Migrations
+
+1. **Create a new migration**
+   ```bash
+   supabase migration new migration_name
+   ```
+   This creates a new SQL file in `supabase/migrations/` with a timestamp.
+
+2. **Apply migrations to remote**
+   ```bash
+   supabase db push
+   ```
+
+3. **Apply migrations locally**
+   ```bash
+   supabase db reset  # Resets local DB and applies all migrations
+   ```
+
+### Edge Functions
+
+1. **Create a new function**
+   ```bash
+   supabase functions new function-name
+   ```
+
+2. **Deploy a function**
+   ```bash
+   supabase functions deploy function-name
+   ```
+
+3. **Set secrets (environment variables)**
+   ```bash
+   supabase secrets set GEMINI_API_KEY=your_key_here
+   supabase secrets set SUPABASE_SERVICE_ROLE_KEY=your_service_key_here
+   ```
+
+4. **View function logs**
+   ```bash
+   supabase functions logs function-name
+   ```
+
+### Production Deployment Checklist
+
+- [ ] Run all migrations: `supabase db push`
+- [ ] Deploy edge functions: `supabase functions deploy manage-user` and `supabase functions deploy gemini-proxy`
+- [ ] Set all required secrets in Supabase Dashboard > Edge Functions > Secrets
+- [ ] Configure email provider (Resend or Supabase SMTP) for invite notifications
+- [ ] Set `APP_URL` environment variable to your production domain
+- [ ] Test account deletion flow
+- [ ] Test collaboration invites with email notifications
+- [ ] Verify conflict resolution works with concurrent edits
 
 ## Project Structure
 
@@ -171,11 +248,22 @@ storyverse/
 
 ### Environment Variables
 
+#### Frontend (Vite)
 | Variable | Description | Required |
 |----------|-------------|----------|
 | `VITE_SUPABASE_URL` | Supabase project URL | For cloud sync |
 | `VITE_SUPABASE_ANON_KEY` | Supabase anonymous key | For cloud sync |
-| `VITE_GEMINI_API_KEY` | Google Gemini API key | Optional (users set in Settings) |
+
+> **Note**: Gemini API key is now handled server-side via Edge Functions. Users no longer need to configure it in Settings.
+
+#### Supabase Edge Functions (Set in Supabase Dashboard > Edge Functions > Secrets)
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `GEMINI_API_KEY` | Google Gemini API key | Yes (for gemini-proxy function) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key | Yes (for manage-user function) |
+| `RESEND_API_KEY` | Resend API key for emails | Optional (if using Resend instead of Supabase SMTP) |
+| `FROM_EMAIL` | Email address for sending invites | Optional (defaults to noreply@storyverse.app) |
+| `APP_URL` | Your app's public URL | Optional (for invite links) |
 
 ### Path Aliases
 

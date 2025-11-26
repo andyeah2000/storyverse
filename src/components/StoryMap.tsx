@@ -115,7 +115,9 @@ Start from just before the ending and work back to the beginning.` }]
       });
 
       const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      const lines = text.split('\n').filter(l => l.includes('TITLE:'));
+      const lines = text
+        .split('\n')
+        .filter((line: string) => line.includes('TITLE:'));
       
       let parentId = rootNode.id;
       for (const line of lines) {

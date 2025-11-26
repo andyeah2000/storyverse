@@ -230,7 +230,7 @@ export enum AppMode {
   INTERVIEW = 'INTERVIEW',
 }
 
-export type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'error';
+export type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'error' | 'conflict';
 
 export type ProjectAccess = 'owner' | 'edit' | 'view';
 

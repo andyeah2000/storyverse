@@ -23,18 +23,23 @@ CREATE INDEX IF NOT EXISTS projects_updated_at_idx ON projects(updated_at DESC);
 ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies: Users can only access their own projects
+DROP POLICY IF EXISTS "Users can view own projects" ON projects;
 CREATE POLICY "Users can view own projects" ON projects
   FOR SELECT USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can insert own projects" ON projects;
 CREATE POLICY "Users can insert own projects" ON projects
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update own projects" ON projects;
 CREATE POLICY "Users can update own projects" ON projects
   FOR UPDATE USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can delete own projects" ON projects;
 CREATE POLICY "Users can delete own projects" ON projects
   FOR DELETE USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Collaborators can view shared projects" ON projects;
 CREATE POLICY "Collaborators can view shared projects" ON projects
   FOR SELECT USING (
     EXISTS (
@@ -45,6 +50,7 @@ CREATE POLICY "Collaborators can view shared projects" ON projects
     )
   );
 
+DROP POLICY IF EXISTS "Collaborators can update shared projects" ON projects;
 CREATE POLICY "Collaborators can update shared projects" ON projects
   FOR UPDATE USING (
     EXISTS (
@@ -70,12 +76,15 @@ CREATE TABLE IF NOT EXISTS user_settings (
 ALTER TABLE user_settings ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies
+DROP POLICY IF EXISTS "Users can view own settings" ON user_settings;
 CREATE POLICY "Users can view own settings" ON user_settings
   FOR SELECT USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can insert own settings" ON user_settings;
 CREATE POLICY "Users can insert own settings" ON user_settings
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update own settings" ON user_settings;
 CREATE POLICY "Users can update own settings" ON user_settings
   FOR UPDATE USING (auth.uid() = user_id);
 
@@ -102,6 +111,7 @@ CREATE INDEX IF NOT EXISTS project_shares_user_idx ON project_shares(shared_with
 ALTER TABLE project_shares ENABLE ROW LEVEL SECURITY;
 
 -- RLS: Project owners can manage shares
+DROP POLICY IF EXISTS "Project owners can view shares" ON project_shares;
 CREATE POLICY "Project owners can view shares" ON project_shares
   FOR SELECT USING (
     EXISTS (
@@ -109,6 +119,7 @@ CREATE POLICY "Project owners can view shares" ON project_shares
     )
   );
 
+DROP POLICY IF EXISTS "Project owners can insert shares" ON project_shares;
 CREATE POLICY "Project owners can insert shares" ON project_shares
   FOR INSERT WITH CHECK (
     EXISTS (
@@ -116,6 +127,7 @@ CREATE POLICY "Project owners can insert shares" ON project_shares
     )
   );
 
+DROP POLICY IF EXISTS "Project owners can update shares" ON project_shares;
 CREATE POLICY "Project owners can update shares" ON project_shares
   FOR UPDATE USING (
     EXISTS (
@@ -123,6 +135,7 @@ CREATE POLICY "Project owners can update shares" ON project_shares
     )
   );
 
+DROP POLICY IF EXISTS "Project owners can delete shares" ON project_shares;
 CREATE POLICY "Project owners can delete shares" ON project_shares
   FOR DELETE USING (
     EXISTS (
@@ -130,11 +143,13 @@ CREATE POLICY "Project owners can delete shares" ON project_shares
     )
   );
 
+DROP POLICY IF EXISTS "Invitees can view their shares" ON project_shares;
 CREATE POLICY "Invitees can view their shares" ON project_shares
   FOR SELECT USING (
     shared_with_user_id = auth.uid() OR shared_with_email = auth.jwt() ->> 'email'
   );
 
+DROP POLICY IF EXISTS "Invitees can accept shares" ON project_shares;
 CREATE POLICY "Invitees can accept shares" ON project_shares
   FOR UPDATE USING (
     shared_with_user_id = auth.uid() OR shared_with_email = auth.jwt() ->> 'email'
@@ -143,6 +158,7 @@ CREATE POLICY "Invitees can accept shares" ON project_shares
     shared_with_user_id = auth.uid()
   );
 
+DROP POLICY IF EXISTS "Invitees can decline shares" ON project_shares;
 CREATE POLICY "Invitees can decline shares" ON project_shares
   FOR DELETE USING (
     shared_with_user_id = auth.uid() OR shared_with_email = auth.jwt() ->> 'email'

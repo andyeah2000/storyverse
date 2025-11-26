@@ -569,6 +569,52 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // PERSISTENCE
   // ============================================
 
+  // Deep merge helper for conflict resolution
+  const mergeOutlineNodes = useCallback((remote: OutlineNode[], local: OutlineNode[]): OutlineNode[] => {
+    const allNodes = new Map<string, OutlineNode>();
+    
+    [...remote, ...local].forEach(node => {
+      const existing = allNodes.get(node.id);
+      if (!existing) {
+        allNodes.set(node.id, { ...node, children: [] });
+      } else {
+        // Merge node properties, prefer remote if it's newer
+        allNodes.set(node.id, { ...existing, ...node });
+      }
+    });
+
+    // Rebuild tree structure (simplified - assumes parent relationships are preserved)
+    return Array.from(allNodes.values());
+  }, []);
+
+  const deepMerge = useCallback((local: Project, remote: Project): Project => {
+    // Merge strategy: prefer local changes for most fields, but combine arrays
+    const merged: Project = {
+      ...local,
+      ...remote,
+      // Merge arrays by combining unique items
+      sources: [...new Map([...remote.sources, ...local.sources].map(s => [s.id, s])).values()],
+      scripts: local.scripts.map(localScript => {
+        const remoteScript = remote.scripts.find(s => s.id === localScript.id);
+        if (!remoteScript) return localScript;
+        // If remote was updated more recently, prefer remote content
+        if (remoteScript.updatedAt > localScript.updatedAt) {
+          return remoteScript;
+        }
+        return localScript;
+      }),
+      storyMap: [...new Map([...remote.storyMap, ...local.storyMap].map(n => [n.id, n])).values()],
+      outline: mergeOutlineNodes(remote.outline, local.outline),
+      notes: [...new Map([...remote.notes, ...local.notes].map(n => [n.id, n])).values()],
+      moodBoard: [...new Map([...remote.moodBoard, ...local.moodBoard].map(m => [m.id, m])).values()],
+      chatHistory: [...remote.chatHistory, ...local.chatHistory].sort((a, b) => a.timestamp - b.timestamp),
+      // Beat sheet: prefer most recent changes
+      beatSheet: remote.updatedAt > local.updatedAt ? remote.beatSheet : local.beatSheet,
+      updatedAt: Date.now(),
+    };
+    return merged;
+  }, [mergeOutlineNodes]);
+
   useEffect(() => {
     // Don't save during initial load
     if (!isInitialized.current || projects.length === 0) return;
@@ -584,6 +630,53 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       try {
         if (isSupabaseMode && isAuthenticated && user) {
           const editableProjects = projects.filter(project => (projectPermissions[project.id] || 'owner') !== 'view');
+          
+          // Check for conflicts before saving
+          for (const project of editableProjects) {
+            try {
+              // Fetch current remote version
+              const { data: remoteData, error: fetchError } = await supabase
+                .from('projects')
+                .select('updated_at, data')
+                .eq('id', project.id)
+                .single();
+
+              if (!fetchError && remoteData) {
+                const remoteProject = remoteData.data as Project;
+                const remoteUpdatedAt = new Date(remoteData.updated_at).getTime();
+                const localUpdatedAt = project.updatedAt;
+
+                // If remote is newer and different, attempt merge
+                if (remoteUpdatedAt > localUpdatedAt && remoteUpdatedAt !== localUpdatedAt) {
+                  try {
+                    const mergedProject = deepMerge(project, remoteProject);
+                    // Update local project with merged version
+                    setProjects(prev => prev.map(p => p.id === project.id ? mergedProject : p));
+                    
+                    // Log activity
+                    const { error: logError } = await supabase.from('project_activity').insert({
+                      project_id: project.id,
+                      user_id: user.id,
+                      action: 'edit',
+                      metadata: { conflict_resolved: true, merged: true },
+                    });
+                    if (logError) {
+                      console.warn('Failed to log conflict resolution activity', logError);
+                    }
+                  } catch (mergeError) {
+                    console.warn('Merge failed, setting conflict status:', mergeError);
+                    setSaveStatus('conflict');
+                    // Show notification to user (could be enhanced with a toast/notification system)
+                    return;
+                  }
+                }
+              }
+            } catch (conflictCheckError) {
+              console.warn('Conflict check failed, proceeding with save:', conflictCheckError);
+              // Continue with save if conflict check fails
+            }
+          }
+
           const payload = editableProjects.map(project => ({
             id: project.id,
             user_id: project.ownerId || user.id,
@@ -598,6 +691,19 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               .upsert(payload, { onConflict: 'id' });
 
             if (error) throw error;
+
+            // Log activity for successful saves
+              for (const project of editableProjects) {
+                const { error: activityError } = await supabase.from('project_activity').insert({
+                  project_id: project.id,
+                  user_id: user.id,
+                  action: 'edit',
+                  metadata: { autosave: true },
+                });
+                if (activityError) {
+                  console.warn('Failed to log autosave activity', activityError);
+                }
+              }
           }
 
           localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
@@ -618,7 +724,7 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [projects, currentProjectId, isSupabaseMode, isAuthenticated, user, projectPermissions]);
+  }, [projects, currentProjectId, isSupabaseMode, isAuthenticated, user, projectPermissions, deepMerge]);
 
   // Save settings
   useEffect(() => {

@@ -18,6 +18,7 @@ import {
   Check,
   Cloud,
   CloudOff,
+  AlertTriangle,
   FolderOpen,
   LogOut,
   ChevronDown,
@@ -238,6 +239,11 @@ const Layout: React.FC = () => {
               {saveStatus === 'error' && (
                 <span className="flex items-center gap-1 text-xs text-red-500">
                   <CloudOff size={12} />
+                </span>
+              )}
+              {saveStatus === 'conflict' && (
+                <span className="flex items-center gap-1 text-xs text-amber-500" title="Conflict detected. Please reload the page.">
+                  <AlertTriangle size={12} />
                 </span>
               )}
             </div>

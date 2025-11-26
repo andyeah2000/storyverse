@@ -1,0 +1,12 @@
+# Supabase local development files
+.branches
+.temp
+config.toml.bak
+
+# Logs
+*.log
+
+# Environment files
+.env.local
+.env.*.local
+

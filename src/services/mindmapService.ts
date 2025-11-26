@@ -1,27 +1,6 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { Type } from "@google/genai";
 import { Source } from "../types";
-
-// Get API key from localStorage settings
-const getApiKey = (): string => {
-  try {
-    const settings = localStorage.getItem('storyverse_settings');
-    if (settings) {
-      const parsed = JSON.parse(settings);
-      return parsed.apiKey || '';
-    }
-  } catch (e) {
-    console.error('Failed to read API key from settings:', e);
-  }
-  return '';
-};
-
-const getGeminiClient = () => {
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    throw new Error("API-Key fehlt! Bitte in Settings > General eingeben.");
-  }
-  return new GoogleGenAI({ apiKey });
-};
+import { getGeminiClient } from "./geminiService";
 
 // MindMap Node structure for AI
 export interface AIMindMapNode {
@@ -184,7 +163,10 @@ Create at least 10-20 nodes if the material allows. Be creative but stay true to
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
-      contents: prompt,
+      contents: [{
+        role: 'user',
+        parts: [{ text: prompt }]
+      }],
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -276,7 +258,10 @@ Return a JSON array of nodes:
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
-      contents: prompt,
+      contents: [{
+        role: 'user',
+        parts: [{ text: prompt }]
+      }],
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -350,7 +335,10 @@ Only suggest connections that make sense based on the material. Maximum 10 conne
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
-      contents: prompt,
+      contents: [{
+        role: 'user',
+        parts: [{ text: prompt }]
+      }],
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -378,4 +366,3 @@ Only suggest connections that make sense based on the material. Maximum 10 conne
     throw new Error(e instanceof Error ? e.message : 'Failed to suggest connections');
   }
 };
-

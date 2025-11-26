@@ -504,9 +504,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (isSupabaseConfigured()) {
       try {
-        await supabase.from('projects').delete().eq('user_id', state.user.id);
-        await supabase.from('user_settings').delete().eq('user_id', state.user.id);
+        // Get session for JWT token
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          return { success: false, error: 'Not authenticated' };
+        }
 
+        // Call edge function to delete user account
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+        const response = await fetch(`${supabaseUrl}/functions/v1/manage-user/delete-user`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: state.user.id }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Failed to delete account' }));
+          return { success: false, error: errorData.error || 'Failed to delete account' };
+        }
+
+        // Sign out after successful deletion
         await supabase.auth.signOut();
         
         setState({

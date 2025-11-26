@@ -1,21 +1,9 @@
 // ============================================
 // NANO BANANA PRO - AI IMAGE SERVICE
-// Uses Gemini 2.0 Flash Native Image Generation
+// Uses Gemini 2.0 Flash Native Image Generation (via Supabase edge proxy)
 // ============================================
 
-import { GoogleGenAI, Modality } from '@google/genai';
-
-const getApiKey = (): string => {
-  try {
-    const settings = localStorage.getItem('storyverse_settings');
-    if (settings) {
-      return JSON.parse(settings).apiKey || '';
-    }
-  } catch (e) {
-    console.error('Failed to read API key:', e);
-  }
-  return '';
-};
+import { callGeminiProxy } from './geminiService';
 
 export interface ImageGenerationOptions {
   prompt: string;
@@ -90,32 +78,24 @@ function extractImageFromResponse(response: unknown): string | null {
  * Generate an image using Gemini 2.0 Flash (Nano Banana Pro)
  */
 export async function generateImage(options: ImageGenerationOptions): Promise<string> {
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    throw new Error('API key not configured. Please add your Gemini API key in Settings.');
-  }
-
-  const ai = new GoogleGenAI({ apiKey });
-  
   // Build enhanced prompt with style
   const stylePrompt = options.style ? STYLE_PROMPTS[options.style] : STYLE_PROMPTS.cinematic;
   const fullPrompt = `Generate an image: ${options.prompt}. Style: ${stylePrompt}. Aspect ratio: ${options.aspectRatio || '16:9'}. High quality, detailed.`;
 
   try {
-    // Use Gemini 2.0 Flash with native image generation
-    const response = await ai.models.generateContent({
+    const response = await callGeminiProxy('generate', {
       model: 'gemini-2.0-flash-exp',
       contents: [{
         role: 'user',
         parts: [{ text: fullPrompt }]
       }],
       config: {
-        responseModalities: [Modality.TEXT, Modality.IMAGE],
+        responseModalities: ['TEXT', 'IMAGE'],
       }
     });
 
-    // Extract image from response
-    const imageUrl = extractImageFromResponse(response);
+    const data = await response.json();
+    const imageUrl = extractImageFromResponse(data);
     
     if (!imageUrl) {
       // Check if there's text explaining why
@@ -152,13 +132,6 @@ export async function generateImage(options: ImageGenerationOptions): Promise<st
  * Edit an existing image using Gemini Vision + Image Generation
  */
 export async function editImage(options: ImageEditOptions): Promise<string> {
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    throw new Error('API key not configured');
-  }
-
-  const ai = new GoogleGenAI({ apiKey });
-
   const editInstructions: Record<string, string> = {
     'enhance': 'Enhance this image: improve quality, sharpness, colors, and overall visual appeal',
     'style-transfer': `Transform this image to: ${options.prompt}`,
@@ -168,8 +141,7 @@ export async function editImage(options: ImageEditOptions): Promise<string> {
   };
 
   try {
-    // Use Gemini with both image input and image output
-    const response = await ai.models.generateContent({
+    const response = await callGeminiProxy('generate', {
       model: 'gemini-2.0-flash-exp',
       contents: [{
         role: 'user',
@@ -186,11 +158,12 @@ export async function editImage(options: ImageEditOptions): Promise<string> {
         ]
       }],
       config: {
-        responseModalities: [Modality.TEXT, Modality.IMAGE],
+        responseModalities: ['TEXT', 'IMAGE'],
       }
     });
 
-    const imageUrl = extractImageFromResponse(response);
+    const data = await response.json();
+    const imageUrl = extractImageFromResponse(data);
     
     if (!imageUrl) {
       throw new Error('Edit failed - no image generated');
@@ -209,12 +182,6 @@ export async function editImage(options: ImageEditOptions): Promise<string> {
  * Generate image variations
  */
 export async function generateVariations(imageBase64: string, count: number = 4): Promise<string[]> {
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    throw new Error('API key not configured');
-  }
-
-  const ai = new GoogleGenAI({ apiKey });
   const variations: string[] = [];
 
   const variationPrompts = [
@@ -226,7 +193,7 @@ export async function generateVariations(imageBase64: string, count: number = 4)
 
   for (let i = 0; i < Math.min(count, variationPrompts.length); i++) {
     try {
-      const response = await ai.models.generateContent({
+      const response = await callGeminiProxy('generate', {
         model: 'gemini-2.0-flash-exp',
         contents: [{
           role: 'user',
@@ -243,11 +210,12 @@ export async function generateVariations(imageBase64: string, count: number = 4)
           ]
         }],
         config: {
-          responseModalities: [Modality.TEXT, Modality.IMAGE],
+          responseModalities: ['TEXT', 'IMAGE'],
         }
       });
 
-      const imageUrl = extractImageFromResponse(response);
+      const data = await response.json();
+      const imageUrl = extractImageFromResponse(data);
       if (imageUrl) {
         variations.push(imageUrl);
       }

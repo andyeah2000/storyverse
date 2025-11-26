@@ -323,19 +323,38 @@ export const inviteProjectCollaborator = async (
   }
 
   try {
+    // Get session for JWT token
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      return { error: new Error('Not authenticated') };
+    }
+
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail) {
       throw new Error('Email is required');
     }
 
-    const { error } = await supabase.from('project_shares').insert({
-      project_id: projectId,
-      project_name: projectName,
-      shared_with_email: normalizedEmail,
-      permission,
+    // Call edge function to send invite with email notification
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+    const response = await fetch(`${supabaseUrl}/functions/v1/manage-user/send-invite`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        projectId,
+        projectName,
+        email: normalizedEmail,
+        permission,
+      }),
     });
 
-    if (error) throw error;
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Failed to send invite' }));
+      return { error: new Error(errorData.error || 'Failed to send invite') };
+    }
+
     return { error: null };
   } catch (error) {
     return { error: error as Error };

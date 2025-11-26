@@ -205,7 +205,7 @@ npm run dev
 ### Production Deployment Checklist
 
 - [ ] Run all migrations: `supabase db push`
-- [ ] Deploy edge functions: `supabase functions deploy manage-user` and `supabase functions deploy gemini-proxy`
+- [ ] Deploy edge functions: `supabase functions deploy manage-user`, `supabase functions deploy gemini-proxy`, `supabase functions deploy billing`
 - [ ] Set all required secrets in Supabase Dashboard > Edge Functions > Secrets
 - [ ] Configure email provider (Resend or Supabase SMTP) for invite notifications
 - [ ] Set `APP_URL` environment variable to your production domain
@@ -264,6 +264,9 @@ storyverse/
 | `RESEND_API_KEY` | Resend API key for emails | Optional (if using Resend instead of Supabase SMTP) |
 | `FROM_EMAIL` | Email address for sending invites | Optional (defaults to noreply@storyverse.app) |
 | `APP_URL` | Your app's public URL | Optional (for invite links) |
+| `STRIPE_SECRET_KEY` | Stripe secret key | Yes (billing function) |
+| `STRIPE_PRICE_PRO_ID` | Stripe Price ID for Pro plan | Yes (billing function) |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret | Yes (billing function) |
 
 ### Path Aliases
 

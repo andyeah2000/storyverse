@@ -36,6 +36,7 @@ import ShareProjectModal from './ShareProjectModal';
 import { useStory } from '../context/StoryContext';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
+import { getUsageCount } from '../lib/supabase';
 
 const Layout: React.FC = () => {
   const navigate = useNavigate();
@@ -57,12 +58,15 @@ const Layout: React.FC = () => {
     currentProjectPermission,
     incomingInvites,
     acceptInvite,
-    declineInvite
+    declineInvite,
+    projects
   } = useStory();
-  const { user, logout, isSupabaseMode } = useAuth();
+  const { user, logout, isSupabaseMode, subscription, startCheckout } = useAuth();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [processingInviteId, setProcessingInviteId] = useState<string | null>(null);
+  const [bannerCheckoutLoading, setBannerCheckoutLoading] = useState(false);
+  const [aiUsage, setAiUsage] = useState(0);
 
   const accessLabel = currentProjectPermission === 'owner'
     ? 'Owner'
@@ -96,6 +100,43 @@ const Layout: React.FC = () => {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    const loadUsage = async () => {
+      if (!isSupabaseMode) {
+        setAiUsage(0);
+        return;
+      }
+      const windowStart = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const usage = await getUsageCount('ai_request', windowStart);
+      if (mounted) {
+        setAiUsage(usage);
+      }
+    };
+    loadUsage();
+    return () => { mounted = false; };
+  }, [isSupabaseMode, subscription.plan]);
+
+  const freeProjectLimit = 3;
+  const aiLimit = subscription.plan === 'free' ? 30 : Infinity;
+  const showProjectLimitBanner = subscription.plan === 'free' && projects.length >= freeProjectLimit;
+  const showAiLimitBanner = subscription.plan === 'free' && aiUsage >= aiLimit;
+
+  const handleOpenBilling = () => {
+    setSettingsOpen(true);
+  };
+
+  const handleBannerUpgrade = async () => {
+    setBannerCheckoutLoading(true);
+    const result = await startCheckout();
+    setBannerCheckoutLoading(false);
+    if (result.success && result.url) {
+      window.location.href = result.url;
+    } else if (result.error) {
+      alert(result.error);
+    }
   };
 
   const navItems = [
@@ -395,6 +436,53 @@ const Layout: React.FC = () => {
             </div>
           </div>
         </header>
+
+        {(showProjectLimitBanner || showAiLimitBanner) && (
+          <div
+            className={cn(
+              'px-4 py-2 border-b flex flex-col gap-2 text-xs',
+              theme === 'dark'
+                ? 'bg-amber-500/10 border-amber-500/30 text-amber-100'
+                : 'bg-amber-50 border-amber-200 text-amber-700'
+            )}
+          >
+            {showProjectLimitBanner && (
+              <div className="flex flex-wrap items-center gap-2">
+                <AlertTriangle size={14} />
+                <span>
+                  Du nutzt bereits {projects.length}/{freeProjectLimit} Projekten im Free-Plan.
+                </span>
+                <button
+                  onClick={handleBannerUpgrade}
+                  disabled={bannerCheckoutLoading}
+                  className="px-3 h-7 rounded-lg bg-stone-900 text-white text-[11px] font-semibold hover:bg-stone-800 transition disabled:opacity-40"
+                >
+                  {bannerCheckoutLoading ? 'Öffne Stripe…' : 'Upgrade'}
+                </button>
+                <button
+                  onClick={handleOpenBilling}
+                  className="px-3 h-7 rounded-lg border border-current/30 text-[11px] font-semibold"
+                >
+                  Billing öffnen
+                </button>
+              </div>
+            )}
+            {showAiLimitBanner && (
+              <div className="flex flex-wrap items-center gap-2">
+                <AlertTriangle size={14} />
+                <span>
+                  AI-Limit erreicht ({aiUsage}/{aiLimit}). Lade Credits auf oder upgrade.
+                </span>
+                <button
+                  onClick={handleOpenBilling}
+                  className="px-3 h-7 rounded-lg border border-current/30 text-[11px] font-semibold"
+                >
+                  Billing öffnen
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {incomingInvites.length > 0 && (
           <div

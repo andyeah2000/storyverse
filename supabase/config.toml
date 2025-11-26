@@ -4,7 +4,6 @@
 [auth]
 # Enable email auth by default
 enable_signup = true
-enable_email_auth = true
 
 [api]
 # API configuration

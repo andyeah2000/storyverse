@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, fetchSubscription, startCheckoutSession, openCustomerPortal, startCreditTopUp, type SubscriptionInfo } from '../lib/supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 // ============================================
@@ -23,6 +23,7 @@ interface AuthState {
 }
 
 interface AuthContextType extends AuthState {
+  subscription: SubscriptionInfo;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signup: (email: string, password: string, name: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
@@ -31,9 +32,20 @@ interface AuthContextType extends AuthState {
   updateProfile: (data: Partial<User>) => Promise<{ success: boolean; error?: string }>;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
   deleteAccount: () => Promise<{ success: boolean; error?: string }>;
+  refreshSubscription: () => Promise<void>;
+  startCheckout: (priceId?: string) => Promise<{ success: boolean; url?: string; error?: string }>;
+  openBillingPortal: () => Promise<{ success: boolean; url?: string; error?: string }>;
+  startCreditTopUp: () => Promise<{ success: boolean; url?: string; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const DEFAULT_SUBSCRIPTION: SubscriptionInfo = {
+  plan: 'free',
+  status: 'inactive',
+  current_period_end: null,
+  credit_balance: 0,
+};
 
 // ============================================
 // HELPER: Convert Supabase User to App User
@@ -93,6 +105,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isAuthenticated: false,
     isSupabaseMode: isSupabaseConfigured(),
   });
+  const [subscription, setSubscription] = useState<SubscriptionInfo>(DEFAULT_SUBSCRIPTION);
+
+  const refreshSubscription = useCallback(async () => {
+    if (!isSupabaseConfigured()) {
+      setSubscription(DEFAULT_SUBSCRIPTION);
+      return;
+    }
+
+    try {
+      const { subscription } = await fetchSubscription();
+      setSubscription(subscription);
+      setState(prev => {
+        if (!prev.user) return prev;
+        if (prev.user.plan === subscription.plan) return prev;
+        return {
+          ...prev,
+          user: { ...prev.user, plan: subscription.plan },
+        };
+      });
+    } catch (error) {
+      console.warn('Failed to refresh subscription', error);
+    }
+  }, []);
 
   // ============================================
   // INITIALIZATION
@@ -175,6 +210,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     initAuth();
   }, []);
+
+  useEffect(() => {
+    if (state.isSupabaseMode && state.user) {
+      refreshSubscription();
+    } else {
+      setSubscription(DEFAULT_SUBSCRIPTION);
+    }
+  }, [state.isSupabaseMode, state.user?.id, refreshSubscription]);
 
   // ============================================
   // LOGIN
@@ -493,11 +536,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [state.user]);
 
+  const startCreditTopUpAction = useCallback(async (): Promise<{ success: boolean; url?: string; error?: string }> => {
+    try {
+      const url = await startCreditTopUp();
+      return { success: true, url };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  }, []);
+
   // ============================================
   // DELETE ACCOUNT
   // ============================================
 
-  const deleteAccount = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
+const deleteAccount = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
     if (!state.user) {
       return { success: false, error: 'Not authenticated' };
     }
@@ -563,12 +615,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [state.user]);
 
+  const startCheckout = useCallback(async (priceId?: string): Promise<{ success: boolean; url?: string; error?: string }> => {
+    try {
+      const url = await startCheckoutSession(priceId);
+      return { success: true, url };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  }, []);
+
+  const openBillingPortal = useCallback(async (): Promise<{ success: boolean; url?: string; error?: string }> => {
+    try {
+      const url = await openCustomerPortal();
+      return { success: true, url };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  }, []);
+
   // ============================================
   // CONTEXT VALUE
   // ============================================
 
   const value: AuthContextType = {
     ...state,
+    subscription,
     login,
     signup,
     logout,
@@ -577,6 +648,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     updateProfile,
     updatePassword,
     deleteAccount,
+    refreshSubscription,
+    startCheckout,
+    openBillingPortal,
+    startCreditTopUp: startCreditTopUpAction,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

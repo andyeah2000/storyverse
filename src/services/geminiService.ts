@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { Source, AnalysisData } from "../types";
-import { supabase, isSupabaseConfigured } from "../lib/supabase";
+import { supabase, isSupabaseConfigured, logUsageEvent, fetchSubscription, getUsageCount, spendCredits } from "../lib/supabase";
 
 const getLocalApiKey = (): string | null => {
   try {
@@ -13,6 +13,36 @@ const getLocalApiKey = (): string | null => {
     console.error('Failed to read local API key:', error);
   }
   return null;
+};
+
+const FREE_AI_LIMIT = 30;
+
+const ensureAiQuota = async () => {
+  if (!isSupabaseConfigured()) return;
+  try {
+    const { subscription } = await fetchSubscription();
+    if (subscription.plan === 'pro') {
+      return;
+    }
+    const windowStart = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const usage = await getUsageCount('ai_request', windowStart);
+    if (usage < FREE_AI_LIMIT) {
+      return;
+    }
+    if (subscription.credit_balance > 0) {
+      await spendCredits(1);
+      return;
+    }
+    throw new Error('Du hast dein AI-Kontingent ausgeschöpft. Upgrade oder fülle Credits auf.');
+  } catch (error) {
+    if (error instanceof Error && /AI-Kontingent/.test(error.message)) {
+      throw error;
+    }
+    if (error instanceof Error && error.message === 'INSUFFICIENT_CREDITS') {
+      throw new Error('Keine Credits mehr verfügbar. Bitte Credits aufladen.');
+    }
+    console.warn('Quota check failed', error);
+  }
 };
 
 // Get authenticated request headers for edge function
@@ -32,6 +62,7 @@ const getAuthHeaders = async (): Promise<Headers> => {
 
 // Call Gemini proxy edge function
 const callGeminiDirect = async (endpoint: string, payload: Record<string, unknown>) => {
+  await ensureAiQuota();
   const apiKey = getLocalApiKey();
   if (!apiKey) {
     throw new Error('Gemini API key not configured. Add one in Settings or configure Supabase.');
@@ -103,6 +134,7 @@ export const callGeminiProxy = async (endpoint: string, payload: Record<string, 
     });
   }
 
+  await ensureAiQuota();
   const headers = await getAuthHeaders();
   
   const response = await fetch(`${supabaseUrl}/functions/v1/gemini-proxy`, {
@@ -115,6 +147,8 @@ export const callGeminiProxy = async (endpoint: string, payload: Record<string, 
     const errorData = await response.json().catch(() => ({ error: 'Request failed' }));
     throw new Error(errorData.error || 'Gemini API request failed');
   }
+
+  logUsageEvent('ai_request').catch(() => {});
 
   return response;
 };

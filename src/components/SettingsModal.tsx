@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useStory } from '../context/StoryContext';
+import { useAuth } from '../context/AuthContext';
 import { 
   X, 
   Moon, 
@@ -14,11 +15,15 @@ import {
   Upload,
   Trash2,
   Copy,
-  FolderOpen
+  FolderOpen,
+  CreditCard,
+  BarChart3,
+  Zap
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { getUsageCount } from '../lib/supabase';
 
-type SettingsTab = 'general' | 'appearance' | 'shortcuts' | 'projects' | 'export';
+type SettingsTab = 'general' | 'appearance' | 'shortcuts' | 'projects' | 'export' | 'billing';
 
 const SettingsModal: React.FC = () => {
   const { 
@@ -35,10 +40,31 @@ const SettingsModal: React.FC = () => {
     exportProject,
     importProject
   } = useStory();
+  const { subscription, startCheckout, openBillingPortal, startCreditTopUp } = useAuth();
 
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
   const [showApiKey, setShowApiKey] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
+  const [billingError, setBillingError] = useState<string | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [creditLoading, setCreditLoading] = useState(false);
+  const [monthlyAiUsage, setMonthlyAiUsage] = useState(0);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadUsage = async () => {
+      const windowStart = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const count = await getUsageCount('ai_request', windowStart);
+      if (isMounted) {
+        setMonthlyAiUsage(count);
+      }
+    };
+    loadUsage();
+    return () => {
+      isMounted = false;
+    };
+  }, [subscription.plan]);
 
   if (!settingsOpen) return null;
 
@@ -60,12 +86,54 @@ const SettingsModal: React.FC = () => {
     input.click();
   };
 
+  const planLimits = {
+    free: { projects: 3, ai: 30 },
+    pro: { projects: Infinity, ai: Infinity },
+  };
+
+  const handleUpgrade = async () => {
+    setBillingError(null);
+    setCheckoutLoading(true);
+    const result = await startCheckout();
+    setCheckoutLoading(false);
+    if (result.success && result.url) {
+      window.location.href = result.url;
+    } else {
+      setBillingError(result.error || 'Unable to start checkout.');
+    }
+  };
+
+  const handlePortal = async () => {
+    setBillingError(null);
+    setPortalLoading(true);
+    const result = await openBillingPortal();
+    setPortalLoading(false);
+    if (result.success && result.url) {
+      window.location.href = result.url;
+    } else {
+      setBillingError(result.error || 'Unable to open billing portal.');
+    }
+  };
+
+  const handleCreditTopUp = async () => {
+    setBillingError(null);
+    setCreditLoading(true);
+    const result = await startCreditTopUp();
+    setCreditLoading(false);
+    if (result.success && result.url) {
+      window.location.href = result.url;
+    } else {
+      setBillingError(result.error || 'Unable to start credit purchase.');
+    }
+  };
+
   const tabs: { id: SettingsTab; label: string; icon: React.ReactNode }[] = [
     { id: 'general', label: 'General', icon: <Key size={16} strokeWidth={1.75} /> },
     { id: 'appearance', label: 'Appearance', icon: <Sun size={16} strokeWidth={1.75} /> },
     { id: 'shortcuts', label: 'Shortcuts', icon: <Keyboard size={16} strokeWidth={1.75} /> },
     { id: 'projects', label: 'Projects', icon: <FolderOpen size={16} strokeWidth={1.75} /> },
     { id: 'export', label: 'Export', icon: <Download size={16} strokeWidth={1.75} /> },
+    { id: 'billing', label: 'Billing', icon: <CreditCard size={16} strokeWidth={1.75} /> },
   ];
 
   return (
@@ -425,6 +493,113 @@ const SettingsModal: React.FC = () => {
                 </div>
               </div>
             )}
+
+            {activeTab === 'billing' && (
+              <div className="space-y-6">
+                <div className="rounded-2xl border border-stone-200 dark:border-stone-700 p-5 bg-stone-50/60 dark:bg-stone-800/40">
+                  <div className="flex items-center gap-2 mb-2 text-sm font-semibold text-stone-900 dark:text-white uppercase tracking-wide">
+                    <CreditCard size={16} />
+                    Current Plan
+                  </div>
+                  <div className="flex items-center justify-between flex-wrap gap-3">
+                    <div>
+                      <p className="text-2xl font-bold capitalize text-stone-900 dark:text-white">{subscription.plan}</p>
+                      <p className="text-xs text-stone-500 dark:text-stone-400">Status: {subscription.status}</p>
+                      {subscription.current_period_end && (
+                        <p className="text-xs text-stone-500 dark:text-stone-400">
+                          Renews {new Date(subscription.current_period_end).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      {subscription.plan === 'free' ? (
+                        <button
+                          onClick={handleUpgrade}
+                          disabled={checkoutLoading}
+                          className="px-4 h-10 rounded-xl bg-stone-900 text-white text-sm font-semibold hover:bg-stone-800 transition disabled:opacity-50"
+                        >
+                          {checkoutLoading ? 'Redirecting…' : 'Upgrade to Pro'}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={handlePortal}
+                          disabled={portalLoading}
+                          className="px-4 h-10 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-400 transition disabled:opacity-50"
+                        >
+                          {portalLoading ? 'Opening…' : 'Manage Billing'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {billingError && (
+                    <p className="text-xs text-red-500 mt-3">{billingError}</p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="rounded-2xl border border-stone-200 dark:border-stone-700 p-4 bg-white dark:bg-stone-900/40">
+                    <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-stone-500 dark:text-stone-400 mb-1">
+                      <FolderOpen size={14} />
+                      Projects
+                    </div>
+                    <p className="text-2xl font-bold text-stone-900 dark:text-white">
+                      {projects.length} / {planLimits[subscription.plan].projects === Infinity ? '∞' : planLimits[subscription.plan].projects}
+                    </p>
+                    <p className="text-xs text-stone-500 dark:text-stone-400">Free plan allows up to 3 projects.</p>
+                  </div>
+                  <div className="rounded-2xl border border-stone-200 dark:border-stone-700 p-4 bg-white dark:bg-stone-900/40">
+                    <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-stone-500 dark:text-stone-400 mb-1">
+                      <Zap size={14} />
+                      AI Requests (30 days)
+                    </div>
+                    <p className="text-2xl font-bold text-stone-900 dark:text-white">
+                      {monthlyAiUsage} / {planLimits[subscription.plan].ai === Infinity ? '∞' : planLimits[subscription.plan].ai}
+                    </p>
+                    <p className="text-xs text-stone-500 dark:text-stone-400">Upgrade for higher or unlimited usage.</p>
+                  </div>
+                  <div className="rounded-2xl border border-stone-200 dark:border-stone-700 p-4 bg-white dark:bg-stone-900/40 flex flex-col gap-2">
+                    <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-stone-500 dark:text-stone-400">
+                      <CreditCard size={14} />
+                      Credits
+                    </div>
+                    <p className="text-2xl font-bold text-stone-900 dark:text-white">{subscription.credit_balance}</p>
+                    <p className="text-xs text-stone-500 dark:text-stone-400 flex-1">Credits erlauben zusätzliche AI-Requests über das Freikontingent hinaus.</p>
+                    <button
+                      onClick={handleCreditTopUp}
+                      disabled={creditLoading}
+                      className="h-10 px-4 rounded-xl bg-stone-900 text-white text-sm font-semibold hover:bg-stone-800 transition disabled:opacity-40"
+                    >
+                      {creditLoading ? 'Weiterleiten…' : 'Credits aufladen'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-stone-200 dark:border-stone-700 p-4 bg-white dark:bg-stone-900/40">
+                  <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-stone-500 dark:text-stone-400 mb-3">
+                    <BarChart3 size={14} />
+                    Plan Comparison
+                  </div>
+                  <div className="grid grid-cols-2 text-sm text-stone-600 dark:text-stone-300 gap-4">
+                    <div className="space-y-2">
+                      <p className="font-semibold text-stone-900 dark:text-white">Free</p>
+                      <ul className="text-xs space-y-1">
+                        <li>• 3 projects</li>
+                        <li>• 30 AI requests / month</li>
+                        <li>• Community support</li>
+                      </ul>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="font-semibold text-stone-900 dark:text-white">Pro</p>
+                      <ul className="text-xs space-y-1">
+                        <li>• Unlimited projects</li>
+                        <li>• Priority AI processing</li>
+                        <li>• Premium support</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -433,4 +608,3 @@ const SettingsModal: React.FC = () => {
 };
 
 export default SettingsModal;
-

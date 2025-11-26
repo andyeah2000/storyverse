@@ -45,6 +45,20 @@ export interface AuthResult {
   error: Error | null;
 }
 
+export interface SubscriptionInfo {
+  plan: 'free' | 'pro';
+  status: string;
+  current_period_end: string | null;
+  credit_balance: number;
+}
+
+const DEFAULT_SUBSCRIPTION: SubscriptionInfo = {
+  plan: 'free',
+  status: 'inactive',
+  current_period_end: null,
+  credit_balance: 0,
+};
+
 export const signUp = async (email: string, password: string, name: string): Promise<AuthResult> => {
   try {
     const { data, error } = await supabase.auth.signUp({
@@ -433,6 +447,116 @@ export const loadSharedProjectsByIds = async (
     return { projects: (data || []) as StoredProject[], error: null };
   } catch (error) {
     return { projects: [], error: error as Error };
+  }
+};
+
+const getAuthHeaders = async (): Promise<Headers> => {
+  const headers = new Headers({ 'Content-Type': 'application/json' });
+  if (isSupabaseConfigured()) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      headers.set('Authorization', `Bearer ${session.access_token}`);
+    }
+  }
+  return headers;
+};
+
+export const fetchSubscription = async (): Promise<{ subscription: SubscriptionInfo; error: Error | null }> => {
+  if (!isSupabaseConfigured()) {
+    return { subscription: DEFAULT_SUBSCRIPTION, error: null };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .select('plan,status,current_period_end,credit_balance')
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    if (!data) {
+      return { subscription: DEFAULT_SUBSCRIPTION, error: null };
+    }
+
+    return {
+      subscription: {
+        plan: data.plan as 'free' | 'pro',
+        status: data.status || 'inactive',
+        current_period_end: data.current_period_end,
+        credit_balance: data.credit_balance ?? 0,
+      },
+      error: null,
+    };
+  } catch (error) {
+    return { subscription: DEFAULT_SUBSCRIPTION, error: error as Error };
+  }
+};
+
+const callBillingFunction = async (path: string, body?: Record<string, unknown>) => {
+  if (!isSupabaseConfigured()) {
+    throw new Error('Supabase is not configured');
+  }
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${supabaseUrl}/functions/v1/billing/${path}`, {
+    method: 'POST',
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Billing request failed' }));
+    throw new Error(error.error || 'Billing request failed');
+  }
+  return response.json();
+};
+
+export const startCheckoutSession = async (priceId?: string): Promise<string> => {
+  const data = await callBillingFunction('create-checkout-session', priceId ? { priceId } : undefined);
+  return data.url as string;
+};
+
+export const openCustomerPortal = async (): Promise<string> => {
+  const data = await callBillingFunction('create-portal-session');
+  return data.url as string;
+};
+
+export const startCreditTopUp = async (): Promise<string> => {
+  const data = await callBillingFunction('create-credit-session');
+  return data.url as string;
+};
+
+export const spendCredits = async (amount = 1): Promise<number> => {
+  if (!isSupabaseConfigured()) {
+    throw new Error('Supabase not configured');
+  }
+  const { data, error } = await supabase.rpc('spend_credits', { spend_amount: amount });
+  if (error) {
+    throw new Error(error.message || 'Failed to spend credits');
+  }
+  return data as number;
+};
+
+export const logUsageEvent = async (feature: string, amount = 1): Promise<void> => {
+  if (!isSupabaseConfigured()) return;
+  try {
+    await supabase.from('usage_events').insert({ feature, amount });
+  } catch (error) {
+    console.warn('Failed to log usage event', error);
+  }
+};
+
+export const getUsageCount = async (feature: string, since: Date): Promise<number> => {
+  if (!isSupabaseConfigured()) return 0;
+  try {
+    const { data, error } = await supabase
+      .from('usage_events')
+      .select('amount')
+      .eq('feature', feature)
+      .gte('created_at', since.toISOString());
+    if (error) throw error;
+    return (data || []).reduce((sum, event) => sum + (event.amount || 0), 0);
+  } catch (error) {
+    console.warn('Failed to load usage', error);
+    return 0;
   }
 };
 

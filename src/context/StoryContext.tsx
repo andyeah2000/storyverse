@@ -212,6 +212,18 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [undoStack, setUndoStack] = useState<Project[]>([]);
   const [redoStack, setRedoStack] = useState<Project[]>([]);
 
+  const projectLimit = useMemo(() => {
+    if (!isSupabaseMode) return Infinity;
+    return user?.plan === 'pro' ? Infinity : 3;
+  }, [isSupabaseMode, user?.plan]);
+
+  const ensureProjectQuota = useCallback(() => {
+    if (projectLimit === Infinity) return true;
+    if (projects.length < projectLimit) return true;
+    alert('You have reached the project limit for the Free plan. Upgrade to Pro in Settings → Billing for unlimited projects.');
+    return false;
+  }, [projectLimit, projects.length]);
+
   const hydrateShareState = useCallback((shares: ProjectShareInfo[], ownerIds: string[]) => {
     if (!shares || shares.length === 0) {
       setProjectShares({});
@@ -781,11 +793,12 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [currentProjectId, canEditProject]);
 
   const createProject = useCallback((name: string, description?: string) => {
+    if (!ensureProjectQuota()) return;
     const newProject = createDefaultProject(name, description, user?.id || 'local');
     setProjects(prev => [...prev, newProject]);
     setProjectPermissions(prev => ({ ...prev, [newProject.id]: 'owner' }));
     setCurrentProjectId(newProject.id);
-  }, [user?.id]);
+  }, [ensureProjectQuota, user?.id]);
 
   const selectProject = useCallback((id: string) => {
     setCurrentProjectId(id);
@@ -839,6 +852,7 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [isProjectOwner, user, currentProjectId, isSupabaseMode, isAuthenticated, projects]);
 
   const duplicateProject = useCallback((id: string) => {
+    if (!ensureProjectQuota()) return;
     const project = projects.find(p => p.id === id);
     if (project) {
       const newProject: Project = {
@@ -853,7 +867,7 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setProjects(prev => [...prev, newProject]);
       setProjectPermissions(prev => ({ ...prev, [newProject.id]: 'owner' }));
     }
-  }, [projects, user?.id]);
+  }, [projects, user?.id, ensureProjectQuota]);
 
   // ============================================
   // SOURCES
@@ -1233,6 +1247,7 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [currentProject, activeScript]);
 
   const importProject = useCallback((data: string) => {
+    if (!ensureProjectQuota()) return;
     try {
       const imported = JSON.parse(data) as Project;
       imported.id = generateId(); // Generate new ID to avoid conflicts
@@ -1247,7 +1262,7 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch (e) {
       console.error('Failed to import project:', e);
     }
-  }, [user?.id]);
+  }, [user?.id, ensureProjectQuota]);
 
   // ============================================
   // KEYBOARD SHORTCUTS

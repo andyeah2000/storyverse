@@ -24,10 +24,14 @@ import {
   Menu,
   X,
   Users,
-  Globe
+  Globe,
+  Share2,
+  Loader2,
+  Bell
 } from 'lucide-react';
 import FileExplorer from './FileExplorer';
 import SettingsModal from './SettingsModal';
+import ShareProjectModal from './ShareProjectModal';
 import { useStory } from '../context/StoryContext';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
@@ -47,11 +51,41 @@ const Layout: React.FC = () => {
     settings,
     updateSettings,
     sidebarOpen,
-    setSidebarOpen
+    setSidebarOpen,
+    openShareModal,
+    currentProjectPermission,
+    incomingInvites,
+    acceptInvite,
+    declineInvite
   } = useStory();
-  const { user, logout } = useAuth();
+  const { user, logout, isSupabaseMode } = useAuth();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [processingInviteId, setProcessingInviteId] = useState<string | null>(null);
+
+  const accessLabel = currentProjectPermission === 'owner'
+    ? 'Owner'
+    : currentProjectPermission === 'edit'
+      ? 'Editor'
+      : 'Viewer';
+
+  const handleAcceptInvite = async (shareId: string) => {
+    setProcessingInviteId(shareId);
+    const result = await acceptInvite(shareId);
+    if (!result.success && result.error) {
+      console.error(result.error);
+    }
+    setProcessingInviteId(null);
+  };
+
+  const handleDeclineInvite = async (shareId: string) => {
+    setProcessingInviteId(shareId);
+    const result = await declineInvite(shareId);
+    if (!result.success && result.error) {
+      console.error(result.error);
+    }
+    setProcessingInviteId(null);
+  };
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -160,8 +194,34 @@ const Layout: React.FC = () => {
                 )}>
                   {currentProject?.name || 'StoryVerse'}
                 </span>
+                {currentProject && (
+                  <span className={cn(
+                    'text-[11px] uppercase tracking-wide font-medium mt-0.5 w-fit px-2 py-0.5 rounded-full',
+                    theme === 'dark' ? 'bg-stone-800 text-stone-300' : 'bg-stone-200 text-stone-600'
+                  )}>
+                    {accessLabel}
+                  </span>
+                )}
               </div>
             </div>
+
+            {currentProject && isSupabaseMode && (
+              <button
+                onClick={openShareModal}
+                disabled={currentProjectPermission === 'view'}
+                className={cn(
+                  'ml-2 h-8 px-3 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors border',
+                  currentProjectPermission === 'view'
+                    ? 'cursor-not-allowed opacity-60'
+                    : theme === 'dark'
+                      ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20'
+                      : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                )}
+              >
+                <Share2 size={14} strokeWidth={1.75} />
+                Share
+              </button>
+            )}
 
             {/* Save Status */}
             <div className="flex items-center gap-1.5 ml-2">
@@ -330,6 +390,66 @@ const Layout: React.FC = () => {
           </div>
         </header>
 
+        {incomingInvites.length > 0 && (
+          <div
+            className={cn(
+              'px-4 py-3 border-b space-y-2',
+              theme === 'dark'
+                ? 'bg-amber-500/10 border-amber-500/30 text-amber-100'
+                : 'bg-amber-50 border-amber-200 text-amber-700'
+            )}
+          >
+            <p className="text-xs font-semibold tracking-wide uppercase flex items-center gap-2">
+              <Bell size={14} />
+              Collaboration invites
+            </p>
+            {incomingInvites.map(invite => (
+              <div
+                key={invite.id}
+                className={cn(
+                  'flex flex-col gap-2 rounded-xl px-3 py-2 border',
+                  theme === 'dark' ? 'bg-stone-900/60 border-stone-800' : 'bg-white border-stone-200'
+                )}
+              >
+                <div>
+                  <p className="text-sm font-semibold">{invite.project_name}</p>
+                  <p className="text-xs opacity-70">
+                    {invite.permission === 'edit' ? 'Can edit' : 'View only'} access
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => handleAcceptInvite(invite.id)}
+                    disabled={processingInviteId === invite.id}
+                    className={cn(
+                      'inline-flex items-center gap-1 px-3 h-8 rounded-lg text-xs font-semibold transition-colors',
+                      theme === 'dark' ? 'bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/30' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200',
+                      processingInviteId === invite.id && 'cursor-not-allowed opacity-75'
+                    )}
+                  >
+                    {processingInviteId === invite.id ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      'Accept'
+                    )}
+                  </button>
+                  <button
+                    onClick={() => handleDeclineInvite(invite.id)}
+                    disabled={processingInviteId === invite.id}
+                    className={cn(
+                      'inline-flex items-center gap-1 px-3 h-8 rounded-lg text-xs font-semibold transition-colors',
+                      theme === 'dark' ? 'bg-stone-900 text-stone-300 border border-stone-800 hover:bg-stone-800' : 'bg-white border border-stone-200 text-stone-600 hover:bg-stone-100',
+                      processingInviteId === invite.id && 'cursor-not-allowed opacity-75'
+                    )}
+                  >
+                    Decline
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Workspace */}
         <main className={cn(
           "flex-1 overflow-hidden relative transition-colors",
@@ -343,6 +463,7 @@ const Layout: React.FC = () => {
 
       {/* Settings Modal */}
       <SettingsModal />
+      <ShareProjectModal />
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (

@@ -1,16 +1,14 @@
-import React, { useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../hooks';
 import { Eye, EyeOff, ArrowRight, ArrowLeft, Loader2, Check, CheckCircle, Lock, AlertTriangle, Moon, Sun } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 
 const ResetPassword: React.FC = () => {
-  const [searchParams] = useSearchParams();
-  const { resetPassword } = useAuth();
+  const { resetPassword, isSupabaseMode } = useAuth();
   const theme = useTheme();
   const isDark = theme === 'dark';
-  
-  const token = searchParams.get('token') || '';
   
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -18,6 +16,8 @@ const ResetPassword: React.FC = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [linkValid, setLinkValid] = useState(!isSupabaseMode);
+  const [isCheckingLink, setIsCheckingLink] = useState(isSupabaseMode);
 
   const passwordRequirements = [
     { met: password.length >= 8, text: '8+ chars' },
@@ -27,6 +27,28 @@ const ResetPassword: React.FC = () => {
 
   const allRequirementsMet = password.length >= 8;
   const passwordsMatch = password === confirmPassword && confirmPassword.length > 0;
+
+  useEffect(() => {
+    const verifyRecoverySession = async () => {
+      if (!isSupabaseMode) {
+        setLinkValid(true);
+        setIsCheckingLink(false);
+        return;
+      }
+
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setLinkValid(Boolean(session));
+      } catch (error) {
+        console.error('Failed to verify recovery session:', error);
+        setLinkValid(false);
+      } finally {
+        setIsCheckingLink(false);
+      }
+    };
+
+    verifyRecoverySession();
+  }, [isSupabaseMode]);
 
   const toggleTheme = () => {
     const current = localStorage.getItem('storyverse_settings');
@@ -40,7 +62,12 @@ const ResetPassword: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    if (!token) {
+    if (isSupabaseMode && isCheckingLink) {
+      setError('Verifying reset link. Please try again in a moment.');
+      return;
+    }
+
+    if (isSupabaseMode && !linkValid) {
       setError('Invalid reset link');
       return;
     }
@@ -57,18 +84,19 @@ const ResetPassword: React.FC = () => {
 
     setIsLoading(true);
 
-    const result = await resetPassword(token, password);
+    const result = await resetPassword(password);
     
     if (result.success) {
       setIsSuccess(true);
+      setIsLoading(false);
     } else {
       setError(result.error || 'Reset failed');
       setIsLoading(false);
     }
   };
 
-  // Invalid token state
-  if (!token) {
+  // Invalid Supabase link state
+  if (!isCheckingLink && isSupabaseMode && !linkValid) {
     return (
       <div className={`min-h-screen flex flex-col transition-colors duration-300 ${
         isDark ? 'bg-[#0c0a09]' : 'bg-[#FAFAF9]'

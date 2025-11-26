@@ -14,8 +14,18 @@ import {
   SaveStatus,
   DEFAULT_SETTINGS,
   DEFAULT_BEAT_SHEET,
+  ProjectShareInfo,
+  ProjectAccess,
 } from '../types';
-import { supabase } from '../lib/supabase';
+import {
+  supabase,
+  inviteProjectCollaborator,
+  revokeProjectCollaborator,
+  listProjectShares,
+  acceptProjectShareInvite,
+  declineProjectShareInvite,
+  loadSharedProjectsByIds,
+} from '../lib/supabase';
 import { useAuth } from './AuthContext';
 
 // ============================================
@@ -26,6 +36,8 @@ interface StoryContextType {
   // Project Management
   projects: Project[];
   currentProject: Project | null;
+  currentProjectPermission: ProjectAccess;
+  canEditCurrentProject: boolean;
   createProject: (name: string, description?: string) => void;
   selectProject: (id: string) => void;
   updateProject: (updates: Partial<Project>) => void;
@@ -96,6 +108,17 @@ interface StoryContextType {
   settingsOpen: boolean;
   setSettingsOpen: (open: boolean) => void;
 
+  // Collaboration
+  isShareModalOpen: boolean;
+  openShareModal: () => void;
+  closeShareModal: () => void;
+  currentProjectShares: ProjectShareInfo[];
+  incomingInvites: ProjectShareInfo[];
+  inviteCollaborator: (email: string, permission: 'view' | 'edit') => Promise<{ success: boolean; error?: string }>;
+  revokeShare: (shareId: string) => Promise<{ success: boolean; error?: string }>;
+  acceptInvite: (shareId: string) => Promise<{ success: boolean; error?: string }>;
+  declineInvite: (shareId: string) => Promise<{ success: boolean; error?: string }>;
+
   // Undo/Redo
   canUndo: boolean;
   canRedo: boolean;
@@ -128,7 +151,7 @@ const STORAGE_KEYS = {
 
 const generateId = () => crypto.randomUUID();
 
-const createDefaultProject = (name: string, description?: string): Project => ({
+const createDefaultProject = (name: string, description?: string, ownerId?: string, access: ProjectAccess = 'owner'): Project => ({
   id: generateId(),
   name,
   description,
@@ -142,6 +165,8 @@ const createDefaultProject = (name: string, description?: string): Project => ({
   notes: [],
   moodBoard: [],
   chatHistory: [],
+  ownerId: ownerId || 'local',
+  access,
 });
 
 // ============================================
@@ -178,102 +203,219 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [projectPermissions, setProjectPermissions] = useState<Record<string, ProjectAccess>>({});
+  const [projectShares, setProjectShares] = useState<Record<string, ProjectShareInfo[]>>({});
+  const [incomingInvites, setIncomingInvites] = useState<ProjectShareInfo[]>([]);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   // Undo/Redo history
   const [undoStack, setUndoStack] = useState<Project[]>([]);
   const [redoStack, setRedoStack] = useState<Project[]>([]);
 
+  const hydrateShareState = useCallback((shares: ProjectShareInfo[], ownerIds: string[]) => {
+    if (!shares || shares.length === 0) {
+      setProjectShares({});
+      setIncomingInvites([]);
+      return;
+    }
+
+    const grouped: Record<string, ProjectShareInfo[]> = {};
+    const invites: ProjectShareInfo[] = [];
+    const normalizedEmail = user?.email?.toLowerCase();
+
+    shares.forEach(share => {
+      if (ownerIds.includes(share.project_id)) {
+        if (!grouped[share.project_id]) {
+          grouped[share.project_id] = [];
+        }
+        grouped[share.project_id]!.push(share);
+      }
+
+      if (!share.accepted && normalizedEmail && share.shared_with_email.toLowerCase() === normalizedEmail) {
+        invites.push(share);
+      }
+    });
+
+    setProjectShares(grouped);
+    setIncomingInvites(invites);
+  }, [user?.email]);
+
   // ============================================
   // LOAD DATA ON AUTH CHANGE
   // ============================================
 
-  useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      
-      if (isSupabaseMode && isAuthenticated && user) {
-        // SUPABASE MODE - Load from cloud
-        try {
-          const { data, error } = await supabase
-            .from('projects')
-            .select('*')
-            .eq('user_id', user.id)
-            .order('updated_at', { ascending: false });
-
-          if (error) throw error;
-
-          if (data && data.length > 0) {
-            const loadedProjects = data.map(p => ({
-              ...p.data,
-              id: p.id,
-            } as Project));
-            setProjects(loadedProjects);
-            const firstProject = loadedProjects[0];
-            if (firstProject) {
-              setCurrentProjectId(firstProject.id);
-            }
-          } else {
-            // No projects - create default
-            const defaultProject = createDefaultProject('My First Story', 'A new storytelling adventure');
-            setProjects([defaultProject]);
-            setCurrentProjectId(defaultProject.id);
-            
-            // Save to Supabase
-            await supabase.from('projects').insert({
-              id: defaultProject.id,
-              user_id: user.id,
-              name: defaultProject.name,
-              data: defaultProject,
-            });
-          }
-
-          // Load settings from Supabase
-          const { data: settingsData } = await supabase
-            .from('user_settings')
-            .select('settings')
-            .eq('user_id', user.id)
-            .single();
-
-          if (settingsData?.settings) {
-            setSettings({ ...DEFAULT_SETTINGS, ...settingsData.settings });
-          }
-        } catch (error) {
-          console.error('Failed to load from Supabase:', error);
-          // Fallback to localStorage
-          loadFromLocalStorage();
-        }
+  const loadFromLocalStorage = useCallback(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.PROJECTS);
+      if (saved) {
+        const parsed = (JSON.parse(saved) as Project[]).map(project => ({
+          ...project,
+          access: project.access || 'owner',
+        }));
+        setProjects(parsed);
+        const permissions = parsed.reduce<Record<string, ProjectAccess>>((acc, project) => {
+          acc[project.id] = project.access || 'owner';
+          return acc;
+        }, {});
+        setProjectPermissions(permissions);
+        const savedId = localStorage.getItem(STORAGE_KEYS.CURRENT_PROJECT_ID);
+        setCurrentProjectId(savedId && parsed.some(p => p.id === savedId) ? savedId : parsed[0]?.id || '');
       } else {
-        // LOCAL MODE - Load from localStorage
-        loadFromLocalStorage();
-      }
-      
-      setIsLoading(false);
-      isInitialized.current = true;
-    };
-
-    const loadFromLocalStorage = () => {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEYS.PROJECTS);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          setProjects(parsed);
-          const savedId = localStorage.getItem(STORAGE_KEYS.CURRENT_PROJECT_ID);
-          setCurrentProjectId(savedId || parsed[0]?.id || '');
-        } else {
-          const defaultProject = createDefaultProject('My First Story', 'A new storytelling adventure');
-          setProjects([defaultProject]);
-          setCurrentProjectId(defaultProject.id);
-        }
-      } catch (e) {
-        console.error('Failed to load from localStorage:', e);
-        const defaultProject = createDefaultProject('My First Story');
+        const defaultProject = createDefaultProject('My First Story', 'A new storytelling adventure');
         setProjects([defaultProject]);
+        setProjectPermissions({ [defaultProject.id]: 'owner' });
         setCurrentProjectId(defaultProject.id);
       }
-    };
+      setProjectShares({});
+      setIncomingInvites([]);
+    } catch (e) {
+      console.error('Failed to load from localStorage:', e);
+      const defaultProject = createDefaultProject('My First Story');
+      setProjects([defaultProject]);
+      setProjectPermissions({ [defaultProject.id]: 'owner' });
+      setCurrentProjectId(defaultProject.id);
+      setProjectShares({});
+      setIncomingInvites([]);
+    }
+  }, []);
 
+  const loadData = useCallback(async (options: { silent?: boolean } = {}) => {
+    const { silent } = options;
+    if (!silent) {
+      setIsLoading(true);
+    }
+
+    if (isSupabaseMode && isAuthenticated && user) {
+      try {
+        const { data, error } = await supabase
+          .from('projects')
+          .select('id, name, data, user_id, updated_at')
+          .eq('user_id', user.id)
+          .order('updated_at', { ascending: false });
+
+        if (error) throw error;
+
+        const ownedProjects: Array<Project & { ownerId: string; access: ProjectAccess }> = (data || []).map(row => {
+          const projectPayload = (row.data as unknown) as Project | null;
+          const payload = projectPayload ?? createDefaultProject(row.name || 'Untitled Project', undefined, user.id);
+          return { ...payload, id: row.id, ownerId: user.id, access: 'owner' as ProjectAccess };
+        });
+
+        const ownedIds = ownedProjects.map(p => p.id);
+        const { shares: shareRows, error: shareError } = await listProjectShares();
+        if (shareError) {
+          console.error('Failed to load project shares:', shareError);
+        }
+
+        const acceptedShares = shareRows.filter(share => share.accepted && share.shared_with_user_id === user.id);
+        const shareMap = acceptedShares.reduce<Record<string, ProjectShareInfo>>((acc, share) => {
+          acc[share.project_id] = share;
+          return acc;
+        }, {});
+        const sharedIds = Object.keys(shareMap);
+
+        let sharedProjects: Project[] = [];
+        if (sharedIds.length > 0) {
+          const { projects: sharedRows, error: sharedProjectsError } = await loadSharedProjectsByIds(sharedIds);
+          if (sharedProjectsError) {
+            console.error('Failed to load shared projects:', sharedProjectsError);
+          } else {
+            sharedProjects = (sharedRows || []).map(row => {
+              const projectPayload = (row.data as unknown) as Project | null;
+              const payload = projectPayload ?? createDefaultProject(row.name || 'Shared Project', row.user_id ?? undefined);
+              const permission: ProjectAccess = shareMap[row.id]?.permission === 'edit' ? 'edit' : 'view';
+              return {
+                ...payload,
+                id: row.id,
+                ownerId: row.user_id || payload.ownerId || 'local',
+                access: permission,
+              };
+            });
+          }
+        }
+
+        if (ownedProjects.length === 0 && sharedProjects.length === 0) {
+          const defaultProject = createDefaultProject('My First Story', 'A new storytelling adventure', user.id);
+          const seededProject = { ...defaultProject, ownerId: user.id, access: 'owner' as ProjectAccess };
+          ownedProjects.push(seededProject);
+          try {
+            await supabase.from('projects').insert({
+              id: seededProject.id,
+              user_id: user.id,
+              name: seededProject.name,
+              data: seededProject,
+            });
+          } catch (insertError) {
+            console.error('Failed to seed default project:', insertError);
+          }
+        }
+
+        const combinedProjects = [...ownedProjects, ...sharedProjects];
+        setProjects(combinedProjects);
+
+        const permissions = combinedProjects.reduce<Record<string, ProjectAccess>>((acc, project) => {
+          acc[project.id] = project.access || 'owner';
+          return acc;
+        }, {});
+        setProjectPermissions(permissions);
+
+        hydrateShareState(shareRows, ownedIds);
+
+        const savedProjectId = localStorage.getItem(STORAGE_KEYS.CURRENT_PROJECT_ID);
+        if (savedProjectId && combinedProjects.some(p => p.id === savedProjectId)) {
+          setCurrentProjectId(savedProjectId);
+        } else if (combinedProjects[0]) {
+          setCurrentProjectId(combinedProjects[0].id);
+        } else {
+          setCurrentProjectId('');
+        }
+
+        const { data: settingsData } = await supabase
+          .from('user_settings')
+          .select('settings')
+          .eq('user_id', user.id)
+          .single();
+
+        if (settingsData?.settings) {
+          setSettings({ ...DEFAULT_SETTINGS, ...settingsData.settings });
+        }
+      } catch (error) {
+        console.error('Failed to load from Supabase:', error);
+        loadFromLocalStorage();
+      }
+    } else {
+      loadFromLocalStorage();
+    }
+
+    if (!silent) {
+      setIsLoading(false);
+    }
+    isInitialized.current = true;
+  }, [isSupabaseMode, isAuthenticated, user, hydrateShareState, loadFromLocalStorage]);
+
+  useEffect(() => {
     loadData();
-  }, [isSupabaseMode, isAuthenticated, user]);
+  }, [loadData]);
+
+  const refreshShareData = useCallback(async () => {
+    if (!isSupabaseMode || !isAuthenticated || !user) {
+      setProjectShares({});
+      setIncomingInvites([]);
+      return;
+    }
+
+    const { shares, error } = await listProjectShares();
+    if (error) {
+      console.error('Failed to refresh share data:', error);
+      return;
+    }
+
+    const ownedIds = projects
+      .filter(project => (projectPermissions[project.id] || 'owner') === 'owner')
+      .map(project => project.id);
+
+    hydrateShareState(shares, ownedIds);
+  }, [isSupabaseMode, isAuthenticated, user, projects, projectPermissions, hydrateShareState]);
 
   // ============================================
   // DERIVED STATE
@@ -283,6 +425,16 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     () => projects.find(p => p.id === currentProjectId) || null,
     [projects, currentProjectId]
   );
+
+  const currentProjectPermission: ProjectAccess = useMemo(() => {
+    return projectPermissions[currentProjectId] || 'owner';
+  }, [projectPermissions, currentProjectId]);
+
+  const canEditCurrentProject = currentProjectPermission !== 'view';
+
+  const currentProjectShares = useMemo(() => {
+    return projectShares[currentProjectId] || [];
+  }, [projectShares, currentProjectId]);
 
   const sources = currentProject?.sources || [];
   const scripts = currentProject?.scripts || [];
@@ -319,6 +471,100 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const canUndo = undoStack.length > 0;
   const canRedo = redoStack.length > 0;
 
+  const inviteCollaborator = useCallback(async (email: string, permission: 'view' | 'edit') => {
+    if (!isSupabaseMode || !isAuthenticated) {
+      return { success: false, error: 'Collaboration requires Supabase mode' };
+    }
+
+    if (!currentProject) {
+      return { success: false, error: 'Select a project first' };
+    }
+
+    if (currentProjectPermission !== 'owner') {
+      return { success: false, error: 'Only project owners can invite collaborators' };
+    }
+
+    try {
+      const { error } = await inviteProjectCollaborator(currentProject.id, currentProject.name, email, permission);
+      if (error) throw error;
+      await refreshShareData();
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to invite collaborator:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  }, [isSupabaseMode, isAuthenticated, currentProject, currentProjectPermission, refreshShareData]);
+
+  const revokeShare = useCallback(async (shareId: string) => {
+    if (!isSupabaseMode || !isAuthenticated) {
+      return { success: false, error: 'Collaboration requires Supabase mode' };
+    }
+
+    if (currentProjectPermission !== 'owner') {
+      return { success: false, error: 'Only project owners can manage collaborators' };
+    }
+
+    try {
+      const { error } = await revokeProjectCollaborator(shareId);
+      if (error) throw error;
+      await refreshShareData();
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to revoke collaborator:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  }, [isSupabaseMode, isAuthenticated, currentProjectPermission, refreshShareData]);
+
+  const acceptInvite = useCallback(async (shareId: string) => {
+    if (!isSupabaseMode || !isAuthenticated) {
+      return { success: false, error: 'Collaboration requires Supabase mode' };
+    }
+
+    try {
+      const { error } = await acceptProjectShareInvite(shareId);
+      if (error) throw error;
+      await loadData({ silent: true });
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to accept invite:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  }, [isSupabaseMode, isAuthenticated, loadData]);
+
+  const declineInvite = useCallback(async (shareId: string) => {
+    if (!isSupabaseMode || !isAuthenticated) {
+      return { success: false, error: 'Collaboration requires Supabase mode' };
+    }
+
+    try {
+      const { error } = await declineProjectShareInvite(shareId);
+      if (error) throw error;
+      await refreshShareData();
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to decline invite:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  }, [isSupabaseMode, isAuthenticated, refreshShareData]);
+
+  const canEditProject = useCallback((projectId: string) => {
+    if (!projectId) return false;
+    return (projectPermissions[projectId] || 'owner') !== 'view';
+  }, [projectPermissions]);
+
+  const openShareModal = useCallback(() => {
+    setIsShareModalOpen(true);
+  }, []);
+
+  const closeShareModal = useCallback(() => {
+    setIsShareModalOpen(false);
+  }, []);
+
+  const isProjectOwner = useCallback((projectId: string) => {
+    if (!projectId) return false;
+    return (projectPermissions[projectId] || 'owner') === 'owner';
+  }, [projectPermissions]);
+
   // ============================================
   // PERSISTENCE
   // ============================================
@@ -337,27 +583,26 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     saveTimeoutRef.current = setTimeout(async () => {
       try {
         if (isSupabaseMode && isAuthenticated && user) {
-          // SUPABASE MODE - Save to cloud
-          const currentProj = projects.find(p => p.id === currentProjectId);
-          if (currentProj) {
+          const editableProjects = projects.filter(project => (projectPermissions[project.id] || 'owner') !== 'view');
+          const payload = editableProjects.map(project => ({
+            id: project.id,
+            user_id: project.ownerId || user.id,
+            name: project.name,
+            data: project,
+            updated_at: new Date().toISOString(),
+          }));
+
+          if (payload.length > 0) {
             const { error } = await supabase
               .from('projects')
-              .upsert({
-                id: currentProj.id,
-                user_id: user.id,
-                name: currentProj.name,
-                data: currentProj,
-                updated_at: new Date().toISOString(),
-              }, { onConflict: 'id' });
+              .upsert(payload, { onConflict: 'id' });
 
             if (error) throw error;
           }
-          
-          // Also save to localStorage as backup
+
           localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
           localStorage.setItem(STORAGE_KEYS.CURRENT_PROJECT_ID, currentProjectId);
         } else {
-          // LOCAL MODE
           localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
           localStorage.setItem(STORAGE_KEYS.CURRENT_PROJECT_ID, currentProjectId);
         }
@@ -373,7 +618,7 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [projects, currentProjectId, isSupabaseMode, isAuthenticated, user]);
+  }, [projects, currentProjectId, isSupabaseMode, isAuthenticated, user, projectPermissions]);
 
   // Save settings
   useEffect(() => {
@@ -408,17 +653,18 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // ============================================
 
   const pushUndo = useCallback(() => {
-    if (currentProject) {
+    if (currentProject && canEditProject(currentProject.id)) {
       setUndoStack(prev => [...prev.slice(-49), currentProject]);
       setRedoStack([]);
     }
-  }, [currentProject]);
+  }, [currentProject, canEditProject]);
 
   // ============================================
   // PROJECT MANAGEMENT
   // ============================================
 
   const updateCurrentProject = useCallback((updates: Partial<Project>) => {
+    if (!currentProjectId || !canEditProject(currentProjectId)) return;
     setProjects(prev =>
       prev.map(p =>
         p.id === currentProjectId
@@ -426,13 +672,14 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           : p
       )
     );
-  }, [currentProjectId]);
+  }, [currentProjectId, canEditProject]);
 
   const createProject = useCallback((name: string, description?: string) => {
-    const newProject = createDefaultProject(name, description);
+    const newProject = createDefaultProject(name, description, user?.id || 'local');
     setProjects(prev => [...prev, newProject]);
+    setProjectPermissions(prev => ({ ...prev, [newProject.id]: 'owner' }));
     setCurrentProjectId(newProject.id);
-  }, []);
+  }, [user?.id]);
 
   const selectProject = useCallback((id: string) => {
     setCurrentProjectId(id);
@@ -445,17 +692,45 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [pushUndo, updateCurrentProject]);
 
   const deleteProject = useCallback((id: string) => {
+    if (!isProjectOwner(id)) {
+      console.warn('Only project owners can delete projects');
+      return;
+    }
+
     setProjects(prev => {
       const filtered = prev.filter(p => p.id !== id);
       if (filtered.length === 0) {
-        return [createDefaultProject('Untitled Project')];
+        const fallback = createDefaultProject('Untitled Project', undefined, user?.id || 'local');
+        setCurrentProjectId(fallback.id);
+        setProjectPermissions({ [fallback.id]: 'owner' });
+        return [fallback];
       }
+
+      if (currentProjectId === id) {
+        setCurrentProjectId(filtered[0]?.id || '');
+      }
+
       return filtered;
     });
-    if (currentProjectId === id) {
-      setCurrentProjectId(projects.find(p => p.id !== id)?.id || '');
+
+    setProjectPermissions(prev => {
+      const updated = { ...prev };
+      delete updated[id];
+      return updated;
+    });
+
+    if (isSupabaseMode && isAuthenticated && user) {
+      supabase
+        .from('projects')
+        .delete()
+        .eq('id', id)
+        .then(({ error }) => {
+          if (error) {
+            console.error('Failed to delete project from Supabase:', error);
+          }
+        });
     }
-  }, [currentProjectId, projects]);
+  }, [isProjectOwner, user, currentProjectId, isSupabaseMode, isAuthenticated, projects]);
 
   const duplicateProject = useCallback((id: string) => {
     const project = projects.find(p => p.id === id);
@@ -466,10 +741,13 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         name: `${project.name} (Copy)`,
         createdAt: Date.now(),
         updatedAt: Date.now(),
+        ownerId: user?.id || project.ownerId || 'local',
+        access: 'owner',
       };
       setProjects(prev => [...prev, newProject]);
+      setProjectPermissions(prev => ({ ...prev, [newProject.id]: 'owner' }));
     }
-  }, [projects]);
+  }, [projects, user?.id]);
 
   // ============================================
   // SOURCES
@@ -855,12 +1133,15 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       imported.name = `${imported.name} (Imported)`;
       imported.createdAt = Date.now();
       imported.updatedAt = Date.now();
+      imported.ownerId = user?.id || 'local';
+      imported.access = 'owner';
       setProjects(prev => [...prev, imported]);
+      setProjectPermissions(prev => ({ ...prev, [imported.id]: 'owner' }));
       setCurrentProjectId(imported.id);
     } catch (e) {
       console.error('Failed to import project:', e);
     }
-  }, []);
+  }, [user?.id]);
 
   // ============================================
   // KEYBOARD SHORTCUTS
@@ -898,6 +1179,8 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Project Management
     projects,
     currentProject,
+    currentProjectPermission,
+    canEditCurrentProject,
     createProject,
     selectProject,
     updateProject,
@@ -967,6 +1250,17 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setSidebarOpen,
     settingsOpen,
     setSettingsOpen,
+
+    // Collaboration
+    isShareModalOpen,
+    openShareModal,
+    closeShareModal,
+    currentProjectShares,
+    incomingInvites,
+    inviteCollaborator,
+    revokeShare,
+    acceptInvite,
+    declineInvite,
 
     // Undo/Redo
     canUndo,

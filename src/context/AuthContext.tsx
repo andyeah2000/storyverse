@@ -27,7 +27,7 @@ interface AuthContextType extends AuthState {
   signup: (email: string, password: string, name: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   forgotPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
-  resetPassword: (token: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  resetPassword: (password: string) => Promise<{ success: boolean; error?: string }>;
   updateProfile: (data: Partial<User>) => Promise<{ success: boolean; error?: string }>;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
   deleteAccount: () => Promise<{ success: boolean; error?: string }>;
@@ -369,9 +369,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // RESET PASSWORD
   // ============================================
 
-  const resetPassword = useCallback(async (_token: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const resetPassword = useCallback(async (password: string): Promise<{ success: boolean; error?: string }> => {
     if (isSupabaseConfigured()) {
       try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          return { success: false, error: 'Reset link is invalid or has expired. Please request a new one.' };
+        }
+
         const { error } = await supabase.auth.updateUser({ password });
         
         if (error) {
@@ -499,8 +504,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (isSupabaseConfigured()) {
       try {
-        // Note: Full account deletion requires admin API or edge function
-        // For now, we sign out and let the user know
+        await supabase.from('projects').delete().eq('user_id', state.user.id);
+        await supabase.from('user_settings').delete().eq('user_id', state.user.id);
+
         await supabase.auth.signOut();
         
         setState({

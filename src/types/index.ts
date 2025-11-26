@@ -107,6 +107,8 @@ export interface Project {
   notes: Note[];
   moodBoard: MoodBoardItem[];
   chatHistory: ChatMessage[];
+  ownerId?: string;
+  access?: ProjectAccess;
 }
 
 export interface Script {
@@ -229,6 +231,19 @@ export enum AppMode {
 }
 
 export type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'error';
+
+export type ProjectAccess = 'owner' | 'edit' | 'view';
+
+export interface ProjectShareInfo {
+  id: string;
+  project_id: string;
+  project_name: string;
+  shared_with_email: string;
+  shared_with_user_id?: string | null;
+  permission: 'view' | 'edit';
+  accepted: boolean;
+  created_at: string;
+}
 
 export interface UndoRedoState<T> {
   past: T[];

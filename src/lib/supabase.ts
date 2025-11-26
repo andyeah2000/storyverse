@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient, User, Session } from '@supabase/supabase-js';
+import type { ProjectShareInfo } from '../types';
 
 // Environment variables - set these in Vercel or .env.local
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
@@ -289,5 +290,131 @@ export const loadSettings = async (): Promise<{ settings: Record<string, unknown
   }
 };
 
-export default supabase;
+// ============================================
+// COLLABORATION HELPERS
+// ============================================
 
+export const listProjectShares = async (): Promise<{ shares: ProjectShareInfo[]; error: Error | null }> => {
+  if (!isSupabaseConfigured()) {
+    return { shares: [], error: new Error('Supabase is not configured') };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('project_shares')
+      .select('id, project_id, project_name, shared_with_email, shared_with_user_id, permission, accepted, created_at')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return { shares: (data || []) as ProjectShareInfo[], error: null };
+  } catch (error) {
+    return { shares: [], error: error as Error };
+  }
+};
+
+export const inviteProjectCollaborator = async (
+  projectId: string,
+  projectName: string,
+  email: string,
+  permission: 'view' | 'edit'
+): Promise<{ error: Error | null }> => {
+  if (!isSupabaseConfigured()) {
+    return { error: new Error('Supabase is not configured') };
+  }
+
+  try {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) {
+      throw new Error('Email is required');
+    }
+
+    const { error } = await supabase.from('project_shares').insert({
+      project_id: projectId,
+      project_name: projectName,
+      shared_with_email: normalizedEmail,
+      permission,
+    });
+
+    if (error) throw error;
+    return { error: null };
+  } catch (error) {
+    return { error: error as Error };
+  }
+};
+
+export const revokeProjectCollaborator = async (shareId: string): Promise<{ error: Error | null }> => {
+  if (!isSupabaseConfigured()) {
+    return { error: new Error('Supabase is not configured') };
+  }
+
+  try {
+    const { error } = await supabase.from('project_shares').delete().eq('id', shareId);
+    if (error) throw error;
+    return { error: null };
+  } catch (error) {
+    return { error: error as Error };
+  }
+};
+
+export const acceptProjectShareInvite = async (shareId: string): Promise<{ error: Error | null }> => {
+  if (!isSupabaseConfigured()) {
+    return { error: new Error('Supabase is not configured') };
+  }
+
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+      throw new Error('Not authenticated');
+    }
+
+    const { error } = await supabase
+      .from('project_shares')
+      .update({
+        shared_with_user_id: userData.user.id,
+        shared_with_email: userData.user.email?.toLowerCase(),
+        accepted: true,
+      })
+      .eq('id', shareId);
+
+    if (error) throw error;
+    return { error: null };
+  } catch (error) {
+    return { error: error as Error };
+  }
+};
+
+export const declineProjectShareInvite = async (shareId: string): Promise<{ error: Error | null }> => {
+  if (!isSupabaseConfigured()) {
+    return { error: new Error('Supabase is not configured') };
+  }
+
+  try {
+    const { error } = await supabase.from('project_shares').delete().eq('id', shareId);
+    if (error) throw error;
+    return { error: null };
+  } catch (error) {
+    return { error: error as Error };
+  }
+};
+
+export const loadSharedProjectsByIds = async (
+  projectIds: string[],
+): Promise<{ projects: StoredProject[]; error: Error | null }> => {
+  if (!isSupabaseConfigured() || projectIds.length === 0) {
+    return { projects: [], error: null };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .in('id', projectIds);
+
+    if (error) throw error;
+    return { projects: (data || []) as StoredProject[], error: null };
+  } catch (error) {
+    return { projects: [], error: error as Error };
+  }
+};
+
+export default supabase;

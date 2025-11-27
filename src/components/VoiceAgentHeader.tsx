@@ -1,9 +1,8 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAgent } from '../context/AgentContext';
 import { useStory } from '../context/StoryContext';
 import { 
   Mic, 
-  MicOff, 
   Loader2,
   AlertCircle,
   Volume2,

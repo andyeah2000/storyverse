@@ -18,7 +18,6 @@ import {
   Maximize2,
   Minimize2,
   Download,
-  List,
   FileEdit,
   PenLine,
   Wand2,

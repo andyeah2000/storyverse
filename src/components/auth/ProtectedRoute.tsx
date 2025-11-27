@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
   requireAuth?: boolean; // Optional: set to true to require authentication
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireAuth = false }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isLoading } = useAuth();
 
   // Show loading state while checking auth (brief)

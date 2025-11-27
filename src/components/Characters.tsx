@@ -53,7 +53,7 @@ const ROLE_BADGES = {
 };
 
 const Characters: React.FC = () => {
-  const { sources, addSource, updateSource, deleteSource, theme } = useStory();
+  const { sources, addSource, updateSource, deleteSource } = useStory();
   
   const [selectedCharacter, setSelectedCharacter] = useState<Source | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -64,8 +64,6 @@ const Characters: React.FC = () => {
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState('');
   const [focusMode, setFocusMode] = useState(false);
-
-  const isDark = theme === 'dark';
 
   // Get all content to scan
   const getAllContent = () => {
@@ -377,40 +375,24 @@ Return only the ${field} content, nothing else.` }]
 
   return (
     <div className={cn(
-      "flex rounded-2xl shadow-subtle border overflow-hidden",
-      focusMode ? "fixed inset-0 z-50 m-4" : "h-full",
-      isDark ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200/60'
+      "flex rounded-2xl shadow-subtle border overflow-hidden bg-white border-stone-200/60",
+      focusMode ? "fixed inset-0 z-50 m-4" : "h-full"
     )}>
       
       {/* Left Sidebar - Character List */}
-      <div className={cn(
-        "w-72 border-r flex flex-col shrink-0",
-        isDark ? 'border-stone-800' : 'border-stone-200'
-      )}>
+      <div className="w-72 border-r flex flex-col shrink-0 border-stone-200">
         {/* Header */}
-        <div className={cn(
-          "h-14 px-4 flex items-center justify-between border-b shrink-0",
-          isDark ? 'border-stone-800' : 'border-stone-100'
-        )}>
+        <div className="h-14 px-4 flex items-center justify-between border-b shrink-0 border-stone-100">
           <div className="flex items-center gap-2">
             <Users size={18} className="text-stone-400" />
-            <span className={cn(
-              "font-semibold",
-              isDark ? 'text-white' : 'text-stone-900'
-            )}>Characters</span>
-            <span className={cn(
-              "text-xs px-1.5 py-0.5 rounded",
-              isDark ? 'bg-stone-800 text-stone-400' : 'bg-stone-100 text-stone-500'
-            )}>
+            <span className="font-semibold text-stone-900">Characters</span>
+            <span className="text-xs px-1.5 py-0.5 rounded bg-stone-100 text-stone-500">
               {characters.length}
             </span>
           </div>
           <button
             onClick={() => setIsCreating(true)}
-            className={cn(
-              "w-7 h-7 rounded-lg flex items-center justify-center transition-colors",
-              isDark ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-stone-100 text-stone-500'
-            )}
+            className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-stone-100 text-stone-500"
           >
             <Plus size={16} />
           </button>
@@ -425,12 +407,7 @@ Return only the ${field} content, nothing else.` }]
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search characters..."
-              className={cn(
-                "w-full h-9 pl-9 pr-3 rounded-lg text-sm outline-none transition-all border",
-                isDark
-                  ? 'bg-stone-800 border-stone-700 text-white placeholder:text-stone-500 focus:ring-1 focus:ring-white/20'
-                  : 'bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400 focus:ring-1 focus:ring-stone-900/10'
-              )}
+              className="w-full h-9 pl-9 pr-3 rounded-lg text-sm outline-none transition-all border bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400 focus:ring-1 focus:ring-stone-900/10"
             />
           </div>
         </div>
@@ -438,10 +415,7 @@ Return only the ${field} content, nothing else.` }]
         {/* Character List */}
         <div className="flex-1 overflow-y-auto px-2 pb-3 space-y-1">
           {filteredCharacters.length === 0 ? (
-            <div className={cn(
-              "flex flex-col items-center justify-center py-12 text-center",
-              isDark ? 'text-stone-600' : 'text-stone-400'
-            )}>
+            <div className="flex flex-col items-center justify-center py-12 text-center text-stone-400">
               <User size={32} strokeWidth={1.5} className="mb-3" />
               <p className="text-sm font-medium">No characters yet</p>
               <p className="text-xs mt-1 opacity-70">Create your first character</p>
@@ -454,8 +428,8 @@ Return only the ${field} content, nothing else.` }]
                 className={cn(
                   "w-full p-3 rounded-xl text-left transition-all group",
                   selectedCharacter?.id === char.id
-                    ? isDark ? 'bg-stone-700' : 'bg-stone-200'
-                    : isDark ? 'hover:bg-stone-800' : 'hover:bg-stone-100'
+                    ? 'bg-stone-200'
+                    : 'hover:bg-stone-100'
                 )}
               >
                 <div className="flex items-start gap-3">
@@ -466,7 +440,7 @@ Return only the ${field} content, nothing else.` }]
                       ? 'bg-emerald-500/20 text-emerald-500'
                       : char.characterDetails?.role === 'antagonist'
                         ? 'bg-red-500/20 text-red-500'
-                        : isDark ? 'bg-stone-700 text-stone-400' : 'bg-stone-200 text-stone-500'
+                        : 'bg-stone-200 text-stone-500'
                   )}>
                     {char.characterDetails?.imageUrl ? (
                       <img 
@@ -480,10 +454,7 @@ Return only the ${field} content, nothing else.` }]
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <h3 className={cn(
-                      "font-medium text-sm truncate",
-                      isDark ? 'text-white' : 'text-stone-900'
-                    )}>
+                    <h3 className="font-medium text-sm truncate text-stone-900">
                       {char.title}
                     </h3>
                     {char.characterDetails?.role && (
@@ -491,7 +462,7 @@ Return only the ${field} content, nothing else.` }]
                         "text-[10px] font-medium uppercase tracking-wide",
                         char.characterDetails.role === 'protagonist' ? 'text-emerald-500' :
                         char.characterDetails.role === 'antagonist' ? 'text-red-500' :
-                        isDark ? 'text-stone-500' : 'text-stone-400'
+                        'text-stone-400'
                       )}>
                         {char.characterDetails.role}
                       </span>
@@ -499,9 +470,8 @@ Return only the ${field} content, nothing else.` }]
                   </div>
                   
                   <ChevronRight size={14} className={cn(
-                    "shrink-0 mt-1 transition-transform",
-                    selectedCharacter?.id === char.id && 'rotate-90',
-                    isDark ? 'text-stone-600' : 'text-stone-300'
+                    "shrink-0 mt-1 transition-transform text-stone-300",
+                    selectedCharacter?.id === char.id && 'rotate-90'
                   )} />
                 </div>
               </button>
@@ -510,20 +480,12 @@ Return only the ${field} content, nothing else.` }]
         </div>
 
         {/* Quick Add */}
-        <div className={cn(
-          "p-3 border-t space-y-2",
-          isDark ? 'border-stone-800' : 'border-stone-100'
-        )}>
+        <div className="p-3 border-t space-y-2 border-stone-100">
           {/* Auto-Scan Button */}
           <button
             onClick={autoScanCharacters}
             disabled={isScanning}
-            className={cn(
-              "w-full h-9 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition-all",
-              isDark
-                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:opacity-90 disabled:opacity-50'
-                : 'bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:opacity-90 disabled:opacity-50'
-            )}
+            className="w-full h-9 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition-all bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:opacity-90 disabled:opacity-50"
           >
             {isScanning ? (
               <>
@@ -540,22 +502,14 @@ Return only the ${field} content, nothing else.` }]
           
           {/* Progress Message */}
           {scanProgress && (
-            <p className={cn(
-              "text-[10px] text-center px-2",
-              isDark ? 'text-stone-400' : 'text-stone-500'
-            )}>
+            <p className="text-[10px] text-center px-2 text-stone-500">
               {scanProgress}
             </p>
           )}
           
           <button
             onClick={() => setIsCreating(true)}
-            className={cn(
-              "w-full h-9 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition-colors",
-              isDark
-                ? 'bg-stone-800 text-stone-300 hover:bg-stone-700'
-                : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
-            )}
+            className="w-full h-9 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition-colors bg-stone-100 text-stone-700 hover:bg-stone-200"
           >
             <Plus size={14} />
             Create Manually
@@ -568,10 +522,7 @@ Return only the ${field} content, nothing else.` }]
         {selectedCharacter ? (
           <>
             {/* Character Header */}
-            <div className={cn(
-              "h-16 px-6 flex items-center justify-between border-b shrink-0",
-              isDark ? 'border-stone-800' : 'border-stone-100'
-            )}>
+            <div className="h-16 px-6 flex items-center justify-between border-b shrink-0 border-stone-100">
               <div className="flex items-center gap-4">
                 <div className={cn(
                   "w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold",
@@ -579,7 +530,7 @@ Return only the ${field} content, nothing else.` }]
                     ? 'bg-emerald-500/20 text-emerald-500'
                     : selectedCharacter.characterDetails?.role === 'antagonist'
                       ? 'bg-red-500/20 text-red-500'
-                      : isDark ? 'bg-stone-800 text-stone-400' : 'bg-stone-100 text-stone-500'
+                      : 'bg-stone-100 text-stone-500'
                 )}>
                   {selectedCharacter.characterDetails?.imageUrl ? (
                     <img 
@@ -592,10 +543,7 @@ Return only the ${field} content, nothing else.` }]
                   )}
                 </div>
                 <div>
-                  <h1 className={cn(
-                    "text-xl font-bold",
-                    isDark ? 'text-white' : 'text-stone-900'
-                  )}>
+                  <h1 className="text-xl font-bold text-stone-900">
                     {selectedCharacter.title}
                   </h1>
                   <div className="flex items-center gap-2 mt-0.5">
@@ -608,10 +556,7 @@ Return only the ${field} content, nothing else.` }]
                       </span>
                     )}
                     {selectedCharacter.characterDetails?.age && (
-                      <span className={cn(
-                        "text-xs",
-                        isDark ? 'text-stone-500' : 'text-stone-400'
-                      )}>
+                      <span className="text-xs text-stone-400">
                         {selectedCharacter.characterDetails.age}
                       </span>
                     )}
@@ -625,8 +570,8 @@ Return only the ${field} content, nothing else.` }]
                   className={cn(
                     "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
                     focusMode
-                      ? isDark ? 'bg-white text-stone-900' : 'bg-stone-900 text-white'
-                      : isDark ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-stone-100 text-stone-500'
+                      ? 'bg-stone-900 text-white'
+                      : 'hover:bg-stone-100 text-stone-500'
                   )}
                   title={focusMode ? 'Exit focus mode' : 'Focus mode'}
                 >
@@ -637,8 +582,8 @@ Return only the ${field} content, nothing else.` }]
                   className={cn(
                     "h-8 px-3 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors",
                     editMode
-                      ? isDark ? 'bg-white text-stone-900' : 'bg-stone-900 text-white'
-                      : isDark ? 'bg-stone-800 text-stone-300 hover:bg-stone-700' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
+                      ? 'bg-stone-900 text-white'
+                      : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
                   )}
                 >
                   <Edit3 size={12} />
@@ -649,10 +594,7 @@ Return only the ${field} content, nothing else.` }]
                     deleteSource(selectedCharacter.id);
                     setSelectedCharacter(null);
                   }}
-                  className={cn(
-                    "w-8 h-8 rounded-lg flex items-center justify-center transition-colors text-red-500",
-                    isDark ? 'hover:bg-red-500/10' : 'hover:bg-red-50'
-                  )}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors text-red-500 hover:bg-red-50"
                 >
                   <Trash2 size={14} />
                 </button>
@@ -664,14 +606,8 @@ Return only the ${field} content, nothing else.` }]
               <div className="max-w-4xl mx-auto space-y-6">
                 
                 {/* Description */}
-                <section className={cn(
-                  "p-5 rounded-xl border",
-                  isDark ? 'bg-stone-800/50 border-stone-700' : 'bg-stone-50 border-stone-200'
-                )}>
-                  <h2 className={cn(
-                    "text-sm font-semibold uppercase tracking-wide mb-3 flex items-center gap-2",
-                    isDark ? 'text-stone-400' : 'text-stone-500'
-                  )}>
+                <section className="p-5 rounded-xl border bg-stone-50 border-stone-200">
+                  <h2 className="text-sm font-semibold uppercase tracking-wide mb-3 flex items-center gap-2 text-stone-500">
                     <Eye size={14} />
                     Description
                   </h2>
@@ -682,18 +618,10 @@ Return only the ${field} content, nothing else.` }]
                         updateSource(selectedCharacter.id, { content: e.target.value });
                         setSelectedCharacter({ ...selectedCharacter, content: e.target.value });
                       }}
-                      className={cn(
-                        "w-full min-h-[120px] p-3 rounded-lg text-sm outline-none resize-none border",
-                        isDark
-                          ? 'bg-stone-900 border-stone-700 text-stone-200'
-                          : 'bg-white border-stone-200 text-stone-700'
-                      )}
+                      className="w-full min-h-[120px] p-3 rounded-lg text-sm outline-none resize-none border bg-white border-stone-200 text-stone-700"
                     />
                   ) : (
-                    <p className={cn(
-                      "text-sm leading-relaxed whitespace-pre-wrap",
-                      isDark ? 'text-stone-300' : 'text-stone-600'
-                    )}>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap text-stone-600">
                       {selectedCharacter.content || 'No description yet.'}
                     </p>
                   )}
@@ -707,7 +635,6 @@ Return only the ${field} content, nothing else.` }]
                     title="Motivation"
                     icon={<Target size={14} />}
                     content={selectedCharacter.characterDetails?.motivation}
-                    isDark={isDark}
                     editMode={editMode}
                     isGenerating={generatingField === 'motivation'}
                     onGenerate={() => generateField('motivation')}
@@ -727,7 +654,6 @@ Return only the ${field} content, nothing else.` }]
                     title="Flaw"
                     icon={<Zap size={14} />}
                     content={selectedCharacter.characterDetails?.flaw}
-                    isDark={isDark}
                     editMode={editMode}
                     isGenerating={generatingField === 'flaw'}
                     onGenerate={() => generateField('flaw')}
@@ -747,7 +673,6 @@ Return only the ${field} content, nothing else.` }]
                     title="Character Arc"
                     icon={<ArrowRight size={14} />}
                     content={selectedCharacter.characterDetails?.arc}
-                    isDark={isDark}
                     editMode={editMode}
                     isGenerating={generatingField === 'arc'}
                     onGenerate={() => generateField('arc')}
@@ -767,7 +692,6 @@ Return only the ${field} content, nothing else.` }]
                     title="Backstory"
                     icon={<BookOpen size={14} />}
                     content={selectedCharacter.characterDetails?.backstory}
-                    isDark={isDark}
                     editMode={editMode}
                     isGenerating={generatingField === 'backstory'}
                     onGenerate={() => generateField('backstory')}
@@ -784,27 +708,16 @@ Return only the ${field} content, nothing else.` }]
                 </div>
 
                 {/* Relationships */}
-                <section className={cn(
-                  "p-5 rounded-xl border",
-                  isDark ? 'bg-stone-800/50 border-stone-700' : 'bg-stone-50 border-stone-200'
-                )}>
+                <section className="p-5 rounded-xl border bg-stone-50 border-stone-200">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className={cn(
-                      "text-sm font-semibold uppercase tracking-wide flex items-center gap-2",
-                      isDark ? 'text-stone-400' : 'text-stone-500'
-                    )}>
+                    <h2 className="text-sm font-semibold uppercase tracking-wide flex items-center gap-2 text-stone-500">
                       <Link2 size={14} />
                       Relationships
                     </h2>
                     <button
                       onClick={() => generateField('relationships')}
                       disabled={generatingField === 'relationships'}
-                      className={cn(
-                        "h-7 px-2 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors",
-                        isDark
-                          ? 'bg-stone-700 text-stone-300 hover:bg-stone-600'
-                          : 'bg-stone-200 text-stone-600 hover:bg-stone-300'
-                      )}
+                      className="h-7 px-2 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors bg-stone-200 text-stone-600 hover:bg-stone-300"
                     >
                       {generatingField === 'relationships' ? (
                         <Loader2 size={12} className="animate-spin" />
@@ -828,10 +741,7 @@ Return only the ${field} content, nothing else.` }]
                               const target = characters.find(c => c.id === rel.targetId);
                               if (target) setSelectedCharacter(target);
                             }}
-                            className={cn(
-                              "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors",
-                              isDark ? 'hover:bg-stone-700' : 'hover:bg-stone-100'
-                            )}
+                            className="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors hover:bg-stone-100"
                           >
                             <div className={cn(
                               "w-8 h-8 rounded-lg flex items-center justify-center",
@@ -840,30 +750,19 @@ Return only the ${field} content, nothing else.` }]
                               <Icon size={14} />
                             </div>
                             <div className="flex-1">
-                              <span className={cn(
-                                "text-sm font-medium",
-                                isDark ? 'text-white' : 'text-stone-900'
-                              )}>
+                              <span className="text-sm font-medium text-stone-900">
                                 {rel.targetName}
                               </span>
-                              <span className={cn(
-                                "text-xs block",
-                                isDark ? 'text-stone-500' : 'text-stone-400'
-                              )}>
+                              <span className="text-xs block text-stone-400">
                                 {config.label}
                               </span>
                             </div>
-                            <ChevronRight size={14} className={cn(
-                              isDark ? 'text-stone-600' : 'text-stone-300'
-                            )} />
+                            <ChevronRight size={14} className="text-stone-300" />
                           </div>
                         );
                       })
                     ) : (
-                      <p className={cn(
-                        "text-sm text-center py-6",
-                        isDark ? 'text-stone-600' : 'text-stone-400'
-                      )}>
+                      <p className="text-sm text-center py-6 text-stone-400">
                         No relationships detected. Mention other character names in the description or use AI to generate.
                       </p>
                     )}
@@ -871,14 +770,8 @@ Return only the ${field} content, nothing else.` }]
                   
                   {/* Manual Relationships Text */}
                   {selectedCharacter.characterDetails?.relationships && (
-                    <div className={cn(
-                      "mt-4 pt-4 border-t",
-                      isDark ? 'border-stone-700' : 'border-stone-200'
-                    )}>
-                      <p className={cn(
-                        "text-sm leading-relaxed",
-                        isDark ? 'text-stone-400' : 'text-stone-500'
-                      )}>
+                    <div className="mt-4 pt-4 border-t border-stone-200">
+                      <p className="text-sm leading-relaxed text-stone-500">
                         {selectedCharacter.characterDetails.relationships}
                       </p>
                     </div>
@@ -890,32 +783,18 @@ Return only the ${field} content, nothing else.` }]
         ) : (
           /* No Character Selected */
           <div className="flex-1 flex flex-col items-center justify-center p-8">
-            <div className={cn(
-              "w-20 h-20 rounded-2xl flex items-center justify-center mb-4",
-              isDark ? 'bg-stone-800' : 'bg-stone-100'
-            )}>
-              <Users size={32} className={isDark ? 'text-stone-600' : 'text-stone-400'} />
+            <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-4 bg-stone-100">
+              <Users size={32} className="text-stone-400" />
             </div>
-            <h2 className={cn(
-              "text-xl font-semibold mb-2",
-              isDark ? 'text-white' : 'text-stone-900'
-            )}>
+            <h2 className="text-xl font-semibold mb-2 text-stone-900">
               Select a Character
             </h2>
-            <p className={cn(
-              "text-sm text-center max-w-sm mb-6",
-              isDark ? 'text-stone-500' : 'text-stone-400'
-            )}>
+            <p className="text-sm text-center max-w-sm mb-6 text-stone-400">
               Choose a character from the list or create a new one to see their full profile.
             </p>
             <button
               onClick={() => setIsCreating(true)}
-              className={cn(
-                "h-10 px-4 rounded-xl text-sm font-medium flex items-center gap-2 transition-colors",
-                isDark
-                  ? 'bg-white text-stone-900 hover:bg-stone-100'
-                  : 'bg-stone-900 text-white hover:bg-stone-800'
-              )}
+              className="h-10 px-4 rounded-xl text-sm font-medium flex items-center gap-2 transition-colors bg-stone-900 text-white hover:bg-stone-800"
             >
               <Sparkles size={16} />
               Create Character with AI
@@ -927,24 +806,12 @@ Return only the ${field} content, nothing else.` }]
       {/* Create Character Modal */}
       {isCreating && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-          <div className={cn(
-            "w-full max-w-md rounded-2xl shadow-2xl overflow-hidden",
-            isDark ? 'bg-stone-900' : 'bg-white'
-          )}>
-            <div className={cn(
-              "h-14 px-6 flex items-center justify-between border-b",
-              isDark ? 'border-stone-800' : 'border-stone-100'
-            )}>
-              <h3 className={cn(
-                "font-semibold",
-                isDark ? 'text-white' : 'text-stone-900'
-              )}>Create Character</h3>
+          <div className="w-full max-w-md rounded-2xl shadow-2xl overflow-hidden bg-white">
+            <div className="h-14 px-6 flex items-center justify-between border-b border-stone-100">
+              <h3 className="font-semibold text-stone-900">Create Character</h3>
               <button
                 onClick={() => { setIsCreating(false); setNewCharName(''); }}
-                className={cn(
-                  "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-                  isDark ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-stone-100 text-stone-500'
-                )}
+                className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-stone-100 text-stone-500"
               >
                 <X size={16} />
               </button>
@@ -952,22 +819,14 @@ Return only the ${field} content, nothing else.` }]
             
             <div className="p-6 space-y-4">
               <div>
-                <label className={cn(
-                  "block text-xs font-medium mb-2",
-                  isDark ? 'text-stone-400' : 'text-stone-500'
-                )}>Character Name</label>
+                <label className="block text-xs font-medium mb-2 text-stone-500">Character Name</label>
                 <input
                   type="text"
                   value={newCharName}
                   onChange={(e) => setNewCharName(e.target.value)}
                   placeholder="Enter character name..."
                   autoFocus
-                  className={cn(
-                    "w-full h-11 px-4 rounded-xl text-sm outline-none border transition-all",
-                    isDark
-                      ? 'bg-stone-800 border-stone-700 text-white placeholder:text-stone-600 focus:ring-2 focus:ring-white/10'
-                      : 'bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400 focus:ring-2 focus:ring-stone-900/10'
-                  )}
+                  className="w-full h-11 px-4 rounded-xl text-sm outline-none border transition-all bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400 focus:ring-2 focus:ring-stone-900/10"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && newCharName.trim()) {
                       generateCharacterProfile(newCharName.trim());
@@ -976,36 +835,22 @@ Return only the ${field} content, nothing else.` }]
                 />
               </div>
               
-              <p className={cn(
-                "text-xs",
-                isDark ? 'text-stone-500' : 'text-stone-400'
-              )}>
+              <p className="text-xs text-stone-400">
                 AI will generate a complete character profile including appearance, personality, backstory, motivation, and more.
               </p>
             </div>
             
-            <div className={cn(
-              "h-16 px-6 flex items-center justify-end gap-3 border-t",
-              isDark ? 'border-stone-800' : 'border-stone-100'
-            )}>
+            <div className="h-16 px-6 flex items-center justify-end gap-3 border-t border-stone-100">
               <button
                 onClick={() => { setIsCreating(false); setNewCharName(''); }}
-                className={cn(
-                  "h-9 px-4 rounded-lg text-sm font-medium transition-colors",
-                  isDark ? 'text-stone-400 hover:bg-stone-800' : 'text-stone-600 hover:bg-stone-100'
-                )}
+                className="h-9 px-4 rounded-lg text-sm font-medium transition-colors text-stone-600 hover:bg-stone-100"
               >
                 Cancel
               </button>
               <button
                 onClick={() => newCharName.trim() && generateCharacterProfile(newCharName.trim())}
                 disabled={!newCharName.trim() || isGenerating}
-                className={cn(
-                  "h-9 px-4 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors disabled:opacity-50",
-                  isDark
-                    ? 'bg-white text-stone-900 hover:bg-stone-100'
-                    : 'bg-stone-900 text-white hover:bg-stone-800'
-                )}
+                className="h-9 px-4 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors disabled:opacity-50 bg-stone-900 text-white hover:bg-stone-800"
               >
                 {isGenerating ? (
                   <>
@@ -1032,7 +877,6 @@ interface DetailCardProps {
   title: string;
   icon: React.ReactNode;
   content?: string;
-  isDark: boolean;
   editMode: boolean;
   isGenerating: boolean;
   onGenerate: () => void;
@@ -1043,21 +887,14 @@ const DetailCard: React.FC<DetailCardProps> = ({
   title,
   icon,
   content,
-  isDark,
   editMode,
   isGenerating,
   onGenerate,
   onChange
 }) => (
-  <div className={cn(
-    "p-4 rounded-xl border",
-    isDark ? 'bg-stone-800/50 border-stone-700' : 'bg-stone-50 border-stone-200'
-  )}>
+  <div className="p-4 rounded-xl border bg-stone-50 border-stone-200">
     <div className="flex items-center justify-between mb-2">
-      <h3 className={cn(
-        "text-xs font-semibold uppercase tracking-wide flex items-center gap-1.5",
-        isDark ? 'text-stone-400' : 'text-stone-500'
-      )}>
+      <h3 className="text-xs font-semibold uppercase tracking-wide flex items-center gap-1.5 text-stone-500">
         {icon}
         {title}
       </h3>
@@ -1065,10 +902,7 @@ const DetailCard: React.FC<DetailCardProps> = ({
         <button
           onClick={onGenerate}
           disabled={isGenerating}
-          className={cn(
-            "p-1 rounded transition-colors",
-            isDark ? 'hover:bg-stone-700 text-stone-500' : 'hover:bg-stone-200 text-stone-400'
-          )}
+          className="p-1 rounded transition-colors hover:bg-stone-200 text-stone-400"
         >
           {isGenerating ? (
             <Loader2 size={12} className="animate-spin" />
@@ -1083,19 +917,14 @@ const DetailCard: React.FC<DetailCardProps> = ({
         value={content || ''}
         onChange={(e) => onChange(e.target.value)}
         placeholder={`Enter ${title.toLowerCase()}...`}
-        className={cn(
-          "w-full min-h-[80px] p-2 rounded-lg text-sm outline-none resize-none border",
-          isDark
-            ? 'bg-stone-900 border-stone-700 text-stone-200 placeholder:text-stone-600'
-            : 'bg-white border-stone-200 text-stone-700 placeholder:text-stone-400'
-        )}
+        className="w-full min-h-[80px] p-2 rounded-lg text-sm outline-none resize-none border bg-white border-stone-200 text-stone-700 placeholder:text-stone-400"
       />
     ) : (
       <p className={cn(
         "text-sm leading-relaxed",
         content 
-          ? isDark ? 'text-stone-300' : 'text-stone-600'
-          : isDark ? 'text-stone-600 italic' : 'text-stone-400 italic'
+          ? 'text-stone-600'
+          : 'text-stone-400 italic'
       )}>
         {content || `No ${title.toLowerCase()} defined. Click the wand to generate.`}
       </p>
@@ -1104,4 +933,3 @@ const DetailCard: React.FC<DetailCardProps> = ({
 );
 
 export default Characters;
-

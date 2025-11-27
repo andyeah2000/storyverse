@@ -122,7 +122,7 @@ const BEATS: Beat[] = [
 ];
 
 const BeatSheetComponent: React.FC = () => {
-  const { beatSheet, updateBeatSheet, sources, theme } = useStory();
+  const { beatSheet, updateBeatSheet, sources } = useStory();
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
   const [generatingBeat, setGeneratingBeat] = useState<string | null>(null);
 
@@ -271,15 +271,15 @@ FINAL_IMAGE: [content]` }]
   };
 
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-stone-900 rounded-2xl shadow-subtle border border-stone-200/60 dark:border-stone-800 overflow-hidden">
+    <div className="h-full flex flex-col bg-white rounded-2xl shadow-subtle border border-stone-200/60 overflow-hidden">
       
       {/* Header */}
-      <div className="h-14 px-6 flex items-center justify-between border-b border-stone-100 dark:border-stone-800 shrink-0">
+      <div className="h-14 px-6 flex items-center justify-between border-b border-stone-100 shrink-0">
         <div className="flex items-center gap-3">
           <Sparkles size={18} className="text-stone-400" strokeWidth={1.75} />
           <div>
-            <h2 className="text-base font-semibold text-stone-900 dark:text-white">Save the Cat! Beat Sheet</h2>
-            <p className="text-xs text-stone-500 dark:text-stone-400">15 beats to structure your story</p>
+            <h2 className="text-base font-semibold text-stone-900">Save the Cat! Beat Sheet</h2>
+            <p className="text-xs text-stone-500">15 beats to structure your story</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -287,12 +287,7 @@ FINAL_IMAGE: [content]` }]
           <button
             onClick={generateAllBeats}
             disabled={isGeneratingAll}
-            className={cn(
-              "h-8 px-3 rounded-lg text-xs font-medium flex items-center gap-2 transition-all",
-              theme === 'dark'
-                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:opacity-90 disabled:opacity-50'
-                : 'bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:opacity-90 disabled:opacity-50'
-            )}
+            className="h-8 px-3 rounded-lg text-xs font-medium flex items-center gap-2 transition-all bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:opacity-90 disabled:opacity-50"
           >
             {isGeneratingAll ? (
               <>
@@ -307,14 +302,14 @@ FINAL_IMAGE: [content]` }]
             )}
           </button>
           
-          <div className="w-px h-6 bg-stone-200 dark:bg-stone-700" />
+          <div className="w-px h-6 bg-stone-200" />
           
-          <span className="text-xs font-medium text-stone-500 dark:text-stone-400">
+          <span className="text-xs font-medium text-stone-500">
             {completedBeats}/{BEATS.length}
           </span>
-          <div className="w-24 h-1.5 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
+          <div className="w-24 h-1.5 bg-stone-100 rounded-full overflow-hidden">
             <div 
-              className="h-full bg-stone-900 dark:bg-white rounded-full transition-all duration-500"
+              className="h-full bg-stone-900 rounded-full transition-all duration-500"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -359,20 +354,20 @@ const BeatCard: React.FC<BeatCardProps> = ({ beat, index, value, onChange, onGen
       className={cn(
         "relative p-4 rounded-xl border transition-all group",
         isEmpty
-          ? 'border-stone-200 dark:border-stone-700 bg-stone-50/50 dark:bg-stone-800/50'
-          : 'border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-800',
+          ? 'border-stone-200 bg-stone-50/50'
+          : 'border-stone-300 bg-white',
         isGenerating && 'ring-2 ring-purple-500/50'
       )}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className="w-6 h-6 rounded-lg bg-stone-900 dark:bg-white text-white dark:text-stone-900 text-xs font-bold flex items-center justify-center">
+          <span className="w-6 h-6 rounded-lg bg-stone-900 text-white text-xs font-bold flex items-center justify-center">
             {index + 1}
           </span>
           <div>
-            <h3 className="text-sm font-semibold text-stone-900 dark:text-white">{beat.title}</h3>
-            <span className="text-[10px] text-stone-400 dark:text-stone-500 font-mono">{beat.percentage}</span>
+            <h3 className="text-sm font-semibold text-stone-900">{beat.title}</h3>
+            <span className="text-[10px] text-stone-400 font-mono">{beat.percentage}</span>
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -396,7 +391,7 @@ const BeatCard: React.FC<BeatCardProps> = ({ beat, index, value, onChange, onGen
           </button>
           <button
             onClick={() => setShowHint(!showHint)}
-            className="p-1 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 opacity-0 group-hover:opacity-100 transition-all"
+            className="p-1 text-stone-400 hover:text-stone-600 opacity-0 group-hover:opacity-100 transition-all"
           >
             <Info size={14} />
           </button>
@@ -405,7 +400,7 @@ const BeatCard: React.FC<BeatCardProps> = ({ beat, index, value, onChange, onGen
 
       {/* Hint */}
       {showHint && (
-        <p className="text-xs text-stone-500 dark:text-stone-400 mb-3 p-2 bg-stone-100 dark:bg-stone-700 rounded-lg italic">
+        <p className="text-xs text-stone-500 mb-3 p-2 bg-stone-100 rounded-lg italic">
           {beat.hint}
         </p>
       )}
@@ -416,8 +411,8 @@ const BeatCard: React.FC<BeatCardProps> = ({ beat, index, value, onChange, onGen
         onChange={(e) => onChange(e.target.value)}
         placeholder={beat.hint}
         className={cn(
-          "w-full h-20 text-sm leading-relaxed resize-none outline-none bg-transparent placeholder:text-stone-300 dark:placeholder:text-stone-600",
-          isEmpty ? 'text-stone-400' : 'text-stone-700 dark:text-stone-200'
+          "w-full h-20 text-sm leading-relaxed resize-none outline-none bg-transparent placeholder:text-stone-300",
+          isEmpty ? 'text-stone-400' : 'text-stone-700'
         )}
       />
 
@@ -430,4 +425,3 @@ const BeatCard: React.FC<BeatCardProps> = ({ beat, index, value, onChange, onGen
 };
 
 export default BeatSheetComponent;
-

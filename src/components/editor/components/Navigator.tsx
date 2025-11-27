@@ -124,7 +124,7 @@ const Navigator: React.FC<NavigatorProps> = ({
                 subtitle="Start with INT. or EXT."
               />
             ) : (
-              scenes.map((scene, i) => (
+              scenes.map((scene) => (
                 <button
                   key={scene.id}
                   onClick={() => onSceneClick(scene.lineNumber)}

@@ -7,7 +7,6 @@ import {
   BookOpen,
   ChevronRight
 } from 'lucide-react';
-import { cn } from '../../../lib/utils';
 import { TitlePageData } from '../types';
 import { DEFAULT_TITLE_PAGE } from '../constants';
 

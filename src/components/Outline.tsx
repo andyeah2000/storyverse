@@ -17,10 +17,10 @@ import { OutlineNode } from '../types';
 import { getGeminiClient } from '../services/geminiService';
 
 const TYPE_CONFIG = {
-  act: { icon: Layers, color: 'text-stone-900 dark:text-white bg-stone-900 dark:bg-white', label: 'Act' },
-  sequence: { icon: FileText, color: 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30', label: 'Sequence' },
-  scene: { icon: Film, color: 'text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30', label: 'Scene' },
-  beat: { icon: Zap, color: 'text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30', label: 'Beat' },
+  act: { icon: Layers, color: 'text-stone-900 bg-stone-900', label: 'Act' },
+  sequence: { icon: FileText, color: 'text-blue-600 bg-blue-100', label: 'Sequence' },
+  scene: { icon: Film, color: 'text-emerald-600 bg-emerald-100', label: 'Scene' },
+  beat: { icon: Zap, color: 'text-amber-600 bg-amber-100', label: 'Beat' },
 };
 
 const OutlineComponent: React.FC = () => {
@@ -31,7 +31,6 @@ const OutlineComponent: React.FC = () => {
     deleteOutlineNode,
     sources,
     beatSheet,
-    theme
   } = useStory();
 
   const [selectedType, setSelectedType] = useState<OutlineNode['type']>('act');
@@ -118,15 +117,15 @@ ONLY output valid JSON, nothing else.` }]
   const totalNodes = countNodes(outline);
 
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-stone-900 rounded-2xl shadow-subtle border border-stone-200/60 dark:border-stone-800 overflow-hidden">
+    <div className="h-full flex flex-col bg-white rounded-2xl shadow-subtle border border-stone-200/60 overflow-hidden">
       
       {/* Header */}
-      <div className="h-14 px-6 flex items-center justify-between border-b border-stone-100 dark:border-stone-800 shrink-0">
+      <div className="h-14 px-6 flex items-center justify-between border-b border-stone-100 shrink-0">
         <div className="flex items-center gap-3">
           <Layers size={18} className="text-stone-400" strokeWidth={1.75} />
           <div>
-            <h2 className="text-base font-semibold text-stone-900 dark:text-white">Story Outline</h2>
-            <p className="text-xs text-stone-500 dark:text-stone-400">{totalNodes} elements</p>
+            <h2 className="text-base font-semibold text-stone-900">Story Outline</h2>
+            <p className="text-xs text-stone-500">{totalNodes} elements</p>
           </div>
         </div>
         
@@ -135,12 +134,7 @@ ONLY output valid JSON, nothing else.` }]
           <button
             onClick={generateOutline}
             disabled={isGenerating}
-            className={cn(
-              "h-8 px-3 rounded-lg text-xs font-medium flex items-center gap-2 transition-all",
-              theme === 'dark'
-                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:opacity-90 disabled:opacity-50'
-                : 'bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:opacity-90 disabled:opacity-50'
-            )}
+            className="h-8 px-3 rounded-lg text-xs font-medium flex items-center gap-2 transition-all bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:opacity-90 disabled:opacity-50"
           >
             {isGenerating ? (
               <>
@@ -155,9 +149,9 @@ ONLY output valid JSON, nothing else.` }]
             )}
           </button>
           
-          <div className="w-px h-6 bg-stone-200 dark:bg-stone-700" />
+          <div className="w-px h-6 bg-stone-200" />
           
-          <div className="flex bg-stone-100 dark:bg-stone-800 rounded-lg p-0.5">
+          <div className="flex bg-stone-100 rounded-lg p-0.5">
             {(Object.keys(TYPE_CONFIG) as OutlineNode['type'][]).map(type => {
               const config = TYPE_CONFIG[type];
               const Icon = config.icon;
@@ -168,14 +162,14 @@ ONLY output valid JSON, nothing else.` }]
                   className={cn(
                     "p-1.5 rounded-md transition-all",
                     selectedType === type 
-                      ? 'bg-white dark:bg-stone-700 shadow-sm' 
-                      : 'hover:bg-stone-200/50 dark:hover:bg-stone-700/50'
+                      ? 'bg-white shadow-sm' 
+                      : 'hover:bg-stone-200/50'
                   )}
                   title={config.label}
                 >
                   <Icon size={14} className={cn(
                     selectedType === type 
-                      ? 'text-stone-900 dark:text-white' 
+                      ? 'text-stone-900' 
                       : 'text-stone-400'
                   )} />
                 </button>
@@ -184,7 +178,7 @@ ONLY output valid JSON, nothing else.` }]
           </div>
           <button
             onClick={handleAddRoot}
-            className="h-8 px-3 bg-stone-900 dark:bg-white text-white dark:text-stone-900 rounded-lg font-medium text-xs hover:bg-stone-800 dark:hover:bg-stone-100 transition-all flex items-center gap-1.5"
+            className="h-8 px-3 bg-stone-900 text-white rounded-lg font-medium text-xs hover:bg-stone-800 transition-all flex items-center gap-1.5"
           >
             <Plus size={14} strokeWidth={2} />
             Add {TYPE_CONFIG[selectedType].label}
@@ -196,9 +190,9 @@ ONLY output valid JSON, nothing else.` }]
       <div className="flex-1 overflow-y-auto p-4">
         {outline.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center py-12">
-            <Layers size={32} className="text-stone-300 dark:text-stone-600 mb-4" strokeWidth={1.5} />
-            <h3 className="text-sm font-medium text-stone-500 dark:text-stone-400 mb-1">No outline yet</h3>
-            <p className="text-xs text-stone-400 dark:text-stone-500 max-w-xs">
+            <Layers size={32} className="text-stone-300 mb-4" strokeWidth={1.5} />
+            <h3 className="text-sm font-medium text-stone-500 mb-1">No outline yet</h3>
+            <p className="text-xs text-stone-400 max-w-xs">
               Start by adding Acts, then break them down into Sequences, Scenes, and Beats
             </p>
           </div>
@@ -233,7 +227,7 @@ const OutlineNodeComponent: React.FC<OutlineNodeProps> = ({
   node, 
   depth, 
   onUpdate, 
-  onDelete,
+  onDelete, 
   onAddChild 
 }) => {
   const [isExpanded, setIsExpanded] = useState(!node.collapsed);
@@ -252,7 +246,7 @@ const OutlineNodeComponent: React.FC<OutlineNodeProps> = ({
     <div className="select-none">
       <div 
         className={cn(
-          "group flex items-center gap-2 py-2 px-2 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800 transition-all",
+          "group flex items-center gap-2 py-2 px-2 rounded-lg hover:bg-stone-50 transition-all",
         )}
         style={{ paddingLeft: `${depth * 24 + 8}px` }}
       >
@@ -260,7 +254,7 @@ const OutlineNodeComponent: React.FC<OutlineNodeProps> = ({
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className={cn(
-            "w-5 h-5 flex items-center justify-center text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 transition-all",
+            "w-5 h-5 flex items-center justify-center text-stone-400 hover:text-stone-600 transition-all",
             !hasChildren && 'invisible'
           )}
         >
@@ -269,7 +263,7 @@ const OutlineNodeComponent: React.FC<OutlineNodeProps> = ({
 
         {/* Type Icon */}
         <div className={cn("w-6 h-6 rounded-md flex items-center justify-center", config.color)}>
-          <Icon size={12} className={node.type === 'act' ? 'text-white dark:text-stone-900' : ''} strokeWidth={2} />
+          <Icon size={12} className={node.type === 'act' ? 'text-white' : ''} strokeWidth={2} />
         </div>
 
         {/* Title */}
@@ -280,12 +274,12 @@ const OutlineNodeComponent: React.FC<OutlineNodeProps> = ({
             onChange={(e) => onUpdate(node.id, { title: e.target.value })}
             onBlur={() => setIsEditing(false)}
             onKeyDown={(e) => e.key === 'Enter' && setIsEditing(false)}
-            className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-stone-900 dark:text-white"
+            className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-stone-900"
           />
         ) : (
           <span 
             onClick={() => setIsEditing(true)}
-            className="flex-1 text-sm font-medium text-stone-900 dark:text-white cursor-text"
+            className="flex-1 text-sm font-medium text-stone-900 cursor-text"
           >
             {node.title}
           </span>
@@ -297,7 +291,7 @@ const OutlineNodeComponent: React.FC<OutlineNodeProps> = ({
             <button
               key={type}
               onClick={() => onAddChild(node.id, type)}
-              className="p-1 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 rounded hover:bg-stone-100 dark:hover:bg-stone-700"
+              className="p-1 text-stone-400 hover:text-stone-600 rounded hover:bg-stone-100"
               title={`Add ${TYPE_CONFIG[type].label}`}
             >
               <Plus size={12} />
@@ -305,7 +299,7 @@ const OutlineNodeComponent: React.FC<OutlineNodeProps> = ({
           ))}
           <button
             onClick={() => onDelete(node.id)}
-            className="p-1 text-stone-400 hover:text-red-500 rounded hover:bg-stone-100 dark:hover:bg-stone-700"
+            className="p-1 text-stone-400 hover:text-red-500 rounded hover:bg-stone-100"
           >
             <Trash2 size={12} />
           </button>
@@ -317,7 +311,7 @@ const OutlineNodeComponent: React.FC<OutlineNodeProps> = ({
         <div className="relative">
           {/* Connection line */}
           <div 
-            className="absolute left-0 top-0 bottom-4 w-px bg-stone-200 dark:bg-stone-700"
+            className="absolute left-0 top-0 bottom-4 w-px bg-stone-200"
             style={{ marginLeft: `${depth * 24 + 18}px` }}
           />
           {node.children.map(child => (
@@ -341,4 +335,3 @@ function countNodes(nodes: OutlineNode[]): number {
 }
 
 export default OutlineComponent;
-

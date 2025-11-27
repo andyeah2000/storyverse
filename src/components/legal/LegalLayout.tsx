@@ -72,7 +72,7 @@ const LegalLayout: React.FC<LegalLayoutProps> = ({
   // Extract section number from title if present (e.g., "1. Introduction" -> "1")
   const getSectionNumber = (sectionTitle: string): string | null => {
     const match = sectionTitle.match(/^(\d+)\./);
-    return match ? match[1] : null;
+    return match?.[1] ?? null;
   };
 
   // Get title without number prefix

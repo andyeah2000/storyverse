@@ -86,7 +86,7 @@ interface WikiLink {
 }
 
 const Wiki: React.FC = () => {
-  const { sources, addSource, updateSource, deleteSource, theme } = useStory();
+  const { sources, addSource, updateSource, deleteSource } = useStory();
   
   const [selectedArticle, setSelectedArticle] = useState<Source | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -100,8 +100,6 @@ const Wiki: React.FC = () => {
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState('');
   const [focusMode, setFocusMode] = useState(false);
-
-  const isDark = theme === 'dark';
 
   // Get all content for scanning
   const getAllContent = () => {
@@ -350,10 +348,7 @@ Return ONLY the JSON array.` }]
               const article = wikiSources.find(s => s.id === link.id);
               if (article) navigateToArticle(article);
             }}
-            className={cn(
-              "text-blue-500 hover:text-blue-600 hover:underline font-medium inline",
-              isDark && 'text-blue-400 hover:text-blue-300'
-            )}
+            className="text-blue-500 hover:text-blue-600 hover:underline font-medium inline"
           >
             {link.title}
           </button>
@@ -470,26 +465,16 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
 
   return (
     <div className={cn(
-      "flex rounded-2xl shadow-subtle border overflow-hidden",
-      focusMode ? "fixed inset-0 z-50 m-4" : "h-full",
-      isDark ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200/60'
+      "flex rounded-2xl shadow-subtle border overflow-hidden bg-white border-stone-200/60",
+      focusMode ? "fixed inset-0 z-50 m-4" : "h-full"
     )}>
       
       {/* Left Sidebar - Categories & Index */}
-      <div className={cn(
-        "w-72 border-r flex flex-col shrink-0",
-        isDark ? 'border-stone-800' : 'border-stone-200'
-      )}>
+      <div className="w-72 border-r flex flex-col shrink-0 border-stone-200">
         {/* Header */}
-        <div className={cn(
-          "h-14 px-4 flex items-center gap-3 border-b shrink-0",
-          isDark ? 'border-stone-800' : 'border-stone-100'
-        )}>
+        <div className="h-14 px-4 flex items-center gap-3 border-b shrink-0 border-stone-100">
           <Globe size={18} className="text-stone-400" />
-          <span className={cn(
-            "font-semibold",
-            isDark ? 'text-white' : 'text-stone-900'
-          )}>Universe Wiki</span>
+          <span className="font-semibold text-stone-900">Universe Wiki</span>
         </div>
 
         {/* Search */}
@@ -501,12 +486,7 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search wiki..."
-              className={cn(
-                "w-full h-9 pl-9 pr-3 rounded-lg text-sm outline-none transition-all border",
-                isDark
-                  ? 'bg-stone-800 border-stone-700 text-white placeholder:text-stone-500 focus:ring-1 focus:ring-white/20'
-                  : 'bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400 focus:ring-1 focus:ring-stone-900/10'
-              )}
+              className="w-full h-9 pl-9 pr-3 rounded-lg text-sm outline-none transition-all border bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400 focus:ring-1 focus:ring-stone-900/10"
             />
           </div>
         </div>
@@ -519,8 +499,8 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
               className={cn(
                 "px-2 py-1 rounded text-xs font-medium transition-colors",
                 selectedCategory === 'all'
-                  ? isDark ? 'bg-white text-stone-900' : 'bg-stone-900 text-white'
-                  : isDark ? 'bg-stone-800 text-stone-400 hover:bg-stone-700' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
+                  ? 'bg-stone-900 text-white'
+                  : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
               )}
             >
               All ({wikiSources.length})
@@ -539,7 +519,7 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
                       "px-2 py-1 rounded text-xs font-medium flex items-center gap-1 transition-colors",
                       selectedCategory === key
                         ? config.color
-                        : isDark ? 'bg-stone-800 text-stone-400 hover:bg-stone-700' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
+                        : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
                     )}
                   >
                     <Icon size={10} />
@@ -553,10 +533,7 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
         {/* Article Index */}
         <div className="flex-1 overflow-y-auto px-2 pb-3">
           {filteredSources.length === 0 ? (
-            <div className={cn(
-              "flex flex-col items-center justify-center py-12 text-center",
-              isDark ? 'text-stone-600' : 'text-stone-400'
-            )}>
+            <div className="flex flex-col items-center justify-center py-12 text-center text-stone-400">
               <BookOpen size={32} strokeWidth={1.5} className="mb-3" />
               <p className="text-sm font-medium">No articles found</p>
               <p className="text-xs mt-1 opacity-70">
@@ -575,8 +552,8 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
                     className={cn(
                       "w-full p-2 rounded-lg text-left transition-all group flex items-center gap-2",
                       selectedArticle?.id === article.id
-                        ? isDark ? 'bg-stone-700' : 'bg-stone-200'
-                        : isDark ? 'hover:bg-stone-800' : 'hover:bg-stone-100'
+                        ? 'bg-stone-200'
+                        : 'hover:bg-stone-100'
                     )}
                   >
                     <div className={cn(
@@ -585,10 +562,7 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
                     )}>
                       <Icon size={12} />
                     </div>
-                    <span className={cn(
-                      "text-sm truncate flex-1",
-                      isDark ? 'text-stone-300' : 'text-stone-700'
-                    )}>
+                    <span className="text-sm truncate flex-1 text-stone-700">
                       {article.title}
                     </span>
                   </button>
@@ -599,20 +573,12 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
         </div>
 
         {/* Create Button */}
-        <div className={cn(
-          "p-3 border-t space-y-2",
-          isDark ? 'border-stone-800' : 'border-stone-100'
-        )}>
+        <div className="p-3 border-t space-y-2 border-stone-100">
           {/* Auto-Scan Universe Button */}
           <button
             onClick={autoScanUniverse}
             disabled={isScanning}
-            className={cn(
-              "w-full h-9 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition-all",
-              isDark
-                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:opacity-90 disabled:opacity-50'
-                : 'bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:opacity-90 disabled:opacity-50'
-            )}
+            className="w-full h-9 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition-all bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:opacity-90 disabled:opacity-50"
           >
             {isScanning ? (
               <>
@@ -629,22 +595,14 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
           
           {/* Progress Message */}
           {scanProgress && (
-            <p className={cn(
-              "text-[10px] text-center px-2",
-              isDark ? 'text-stone-400' : 'text-stone-500'
-            )}>
+            <p className="text-[10px] text-center px-2 text-stone-500">
               {scanProgress}
             </p>
           )}
           
           <button
             onClick={() => setIsCreating(true)}
-            className={cn(
-              "w-full h-9 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition-colors",
-              isDark
-                ? 'bg-stone-800 text-stone-300 hover:bg-stone-700'
-                : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
-            )}
+            className="w-full h-9 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition-colors bg-stone-100 text-stone-700 hover:bg-stone-200"
           >
             <Sparkles size={14} />
             Create Article
@@ -657,30 +615,21 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
         {selectedArticle ? (
           <>
             {/* Article Header with Navigation */}
-            <div className={cn(
-              "h-14 px-6 flex items-center justify-between border-b shrink-0",
-              isDark ? 'border-stone-800' : 'border-stone-100'
-            )}>
+            <div className="h-14 px-6 flex items-center justify-between border-b shrink-0 border-stone-100">
               <div className="flex items-center gap-3">
                 {/* Navigation */}
                 <div className="flex items-center gap-1">
                   <button
                     onClick={goBack}
                     disabled={historyIndex < 0}
-                    className={cn(
-                      "w-8 h-8 rounded-lg flex items-center justify-center transition-colors disabled:opacity-30",
-                      isDark ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-stone-100 text-stone-500'
-                    )}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors disabled:opacity-30 hover:bg-stone-100 text-stone-500"
                   >
                     <ArrowLeft size={16} />
                   </button>
                   <button
                     onClick={goForward}
                     disabled={historyIndex >= history.length - 1}
-                    className={cn(
-                      "w-8 h-8 rounded-lg flex items-center justify-center transition-colors disabled:opacity-30",
-                      isDark ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-stone-100 text-stone-500'
-                    )}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors disabled:opacity-30 hover:bg-stone-100 text-stone-500"
                   >
                     <ArrowRight size={16} />
                   </button>
@@ -694,16 +643,10 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
                   )}>
                     {CATEGORIES[selectedArticle.type as CategoryType]?.singular || selectedArticle.type}
                   </span>
-                  <span className={cn(
-                    "text-sm font-medium",
-                    isDark ? 'text-stone-400' : 'text-stone-500'
-                  )}>
+                  <span className="text-sm font-medium text-stone-500">
                     /
                   </span>
-                  <span className={cn(
-                    "text-sm font-semibold",
-                    isDark ? 'text-white' : 'text-stone-900'
-                  )}>
+                  <span className="text-sm font-semibold text-stone-900">
                     {selectedArticle.title}
                   </span>
                 </div>
@@ -716,8 +659,8 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
                   className={cn(
                     "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
                     focusMode
-                      ? isDark ? 'bg-white text-stone-900' : 'bg-stone-900 text-white'
-                      : isDark ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-stone-100 text-stone-500'
+                      ? 'bg-stone-900 text-white'
+                      : 'hover:bg-stone-100 text-stone-500'
                   )}
                   title={focusMode ? 'Exit focus mode' : 'Focus mode'}
                 >
@@ -728,12 +671,7 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
                 <button
                   onClick={expandArticle}
                   disabled={isGenerating}
-                  className={cn(
-                    "h-8 px-3 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors",
-                    isDark
-                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:opacity-90 disabled:opacity-50'
-                      : 'bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:opacity-90 disabled:opacity-50'
-                  )}
+                  className="h-8 px-3 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:opacity-90 disabled:opacity-50"
                 >
                   {isGenerating ? (
                     <Loader2 size={12} className="animate-spin" />
@@ -748,8 +686,8 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
                   className={cn(
                     "h-8 px-3 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors",
                     editMode
-                      ? isDark ? 'bg-white text-stone-900' : 'bg-stone-900 text-white'
-                      : isDark ? 'bg-stone-800 text-stone-300 hover:bg-stone-700' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
+                      ? 'bg-stone-900 text-white'
+                      : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
                   )}
                 >
                   <Edit3 size={12} />
@@ -761,10 +699,7 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
                     deleteSource(selectedArticle.id);
                     setSelectedArticle(null);
                   }}
-                  className={cn(
-                    "w-8 h-8 rounded-lg flex items-center justify-center transition-colors text-red-500",
-                    isDark ? 'hover:bg-red-500/10' : 'hover:bg-red-50'
-                  )}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors text-red-500 hover:bg-red-50"
                 >
                   <Trash2 size={14} />
                 </button>
@@ -775,18 +710,12 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
             <div className="flex-1 overflow-y-auto">
               <div className="max-w-3xl mx-auto p-8">
                 {/* Title */}
-                <h1 className={cn(
-                  "text-3xl font-bold mb-2",
-                  isDark ? 'text-white' : 'text-stone-900'
-                )}>
+                <h1 className="text-3xl font-bold mb-2 text-stone-900">
                   {selectedArticle.title}
                 </h1>
                 
                 {/* Meta */}
-                <div className={cn(
-                  "flex items-center gap-4 mb-6 pb-6 border-b text-xs",
-                  isDark ? 'border-stone-800 text-stone-500' : 'border-stone-200 text-stone-400'
-                )}>
+                <div className="flex items-center gap-4 mb-6 pb-6 border-b text-xs border-stone-200 text-stone-400">
                   <span className="flex items-center gap-1">
                     <Clock size={12} />
                     Updated {new Date(selectedArticle.updatedAt).toLocaleDateString()}
@@ -809,22 +738,11 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
                       updateSource(selectedArticle.id, { content: e.target.value });
                       setSelectedArticle({ ...selectedArticle, content: e.target.value });
                     }}
-                    className={cn(
-                      "w-full min-h-[400px] p-4 rounded-xl text-sm leading-relaxed outline-none resize-none border",
-                      isDark
-                        ? 'bg-stone-800 border-stone-700 text-stone-200'
-                        : 'bg-stone-50 border-stone-200 text-stone-700'
-                    )}
+                    className="w-full min-h-[400px] p-4 rounded-xl text-sm leading-relaxed outline-none resize-none border bg-stone-50 border-stone-200 text-stone-700"
                   />
                 ) : (
-                  <div className={cn(
-                    "prose prose-sm max-w-none",
-                    isDark ? 'prose-invert' : ''
-                  )}>
-                    <p className={cn(
-                      "text-base leading-relaxed whitespace-pre-wrap",
-                      isDark ? 'text-stone-300' : 'text-stone-600'
-                    )}>
+                  <div className="prose prose-sm max-w-none">
+                    <p className="text-base leading-relaxed whitespace-pre-wrap text-stone-600">
                       {renderContentWithLinks(selectedArticle.content)}
                     </p>
                   </div>
@@ -832,14 +750,8 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
 
                 {/* Tags */}
                 {selectedArticle.tags && selectedArticle.tags.length > 0 && (
-                  <div className={cn(
-                    "mt-8 pt-6 border-t",
-                    isDark ? 'border-stone-800' : 'border-stone-200'
-                  )}>
-                    <h3 className={cn(
-                      "text-xs font-semibold uppercase tracking-wide mb-3 flex items-center gap-2",
-                      isDark ? 'text-stone-500' : 'text-stone-400'
-                    )}>
+                  <div className="mt-8 pt-6 border-t border-stone-200">
+                    <h3 className="text-xs font-semibold uppercase tracking-wide mb-3 flex items-center gap-2 text-stone-400">
                       <Hash size={12} />
                       Tags
                     </h3>
@@ -847,10 +759,7 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
                       {selectedArticle.tags.map((tag, i) => (
                         <span
                           key={i}
-                          className={cn(
-                            "px-2 py-1 rounded text-xs",
-                            isDark ? 'bg-stone-800 text-stone-400' : 'bg-stone-100 text-stone-500'
-                          )}
+                          className="px-2 py-1 rounded text-xs bg-stone-100 text-stone-500"
                         >
                           {tag}
                         </span>
@@ -861,14 +770,8 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
 
                 {/* Links in this article */}
                 {findLinks(selectedArticle.content).length > 0 && (
-                  <div className={cn(
-                    "mt-8 pt-6 border-t",
-                    isDark ? 'border-stone-800' : 'border-stone-200'
-                  )}>
-                    <h3 className={cn(
-                      "text-xs font-semibold uppercase tracking-wide mb-3 flex items-center gap-2",
-                      isDark ? 'text-stone-500' : 'text-stone-400'
-                    )}>
+                  <div className="mt-8 pt-6 border-t border-stone-200">
+                    <h3 className="text-xs font-semibold uppercase tracking-wide mb-3 flex items-center gap-2 text-stone-400">
                       <Link2 size={12} />
                       Mentioned in this article
                     </h3>
@@ -883,10 +786,7 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
                               const article = wikiSources.find(s => s.id === link.id);
                               if (article) navigateToArticle(article);
                             }}
-                            className={cn(
-                              "p-3 rounded-lg text-left transition-colors flex items-start gap-3",
-                              isDark ? 'bg-stone-800/50 hover:bg-stone-800' : 'bg-stone-50 hover:bg-stone-100'
-                            )}
+                            className="p-3 rounded-lg text-left transition-colors flex items-start gap-3 bg-stone-50 hover:bg-stone-100"
                           >
                             <div className={cn(
                               "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
@@ -895,16 +795,10 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
                               <Icon size={14} />
                             </div>
                             <div className="min-w-0">
-                              <span className={cn(
-                                "text-sm font-medium block truncate",
-                                isDark ? 'text-white' : 'text-stone-900'
-                              )}>
+                              <span className="text-sm font-medium block truncate text-stone-900">
                                 {link.title}
                               </span>
-                              <span className={cn(
-                                "text-xs",
-                                isDark ? 'text-stone-500' : 'text-stone-400'
-                              )}>
+                              <span className="text-xs text-stone-400">
                                 {config?.singular}
                               </span>
                             </div>
@@ -917,14 +811,8 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
 
                 {/* Backlinks */}
                 {findBacklinks(selectedArticle).length > 0 && (
-                  <div className={cn(
-                    "mt-8 pt-6 border-t",
-                    isDark ? 'border-stone-800' : 'border-stone-200'
-                  )}>
-                    <h3 className={cn(
-                      "text-xs font-semibold uppercase tracking-wide mb-3 flex items-center gap-2",
-                      isDark ? 'text-stone-500' : 'text-stone-400'
-                    )}>
+                  <div className="mt-8 pt-6 border-t border-stone-200">
+                    <h3 className="text-xs font-semibold uppercase tracking-wide mb-3 flex items-center gap-2 text-stone-400">
                       <ExternalLink size={12} />
                       Articles that mention this
                     </h3>
@@ -939,10 +827,7 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
                               const article = wikiSources.find(s => s.id === link.id);
                               if (article) navigateToArticle(article);
                             }}
-                            className={cn(
-                              "p-3 rounded-lg text-left transition-colors flex items-start gap-3",
-                              isDark ? 'bg-stone-800/50 hover:bg-stone-800' : 'bg-stone-50 hover:bg-stone-100'
-                            )}
+                            className="p-3 rounded-lg text-left transition-colors flex items-start gap-3 bg-stone-50 hover:bg-stone-100"
                           >
                             <div className={cn(
                               "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
@@ -951,16 +836,10 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
                               <Icon size={14} />
                             </div>
                             <div className="min-w-0">
-                              <span className={cn(
-                                "text-sm font-medium block truncate",
-                                isDark ? 'text-white' : 'text-stone-900'
-                              )}>
+                              <span className="text-sm font-medium block truncate text-stone-900">
                                 {link.title}
                               </span>
-                              <span className={cn(
-                                "text-xs",
-                                isDark ? 'text-stone-500' : 'text-stone-400'
-                              )}>
+                              <span className="text-xs text-stone-400">
                                 {config?.singular}
                               </span>
                             </div>
@@ -979,76 +858,40 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
             <div className="max-w-4xl mx-auto">
               {/* Hero */}
               <div className="text-center mb-12">
-                <div className={cn(
-                  "w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4",
-                  isDark ? 'bg-stone-800' : 'bg-stone-100'
-                )}>
-                  <Globe size={36} className={isDark ? 'text-stone-400' : 'text-stone-500'} />
+                <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-stone-100">
+                  <Globe size={36} className="text-stone-500" />
                 </div>
-                <h1 className={cn(
-                  "text-2xl font-bold mb-2",
-                  isDark ? 'text-white' : 'text-stone-900'
-                )}>
+                <h1 className="text-2xl font-bold mb-2 text-stone-900">
                   Universe Wiki
                 </h1>
-                <p className={cn(
-                  "text-sm max-w-md mx-auto",
-                  isDark ? 'text-stone-500' : 'text-stone-400'
-                )}>
+                <p className="text-sm max-w-md mx-auto text-stone-400">
                   Your encyclopedia for the story world. All characters, locations, factions, and lore — interconnected and searchable.
                 </p>
               </div>
 
               {/* Stats */}
               <div className="grid grid-cols-3 gap-4 mb-12">
-                <div className={cn(
-                  "p-4 rounded-xl text-center",
-                  isDark ? 'bg-stone-800' : 'bg-stone-100'
-                )}>
-                  <span className={cn(
-                    "text-3xl font-bold block",
-                    isDark ? 'text-white' : 'text-stone-900'
-                  )}>
+                <div className="p-4 rounded-xl text-center bg-stone-100">
+                  <span className="text-3xl font-bold block text-stone-900">
                     {wikiSources.length}
                   </span>
-                  <span className={cn(
-                    "text-xs",
-                    isDark ? 'text-stone-500' : 'text-stone-400'
-                  )}>
+                  <span className="text-xs text-stone-400">
                     Total Articles
                   </span>
                 </div>
-                <div className={cn(
-                  "p-4 rounded-xl text-center",
-                  isDark ? 'bg-stone-800' : 'bg-stone-100'
-                )}>
-                  <span className={cn(
-                    "text-3xl font-bold block",
-                    isDark ? 'text-white' : 'text-stone-900'
-                  )}>
+                <div className="p-4 rounded-xl text-center bg-stone-100">
+                  <span className="text-3xl font-bold block text-stone-900">
                     {categorizedSources.character.length}
                   </span>
-                  <span className={cn(
-                    "text-xs",
-                    isDark ? 'text-stone-500' : 'text-stone-400'
-                  )}>
+                  <span className="text-xs text-stone-400">
                     Characters
                   </span>
                 </div>
-                <div className={cn(
-                  "p-4 rounded-xl text-center",
-                  isDark ? 'bg-stone-800' : 'bg-stone-100'
-                )}>
-                  <span className={cn(
-                    "text-3xl font-bold block",
-                    isDark ? 'text-white' : 'text-stone-900'
-                  )}>
+                <div className="p-4 rounded-xl text-center bg-stone-100">
+                  <span className="text-3xl font-bold block text-stone-900">
                     {categorizedSources.location.length}
                   </span>
-                  <span className={cn(
-                    "text-xs",
-                    isDark ? 'text-stone-500' : 'text-stone-400'
-                  )}>
+                  <span className="text-xs text-stone-400">
                     Locations
                   </span>
                 </div>
@@ -1056,10 +899,7 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
 
               {/* Recent / Featured */}
               <div>
-                <h2 className={cn(
-                  "text-sm font-semibold uppercase tracking-wide mb-4 flex items-center gap-2",
-                  isDark ? 'text-stone-400' : 'text-stone-500'
-                )}>
+                <h2 className="text-sm font-semibold uppercase tracking-wide mb-4 flex items-center gap-2 text-stone-500">
                   <Clock size={14} />
                   Recent Articles
                 </h2>
@@ -1074,12 +914,7 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
                         <button
                           key={article.id}
                           onClick={() => navigateToArticle(article)}
-                          className={cn(
-                            "p-4 rounded-xl text-left transition-colors flex items-start gap-3 border",
-                            isDark 
-                              ? 'bg-stone-800/50 border-stone-800 hover:bg-stone-800 hover:border-stone-700' 
-                              : 'bg-white border-stone-200 hover:bg-stone-50 hover:border-stone-300'
-                          )}
+                          className="p-4 rounded-xl text-left transition-colors flex items-start gap-3 border bg-white border-stone-200 hover:bg-stone-50 hover:border-stone-300"
                         >
                           <div className={cn(
                             "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
@@ -1088,16 +923,10 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
                             <Icon size={18} />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <span className={cn(
-                              "text-sm font-medium block truncate",
-                              isDark ? 'text-white' : 'text-stone-900'
-                            )}>
+                            <span className="text-sm font-medium block truncate text-stone-900">
                               {article.title}
                             </span>
-                            <span className={cn(
-                              "text-xs line-clamp-2 mt-1",
-                              isDark ? 'text-stone-500' : 'text-stone-400'
-                            )}>
+                            <span className="text-xs line-clamp-2 mt-1 text-stone-400">
                               {article.content.slice(0, 80)}...
                             </span>
                           </div>
@@ -1114,24 +943,12 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
       {/* Create Article Modal */}
       {isCreating && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-          <div className={cn(
-            "w-full max-w-md rounded-2xl shadow-2xl overflow-hidden",
-            isDark ? 'bg-stone-900' : 'bg-white'
-          )}>
-            <div className={cn(
-              "h-14 px-6 flex items-center justify-between border-b",
-              isDark ? 'border-stone-800' : 'border-stone-100'
-            )}>
-              <h3 className={cn(
-                "font-semibold",
-                isDark ? 'text-white' : 'text-stone-900'
-              )}>Create Wiki Article</h3>
+          <div className="w-full max-w-md rounded-2xl shadow-2xl overflow-hidden bg-white">
+            <div className="h-14 px-6 flex items-center justify-between border-b border-stone-100">
+              <h3 className="font-semibold text-stone-900">Create Wiki Article</h3>
               <button
                 onClick={() => { setIsCreating(false); setNewArticle({ title: '', type: 'lore' }); }}
-                className={cn(
-                  "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-                  isDark ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-stone-100 text-stone-500'
-                )}
+                className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-stone-100 text-stone-500"
               >
                 <X size={16} />
               </button>
@@ -1139,30 +956,19 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
             
             <div className="p-6 space-y-4">
               <div>
-                <label className={cn(
-                  "block text-xs font-medium mb-2",
-                  isDark ? 'text-stone-400' : 'text-stone-500'
-                )}>Article Title</label>
+                <label className="block text-xs font-medium mb-2 text-stone-500">Article Title</label>
                 <input
                   type="text"
                   value={newArticle.title}
                   onChange={(e) => setNewArticle({ ...newArticle, title: e.target.value })}
                   placeholder="e.g., The Kingdom of Eldoria"
                   autoFocus
-                  className={cn(
-                    "w-full h-11 px-4 rounded-xl text-sm outline-none border transition-all",
-                    isDark
-                      ? 'bg-stone-800 border-stone-700 text-white placeholder:text-stone-600 focus:ring-2 focus:ring-white/10'
-                      : 'bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400 focus:ring-2 focus:ring-stone-900/10'
-                  )}
+                  className="w-full h-11 px-4 rounded-xl text-sm outline-none border transition-all bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400 focus:ring-2 focus:ring-stone-900/10"
                 />
               </div>
               
               <div>
-                <label className={cn(
-                  "block text-xs font-medium mb-2",
-                  isDark ? 'text-stone-400' : 'text-stone-500'
-                )}>Category</label>
+                <label className="block text-xs font-medium mb-2 text-stone-500">Category</label>
                 <div className="grid grid-cols-3 gap-2">
                   {(Object.entries(CATEGORIES) as [CategoryType, typeof CATEGORIES[CategoryType]][])
                     .filter(([key]) => key !== 'script')
@@ -1176,9 +982,7 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
                             "p-3 rounded-xl flex flex-col items-center gap-2 transition-all border",
                             newArticle.type === key
                               ? config.color + ' border-current'
-                              : isDark 
-                                ? 'bg-stone-800 border-stone-700 text-stone-400 hover:bg-stone-700'
-                                : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
+                              : 'bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100'
                           )}
                         >
                           <Icon size={18} />
@@ -1189,36 +993,22 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
                 </div>
               </div>
               
-              <p className={cn(
-                "text-xs",
-                isDark ? 'text-stone-500' : 'text-stone-400'
-              )}>
+              <p className="text-xs text-stone-400">
                 AI will generate a comprehensive wiki article with connections to your existing universe.
               </p>
             </div>
             
-            <div className={cn(
-              "h-16 px-6 flex items-center justify-end gap-3 border-t",
-              isDark ? 'border-stone-800' : 'border-stone-100'
-            )}>
+            <div className="h-16 px-6 flex items-center justify-end gap-3 border-t border-stone-100">
               <button
                 onClick={() => { setIsCreating(false); setNewArticle({ title: '', type: 'lore' }); }}
-                className={cn(
-                  "h-9 px-4 rounded-lg text-sm font-medium transition-colors",
-                  isDark ? 'text-stone-400 hover:bg-stone-800' : 'text-stone-600 hover:bg-stone-100'
-                )}
+                className="h-9 px-4 rounded-lg text-sm font-medium transition-colors text-stone-600 hover:bg-stone-100"
               >
                 Cancel
               </button>
               <button
                 onClick={generateArticle}
                 disabled={!newArticle.title.trim() || isGenerating}
-                className={cn(
-                  "h-9 px-4 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors disabled:opacity-50",
-                  isDark
-                    ? 'bg-white text-stone-900 hover:bg-stone-100'
-                    : 'bg-stone-900 text-white hover:bg-stone-800'
-                )}
+                className="h-9 px-4 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors disabled:opacity-50 bg-stone-900 text-white hover:bg-stone-800"
               >
                 {isGenerating ? (
                   <>
@@ -1241,4 +1031,3 @@ Keep the encyclopedic tone. Return ONLY the expanded content (including the orig
 };
 
 export default Wiki;
-

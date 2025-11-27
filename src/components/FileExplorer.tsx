@@ -58,7 +58,6 @@ const FileExplorer: React.FC = () => {
     deleteSource,
     updateSource,
     setActiveSourceId,
-    currentProject
   } = useStory();
 
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(

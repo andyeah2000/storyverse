@@ -16,6 +16,7 @@ import { ToastProvider } from './components/Toast';
 import NotFound from './components/NotFound';
 import CookieConsent from './components/CookieConsent';
 import NetworkStatus from './components/NetworkStatus';
+import ScrollToTop from './components/ScrollToTop';
 
 // Core Pages (eager load)
 import LandingPage from './components/LandingPage';
@@ -132,6 +133,7 @@ const App: React.FC = () => {
         <AuthProvider>
           <StoryProvider>
             <Router>
+              <ScrollToTop />
               <AppRouter />
               <CookieConsent />
               <NetworkStatus />

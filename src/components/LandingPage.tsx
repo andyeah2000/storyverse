@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useTheme } from '../hooks';
-import ThemeToggleButton from './ThemeToggleButton';
 import { 
   ArrowRight,
   Mic, 
@@ -10,13 +8,15 @@ import {
   Play,
   Check,
   Menu,
-  X
+  X,
+  Sparkles,
+  Wand2,
+  FileText
 } from 'lucide-react';
+import Footer from './Footer';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
-  const theme = useTheme();
-  const isDark = theme === 'dark';
   const [scrolled, setScrolled] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
@@ -36,26 +36,18 @@ const LandingPage: React.FC = () => {
   const navLinks: { label: string; href: string; type: 'anchor' | 'route' }[] = [];
 
   return (
-    <div className={`min-h-screen selection:bg-current selection:text-white overflow-x-hidden transition-colors duration-300 ${
-      isDark ? 'bg-[#0c0a09] text-stone-100' : 'bg-[#FAFAF9] text-stone-900'
-    }`}>
+    <div className="min-h-screen selection:bg-amber-100 selection:text-amber-900 overflow-x-hidden bg-stone-50 text-stone-900 font-sans">
       
       {/* Navigation */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled 
-          ? isDark 
-            ? 'bg-[#0c0a09]/90 backdrop-blur-xl' 
-            : 'bg-[#FAFAF9]/90 backdrop-blur-xl'
-          : ''
+        scrolled ? 'bg-stone-50/90 backdrop-blur-xl border-b border-stone-200/50 shadow-sm' : 'bg-transparent'
       }`}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-              isDark ? 'bg-white' : 'bg-stone-900'
-            }`}>
-              <span className={`text-sm font-bold ${isDark ? 'text-stone-900' : 'text-white'}`}>S</span>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-stone-900 shadow-lg shadow-stone-900/20">
+              <span className="text-lg font-bold text-white">S</span>
             </div>
-            <span className={`text-base font-semibold tracking-tight ${isDark ? 'text-white' : 'text-stone-900'}`}>
+            <span className="text-lg font-bold tracking-tight text-stone-900">
               StoryVerse
             </span>
           </div>
@@ -67,9 +59,7 @@ const LandingPage: React.FC = () => {
                   <a
                     key={link.label}
                     href={link.href}
-                    className={`text-sm font-medium transition-colors ${
-                      isDark ? 'text-stone-400 hover:text-white' : 'text-stone-500 hover:text-stone-900'
-                    }`}
+                    className="text-sm font-medium transition-colors text-stone-500 hover:text-stone-900"
                   >
                     {link.label}
                   </a>
@@ -77,9 +67,7 @@ const LandingPage: React.FC = () => {
                   <Link
                     key={link.label}
                     to={link.href}
-                    className={`text-sm font-medium transition-colors ${
-                      isDark ? 'text-stone-400 hover:text-white' : 'text-stone-500 hover:text-stone-900'
-                    }`}
+                    className="text-sm font-medium transition-colors text-stone-500 hover:text-stone-900"
                   >
                     {link.label}
                   </Link>
@@ -87,23 +75,16 @@ const LandingPage: React.FC = () => {
               ))}
             </div>
 
-            <ThemeToggleButton />
-            <div className="hidden md:flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-3">
               <button 
                 onClick={() => navigate('/login')}
-                className={`h-10 px-5 rounded-full text-sm font-medium transition-colors ${
-                  isDark ? 'text-stone-400 hover:text-white' : 'text-stone-500 hover:text-stone-900'
-                }`}
+                className="h-10 px-5 rounded-full text-sm font-semibold transition-colors text-stone-600 hover:text-stone-900"
               >
                 Sign In
               </button>
               <button 
-                onClick={() => navigate('/signup')}
-                className={`h-10 px-5 rounded-full text-sm font-medium transition-colors ${
-                  isDark 
-                    ? 'bg-white text-stone-900 hover:bg-stone-100' 
-                    : 'bg-stone-900 text-white hover:bg-stone-800'
-                }`}
+                onClick={() => navigate('/app')}
+                className="h-10 px-6 rounded-full text-sm font-semibold transition-all bg-stone-900 text-white hover:bg-stone-800 hover:shadow-lg hover:shadow-stone-900/20 active:scale-95"
               >
                 Get Started
               </button>
@@ -111,12 +92,10 @@ const LandingPage: React.FC = () => {
 
             <button
               onClick={() => setMobileNavOpen(true)}
-              className={`md:hidden w-11 h-11 rounded-full flex items-center justify-center transition-colors ${
-                isDark ? 'hover:bg-stone-800' : 'hover:bg-stone-200/80'
-              }`}
+              className="md:hidden w-11 h-11 rounded-full flex items-center justify-center transition-colors hover:bg-stone-200/80"
               aria-label="Open menu"
             >
-              <Menu size={20} className={isDark ? 'text-white' : 'text-stone-900'} />
+              <Menu size={22} className="text-stone-900" />
             </button>
           </div>
         </div>
@@ -126,78 +105,52 @@ const LandingPage: React.FC = () => {
       {mobileNavOpen && (
         <>
           <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden animate-in fade-in duration-200"
+            className="fixed inset-0 bg-stone-900/20 backdrop-blur-sm z-40 md:hidden animate-in fade-in duration-200"
             onClick={() => setMobileNavOpen(false)}
           />
-          <div className={`fixed top-0 right-0 bottom-0 w-full max-w-sm z-50 md:hidden animate-in slide-in-from-right duration-300 ${
-            isDark ? 'bg-[#0c0a09]' : 'bg-white'
-          }`}>
-            <div className="h-16 px-6 flex items-center justify-between">
-              <span className="text-base font-semibold">Menu</span>
+          <div className="fixed top-0 right-0 bottom-0 w-full max-w-sm z-50 md:hidden animate-in slide-in-from-right duration-300 bg-white shadow-2xl p-6 flex flex-col">
+            <div className="h-16 flex items-center justify-between mb-6">
+              <span className="text-lg font-bold text-stone-900">Menu</span>
               <button
                 onClick={() => setMobileNavOpen(false)}
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                  isDark ? 'hover:bg-stone-800' : 'hover:bg-stone-100'
-                }`}
+                className="w-10 h-10 rounded-full flex items-center justify-center transition-colors hover:bg-stone-100"
                 aria-label="Close menu"
               >
-                <X size={20} />
+                <X size={22} />
               </button>
             </div>
-            <div className="px-6 py-4 space-y-3 overflow-y-auto h-[calc(100%-4rem)] pb-10">
+            <div className="flex-1 flex flex-col gap-4">
               <div className="space-y-2">
                 {navLinks.map(link => (
-                  link.type === 'anchor' ? (
-                    <a
-                      key={link.label}
-                      href={link.href}
-                      onClick={() => setMobileNavOpen(false)}
-                      className={`block px-4 py-3 rounded-2xl text-base font-medium transition-colors ${
-                        isDark ? 'text-stone-200 hover:bg-stone-800' : 'text-stone-600 hover:bg-stone-100'
-                      }`}
-                    >
-                      {link.label}
-                    </a>
-                  ) : (
-                    <Link
-                      key={link.label}
-                      to={link.href}
-                      onClick={() => setMobileNavOpen(false)}
-                      className={`block px-4 py-3 rounded-2xl text-base font-medium transition-colors ${
-                        isDark ? 'text-stone-200 hover:bg-stone-800' : 'text-stone-600 hover:bg-stone-100'
-                      }`}
-                    >
-                      {link.label}
-                    </Link>
-                  )
+                  <Link
+                    key={link.label}
+                    to={link.href}
+                    onClick={() => setMobileNavOpen(false)}
+                    className="block px-4 py-4 rounded-2xl text-lg font-medium transition-colors text-stone-600 hover:bg-stone-100"
+                  >
+                    {link.label}
+                  </Link>
                 ))}
               </div>
-              <div className="pt-2 space-y-2 border-t border-stone-200/40 dark:border-white/5">
+              <div className="mt-auto space-y-3 pt-6 border-t border-stone-100">
                 <button 
                   onClick={() => {
                     navigate('/login');
                     setMobileNavOpen(false);
                   }}
-                  className={`w-full h-12 rounded-xl text-sm font-semibold transition-all ${
-                    isDark ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-100 text-stone-900 hover:bg-stone-200'
-                  }`}
+                  className="w-full h-14 rounded-2xl text-base font-semibold transition-all bg-stone-100 text-stone-900 hover:bg-stone-200"
                 >
                   Sign In
                 </button>
                 <button 
                   onClick={() => {
-                    navigate('/signup');
+                    navigate('/app');
                     setMobileNavOpen(false);
                   }}
-                  className={`w-full h-12 rounded-xl text-sm font-semibold transition-all ${
-                    isDark ? 'bg-white text-stone-900 hover:bg-stone-100' : 'bg-stone-900 text-white hover:bg-stone-800'
-                  }`}
+                  className="w-full h-14 rounded-2xl text-base font-semibold transition-all bg-stone-900 text-white hover:bg-stone-800 shadow-lg shadow-stone-900/10"
                 >
-                  Get Started
+                  Get Started Free
                 </button>
-              </div>
-              <div className="text-xs text-stone-500 dark:text-stone-400 pt-4">
-                © {new Date().getFullYear()} StoryVerse. All rights reserved.
               </div>
             </div>
           </div>
@@ -205,185 +158,185 @@ const LandingPage: React.FC = () => {
       )}
 
       {/* Hero */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Background Image */}
+      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-20">
+        {/* Background Elements */}
         <div className="absolute inset-0 z-0">
-          <img 
-            src="/images/hero-banner.jpg" 
-            alt=""
-            className={`w-full h-full object-cover object-center ${isDark ? 'opacity-20' : 'opacity-40'}`}
-          />
-          <div className={`absolute inset-0 ${
-            isDark 
-              ? 'bg-gradient-to-b from-[#0c0a09] via-[#0c0a09]/60 to-[#0c0a09]' 
-              : 'bg-gradient-to-b from-[#FAFAF9] via-[#FAFAF9]/60 to-[#FAFAF9]'
-          }`} />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-amber-100/40 blur-[120px] rounded-full opacity-60 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[800px] h-[600px] bg-stone-200/30 blur-[100px] rounded-full opacity-40 pointer-events-none" />
         </div>
 
         {/* Content */}
-        <div className="relative z-10 max-w-4xl mx-auto text-center px-4 sm:px-6 pt-32 pb-24">
-          <p className={`text-sm font-medium tracking-widest uppercase mb-6 animate-fade-in ${
-            isDark ? 'text-stone-500' : 'text-stone-400'
-          }`}>
-            AI-Powered Screenwriting
-          </p>
+        <div className="relative z-10 max-w-5xl mx-auto text-center px-4 sm:px-6 pb-16">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-stone-200 shadow-sm mb-8 animate-fade-in">
+            <Sparkles size={14} className="text-amber-500" fill="currentColor" />
+            <span className="text-xs font-bold tracking-wide uppercase text-stone-600">
+              The Future of Screenwriting is Here
+            </span>
+          </div>
           
-          <h1 className="text-[clamp(3rem,10vw,6rem)] font-bold leading-[0.95] tracking-tight mb-8 animate-slide-up">
-            Write stories
+          <h1 className="text-[clamp(3rem,8vw,5.5rem)] font-bold leading-[0.95] tracking-tight mb-8 animate-slide-up text-stone-900">
+            Write screenplays
             <br />
-            <span className={isDark ? 'text-stone-600' : 'text-stone-400'}>with your voice</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-amber-800">
+              at the speed of thought
+            </span>
           </h1>
 
-          <p className={`text-xl leading-relaxed max-w-xl mx-auto mb-12 animate-slide-up stagger-2 ${
-            isDark ? 'text-stone-400' : 'text-stone-500'
-          }`} style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
-            The AI co-author that understands your universe. 
-            Build characters, structure plots, and write scripts through natural conversation.
+          <p className="text-xl md:text-2xl leading-relaxed max-w-2xl mx-auto mb-12 animate-slide-up stagger-2 text-stone-600 font-medium" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
+            StoryVerse combines professional formatting with an intelligent AI co-writer that knows your world, characters, and style.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 animate-slide-up" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-slide-up" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
             <button 
-              onClick={() => navigate('/signup')}
-              className={`group h-14 w-full sm:w-auto px-8 rounded-full font-semibold flex items-center justify-center gap-3 transition-all shadow-lg hover-lift press-effect ${
-                isDark 
-                  ? 'bg-white text-stone-900 hover:bg-stone-100 shadow-white/5' 
-                  : 'bg-stone-900 text-white hover:bg-stone-800 shadow-black/10'
-              }`}
+              onClick={() => navigate('/app')}
+              className="group h-14 w-full sm:w-auto px-8 rounded-full font-bold flex items-center justify-center gap-3 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-0.5 bg-stone-900 text-white hover:bg-stone-800 shadow-stone-900/20"
             >
-              Start Writing
+              Start Writing for Free
               <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </button>
-            <button className={`h-14 w-full sm:w-auto px-6 rounded-full border font-medium flex items-center justify-center gap-2 backdrop-blur-sm transition-all hover-scale press-effect ${
-              isDark 
-                ? 'border-stone-800 text-stone-400 hover:border-stone-700 hover:bg-stone-900/50' 
-                : 'border-stone-200 text-stone-500 hover:border-stone-300 hover:bg-white/50'
-            }`}>
+            <button className="h-14 w-full sm:w-auto px-8 rounded-full border-2 font-bold flex items-center justify-center gap-2 backdrop-blur-sm transition-all hover:bg-white/80 border-stone-200 text-stone-600 hover:border-stone-300 hover:text-stone-900">
               <Play size={16} fill="currentColor" />
               Watch Demo
             </button>
           </div>
-        </div>
 
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
-          <div className={`w-6 h-10 rounded-full border-2 flex items-start justify-center p-2 ${
-            isDark ? 'border-stone-700' : 'border-stone-300'
-          }`}>
-            <div className={`w-1 h-2 rounded-full animate-bounce ${
-              isDark ? 'bg-stone-600' : 'bg-stone-400'
-            }`} />
+          {/* Social Proof / Trust */}
+          <div className="mt-16 pt-8 border-t border-stone-200/60 max-w-3xl mx-auto animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            <p className="text-sm font-medium text-stone-400 mb-4 uppercase tracking-wider">Trusted by writers from</p>
+            <div className="flex flex-wrap justify-center gap-8 md:gap-12 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+               {/* Placeholders for logos - using text for now to keep it clean */}
+               <span className="text-lg font-serif font-bold text-stone-800">Sundance</span>
+               <span className="text-lg font-serif font-bold text-stone-800">Tisch</span>
+               <span className="text-lg font-serif font-bold text-stone-800">USC Arts</span>
+               <span className="text-lg font-serif font-bold text-stone-800">NFTS</span>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Visual Showcase */}
-      <section id="features" className="py-20 sm:py-24 px-4 sm:px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            {/* Sci-Fi Image */}
-            <div className="relative group">
-              <div className={`absolute -inset-4 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${
-                isDark ? 'bg-gradient-to-r from-white/5 to-transparent' : 'bg-gradient-to-r from-stone-900/5 to-transparent'
-              }`} />
-              <div className={`relative overflow-hidden rounded-2xl shadow-2xl ${
-                isDark ? 'shadow-white/5' : 'shadow-black/10'
-              }`}>
+      <section id="features" className="py-24 px-4 sm:px-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            {/* Editor Preview */}
+            <div className="relative group order-2 md:order-1">
+              <div className="absolute -inset-10 bg-gradient-to-r from-amber-100/50 to-stone-100/50 rounded-[3rem] blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+              <div className="relative overflow-hidden rounded-2xl shadow-2xl shadow-stone-900/10 border border-stone-100 bg-stone-50 aspect-[4/3] flex items-center justify-center group-hover:scale-[1.02] transition-transform duration-700">
                 <img 
                   src="/images/scene-scifi.jpg" 
-                  alt="Sci-Fi story visualization"
-                  className="w-full aspect-[3/4] object-cover group-hover:scale-105 transition-transform duration-700"
+                  alt="Editor Interface"
+                  className="absolute inset-0 w-full h-full object-cover opacity-90"
                 />
-                <div className={`absolute inset-0 ${
-                  isDark ? 'bg-gradient-to-t from-[#0c0a09]/80 to-transparent' : 'bg-gradient-to-t from-stone-900/60 to-transparent'
-                }`} />
-                <div className="absolute bottom-6 left-6 right-6">
-                  <span className="text-xs font-medium text-white/60 uppercase tracking-wider">Science Fiction</span>
-                  <h3 className="text-xl font-bold text-white mt-1">Space Opera</h3>
+                {/* UI Overlay Mockup */}
+                <div className="absolute inset-0 bg-gradient-to-t from-stone-900/80 via-transparent to-transparent" />
+                <div className="absolute bottom-8 left-8 right-8 text-white">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.5)]" />
+                    <span className="text-xs font-medium opacity-80 uppercase tracking-widest">Live AI Co-Writer</span>
+                  </div>
+                  <p className="text-2xl font-medium font-serif leading-relaxed">
+                    "INT. SPACESHIP - NIGHT"
+                  </p>
+                  <p className="text-lg opacity-80 font-serif mt-2">
+                    The alarm BLARES. Commander HALE (40s) stumbles out of her cryo-pod...
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Drama Image */}
-            <div className="relative group md:mt-16">
-              <div className={`absolute -inset-4 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${
-                isDark ? 'bg-gradient-to-l from-white/5 to-transparent' : 'bg-gradient-to-l from-stone-900/5 to-transparent'
-              }`} />
-              <div className={`relative overflow-hidden rounded-2xl shadow-2xl ${
-                isDark ? 'shadow-white/5' : 'shadow-black/10'
-              }`}>
-                <img 
-                  src="/images/scene-drama.jpg" 
-                  alt="Drama story visualization"
-                  className="w-full aspect-[3/4] object-cover group-hover:scale-105 transition-transform duration-700"
-                />
-                <div className={`absolute inset-0 ${
-                  isDark ? 'bg-gradient-to-t from-[#0c0a09]/80 to-transparent' : 'bg-gradient-to-t from-stone-900/60 to-transparent'
-                }`} />
-                <div className="absolute bottom-6 left-6 right-6">
-                  <span className="text-xs font-medium text-white/60 uppercase tracking-wider">Period Drama</span>
-                  <h3 className="text-xl font-bold text-white mt-1">Character Study</h3>
-                </div>
+            {/* Feature Text */}
+            <div className="order-1 md:order-2 pl-0 md:pl-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold uppercase tracking-wider mb-6">
+                <Wand2 size={14} />
+                AI Magic
               </div>
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 text-stone-900">
+                Never face a blank page again.
+              </h2>
+              <p className="text-xl text-stone-600 leading-relaxed mb-8">
+                Stuck on a scene? Need dialogue options? Just ask. StoryVerse understands screenplay structure and formatting, so you can focus on the story.
+              </p>
+              
+              <ul className="space-y-4">
+                {[
+                  'Context-aware suggestions based on your story bible',
+                  'Automatic industry-standard formatting',
+                  'Real-time character consistency checks'
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-3 text-stone-700 font-medium">
+                    <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
+                      <Check size={14} className="text-amber-700" />
+                    </div>
+                    {item}
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
-
-          {/* Caption */}
-          <p className={`text-center mt-12 max-w-2xl mx-auto ${isDark ? 'text-stone-500' : 'text-stone-500'}`}>
-            Every story begins as a thought. StoryVerse helps you capture those fleeting ideas 
-            and transform them into fully realized screenplays.
-          </p>
         </div>
       </section>
 
-      {/* Features */}
-      <section className={`py-32 px-6 relative overflow-hidden ${
-        isDark ? 'bg-stone-900' : 'bg-stone-900'
-      }`}>
-        {/* Pattern */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute inset-0" style={{
+      {/* Features Grid */}
+      <section className="py-32 px-6 relative overflow-hidden bg-stone-900 text-white">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{
             backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
-            backgroundSize: '32px 32px'
-          }} />
-        </div>
+            backgroundSize: '40px 40px'
+          }} 
+        />
 
-        <div className="relative max-w-5xl mx-auto">
-          <div className="max-w-2xl mb-20">
-            <p className="text-sm text-stone-400 font-medium tracking-widest uppercase mb-4">
-              Features
+        <div className="relative max-w-6xl mx-auto">
+          <div className="text-center max-w-3xl mx-auto mb-20">
+            <p className="text-sm text-amber-500 font-bold tracking-widest uppercase mb-4">
+              Everything You Need
             </p>
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 text-white">
-              Everything you need to write great stories
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
+              A complete studio in your browser
             </h2>
-            <p className="text-lg text-stone-400 leading-relaxed">
-              A focused set of tools designed for screenwriters who want to spend less time formatting and more time creating.
+            <p className="text-xl text-stone-400 leading-relaxed">
+              StoryVerse isn't just an editor. It's a living database for your story world.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                icon: <Mic size={24} />,
-                title: 'Voice-First',
-                description: 'Speak naturally and watch your story come to life. Your AI understands context and nuance.'
+                icon: <Mic size={28} />,
+                title: 'Voice-First Writing',
+                description: 'Dictate dialogue, brainstorm beats, or command the AI with your voice. Perfect for capturing flow states.'
               },
               {
-                icon: <BookOpen size={24} />,
-                title: 'Story Bible',
-                description: 'Keep characters, locations, and lore organized. The AI remembers everything about your universe.'
+                icon: <BookOpen size={28} />,
+                title: 'Integrated Story Bible',
+                description: 'Keep track of characters, locations, and lore. The AI references this constantly to ensure consistency.'
               },
               {
-                icon: <Layers size={24} />,
+                icon: <Layers size={28} />,
                 title: 'Structure Tools',
-                description: 'Beat sheets, outlines, and story maps. Professional screenplay structure made simple.'
+                description: 'Visualize your narrative arc with built-in beat sheets, outlines, and story maps.'
+              },
+              {
+                icon: <Sparkles size={28} />,
+                title: 'Smart Rewrite',
+                description: 'Highlight any block of text and ask the AI to make it funnier, darker, or more concise.'
+              },
+              {
+                icon: <FileText size={28} />,
+                title: 'Industry Export',
+                description: 'One-click export to PDF, Final Draft (.fdx), and Fountain. Ready for production.'
+              },
+              {
+                icon: <Play size={28} />,
+                title: 'Table Read',
+                description: 'Listen to your script performed by distinct AI voices for each character to catch rhythm issues.'
               }
             ].map((feature, i) => (
-              <div key={i} className="group p-6 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors duration-300">
-                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-5 group-hover:bg-white/20 transition-colors text-white">
+              <div key={i} className="group p-8 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all duration-300 hover:-translate-y-1">
+                <div className="w-14 h-14 rounded-2xl bg-stone-800 flex items-center justify-center mb-6 group-hover:bg-amber-500 group-hover:text-stone-900 transition-colors text-amber-500">
                   {feature.icon}
                 </div>
-                <h3 className="text-lg font-semibold mb-3 text-white">{feature.title}</h3>
-                <p className="text-stone-400 leading-relaxed">{feature.description}</p>
+                <h3 className="text-xl font-bold mb-3 text-white">{feature.title}</h3>
+                <p className="text-stone-400 leading-relaxed text-base">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -391,48 +344,44 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* How it Works */}
-      <section className="py-32 px-6">
+      <section className="py-32 px-6 bg-stone-50">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-20">
-            <p className={`text-sm font-medium tracking-widest uppercase mb-4 ${
-              isDark ? 'text-stone-500' : 'text-stone-400'
-            }`}>
-              How it works
-            </p>
-            <h2 className={`text-4xl md:text-5xl font-bold tracking-tight ${
-              isDark ? 'text-white' : 'text-stone-900'
-            }`}>
-              From idea to script
+          <div className="text-center mb-24">
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-stone-900 mb-6">
+              From idea to script in three steps
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-12">
+          <div className="grid md:grid-cols-3 gap-16 relative">
+            {/* Connecting Line */}
+            <div className="hidden md:block absolute top-12 left-0 right-0 h-0.5 bg-stone-200 -z-10" />
+
             {[
               {
                 step: '01',
                 title: 'Build your world',
-                description: 'Add characters, locations, and backstory to your Story Bible.'
+                description: 'Start by defining your characters and settings in the Story Bible. This grounds the AI in your unique universe.'
               },
               {
                 step: '02',
-                title: 'Talk to your AI',
-                description: '"Write a scene where Max confronts Sarah." The AI writes, you refine.'
+                title: 'Collaborate & Write',
+                description: 'Write naturally. Use "Ask AI" to bridge gaps, generate dialogue alternatives, or brainstorm plot twists.'
               },
               {
                 step: '03',
-                title: 'Export & share',
-                description: 'Download in Fountain, PDF, or Final Draft format. Production-ready.'
+                title: 'Refine & Export',
+                description: 'Polish your draft with advanced formatting tools, then export to industry-standard formats ready for sharing.'
               }
             ].map((item, i) => (
-              <div key={i} className="relative">
-                <span className={`text-8xl font-bold absolute -top-4 -left-2 ${
-                  isDark ? 'text-stone-800' : 'text-stone-100'
-                }`}>{item.step}</span>
-                <div className="relative pt-12">
-                  <h3 className={`text-xl font-semibold mb-3 ${isDark ? 'text-white' : 'text-stone-900'}`}>
+              <div key={i} className="relative bg-stone-50 pt-4">
+                <div className="w-16 h-16 rounded-2xl bg-white border-2 border-stone-100 shadow-lg flex items-center justify-center mb-8 mx-auto text-2xl font-bold text-stone-900 z-10">
+                  {item.step}
+                </div>
+                <div className="text-center">
+                  <h3 className="text-xl font-bold mb-4 text-stone-900">
                     {item.title}
                   </h3>
-                  <p className={`leading-relaxed ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
+                  <p className="leading-relaxed text-stone-600">
                     {item.description}
                   </p>
                 </div>
@@ -443,93 +392,67 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Pricing */}
-      <section className={`py-32 px-6 ${isDark ? 'bg-stone-900/50' : 'bg-stone-100'}`}>
+      <section className="py-32 px-6 bg-white border-t border-stone-100">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
-            <p className={`text-sm font-medium tracking-widest uppercase mb-4 ${
-              isDark ? 'text-stone-500' : 'text-stone-400'
-            }`}>
+            <div className="inline-block px-3 py-1 rounded-full bg-stone-100 text-stone-600 text-xs font-bold uppercase tracking-wider mb-4">
               Pricing
-            </p>
-            <h2 className={`text-4xl md:text-5xl font-bold tracking-tight mb-4 ${
-              isDark ? 'text-white' : 'text-stone-900'
-            }`}>
-              Simple, transparent
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 text-stone-900">
+              Start for free, upgrade for power
             </h2>
-            <p className={`text-lg ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
-              Start free. Upgrade when you need more.
+            <p className="text-lg text-stone-500 max-w-xl mx-auto">
+              We believe accessible tools create better stories. That's why our core features are free forever.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6 items-stretch">
+          <div className="grid md:grid-cols-2 gap-8 items-center">
             {/* Free */}
-            <div className={`p-8 rounded-2xl border transition-shadow duration-300 flex flex-col ${
-              isDark 
-                ? 'bg-stone-900 border-stone-800 hover:shadow-xl hover:shadow-white/5' 
-                : 'bg-white border-stone-200 hover:shadow-xl hover:shadow-black/5'
-            }`}>
-              <h3 className={`text-xl font-bold mb-1 ${isDark ? 'text-white' : 'text-stone-900'}`}>Free</h3>
-              <p className={`text-sm mb-6 ${isDark ? 'text-stone-500' : 'text-stone-500'}`}>For trying out StoryVerse</p>
+            <div className="p-8 rounded-3xl border border-stone-200 hover:border-stone-300 transition-all bg-white shadow-sm hover:shadow-md">
+              <h3 className="text-2xl font-bold mb-2 text-stone-900">Free</h3>
+              <p className="text-stone-500 mb-8">Perfect for your first screenplay</p>
               <div className="mb-8">
-                <span className={`text-5xl font-bold ${isDark ? 'text-white' : 'text-stone-900'}`}>$0</span>
-                <span className={isDark ? 'text-stone-500' : 'text-stone-500'}>/month</span>
+                <span className="text-5xl font-bold text-stone-900">$0</span>
+                <span className="text-stone-500 text-xl">/month</span>
               </div>
-              <ul className="space-y-3 mb-8 flex-1">
-                {['1 Project', '10 AI requests/day', 'Basic Story Bible', 'Script Editor', 'PDF Export', 'Community Support'].map((f, i) => (
-                  <li key={i} className={`flex items-center gap-3 text-sm ${
-                    isDark ? 'text-stone-300' : 'text-stone-600'
-                  }`}>
-                    <Check size={16} className={isDark ? 'text-white' : 'text-stone-900'} />
+              <ul className="space-y-4 mb-8">
+                {['1 Active Project', 'Standard AI Speed', 'Basic Story Bible', 'PDF Export', 'Community Support'].map((f, i) => (
+                  <li key={i} className="flex items-center gap-3 text-stone-600">
+                    <Check size={18} className="text-stone-400" />
                     {f}
                   </li>
                 ))}
               </ul>
               <button 
-                onClick={() => navigate('/signup')}
-                className={`w-full h-12 rounded-xl font-semibold text-sm transition-colors mt-auto ${
-                  isDark 
-                    ? 'border border-stone-700 text-white hover:bg-stone-800' 
-                    : 'border border-stone-200 text-stone-900 hover:bg-stone-50'
-                }`}
+                onClick={() => navigate('/app')}
+                className="w-full h-12 rounded-xl font-bold text-stone-900 bg-stone-100 hover:bg-stone-200 transition-colors"
               >
                 Get Started
               </button>
             </div>
 
             {/* Pro */}
-            <div className={`p-8 rounded-2xl relative overflow-hidden transition-shadow duration-300 flex flex-col ${
-              isDark 
-                ? 'bg-white text-stone-900 hover:shadow-xl hover:shadow-white/20' 
-                : 'bg-stone-900 text-white hover:shadow-xl hover:shadow-black/20'
-            }`}>
-              <div className="absolute top-6 right-6">
-                <span className={`text-xs font-medium px-3 py-1 rounded-full ${
-                  isDark ? 'bg-stone-900/10 text-stone-600' : 'bg-white/10 text-white'
-                }`}>Popular</span>
+            <div className="p-8 rounded-3xl border-2 border-stone-900 bg-stone-900 text-white shadow-2xl relative transform md:-translate-y-4">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-500 text-stone-900 px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wide shadow-lg">
+                Most Popular
               </div>
-              <h3 className="text-xl font-bold mb-1">Pro</h3>
-              <p className={`text-sm mb-6 ${isDark ? 'text-stone-500' : 'text-stone-400'}`}>For serious screenwriters</p>
+              <h3 className="text-2xl font-bold mb-2">Pro</h3>
+              <p className="text-stone-400 mb-8">For serious writers & creators</p>
               <div className="mb-8">
                 <span className="text-5xl font-bold">$19</span>
-                <span className={isDark ? 'text-stone-500' : 'text-stone-400'}>/month</span>
+                <span className="text-stone-400 text-xl">/month</span>
               </div>
-              <ul className="space-y-3 mb-8 flex-1">
-                {['Unlimited Projects', 'Unlimited AI', 'Voice Agent', 'Beat Sheet & Outline', 'Table Read Audio', 'Priority Support'].map((f, i) => (
-                  <li key={i} className={`flex items-center gap-3 text-sm ${
-                    isDark ? 'text-stone-600' : 'text-stone-300'
-                  }`}>
-                    <Check size={16} className={isDark ? 'text-stone-900' : 'text-white'} />
+              <ul className="space-y-4 mb-8">
+                {['Unlimited Projects', 'Advanced AI Models', 'Full Story Bible', 'All Export Formats', 'Voice Dictation', 'Priority Support'].map((f, i) => (
+                  <li key={i} className="flex items-center gap-3 text-stone-300">
+                    <Check size={18} className="text-amber-500" />
                     {f}
                   </li>
                 ))}
               </ul>
               <button 
-                onClick={() => navigate('/signup')}
-                className={`w-full h-12 rounded-xl font-semibold text-sm transition-colors mt-auto ${
-                  isDark 
-                    ? 'bg-stone-900 text-white hover:bg-stone-800' 
-                    : 'bg-white text-stone-900 hover:bg-stone-100'
-                }`}
+                onClick={() => navigate('/app')}
+                className="w-full h-12 rounded-xl font-bold text-stone-900 bg-white hover:bg-amber-50 transition-colors"
               >
                 Start Free Trial
               </button>
@@ -539,66 +462,26 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* CTA */}
-      <section className="relative py-32 px-6 overflow-hidden">
-        {/* Background */}
-        <div className={`absolute inset-0 ${isDark ? 'opacity-10' : 'opacity-10'}`}>
-          <img 
-            src="/images/hero-banner.jpg" 
-            alt=""
-            className="w-full h-full object-cover"
-          />
-        </div>
-        <div className={`absolute inset-0 ${
-          isDark 
-            ? 'bg-gradient-to-b from-[#0c0a09] via-transparent to-[#0c0a09]' 
-            : 'bg-gradient-to-b from-[#FAFAF9] via-transparent to-[#FAFAF9]'
-        }`} />
-
-        <div className="relative max-w-2xl mx-auto text-center">
-          <h2 className={`text-4xl md:text-5xl font-bold tracking-tight mb-6 ${
-            isDark ? 'text-white' : 'text-stone-900'
-          }`}>
-            Ready to write your story?
+      <section className="relative py-32 px-6 overflow-hidden bg-stone-50">
+        <div className="relative max-w-4xl mx-auto text-center">
+          <h2 className="text-5xl md:text-7xl font-bold tracking-tighter mb-8 text-stone-900">
+            Your story belongs<br />to the world.
           </h2>
-          <p className={`text-xl mb-10 ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
-            Join screenwriters who are creating amazing stories with AI.
+          <p className="text-xl md:text-2xl mb-12 text-stone-500 max-w-2xl mx-auto">
+            Don't let formatting or writer's block stand in your way. Start writing today.
           </p>
           <button 
-            onClick={() => navigate('/signup')}
-            className={`group h-14 px-10 rounded-full font-semibold flex items-center gap-3 mx-auto transition-all shadow-lg ${
-              isDark 
-                ? 'bg-white text-stone-900 hover:bg-stone-100 shadow-white/5' 
-                : 'bg-stone-900 text-white hover:bg-stone-800 shadow-black/10'
-            }`}
+            onClick={() => navigate('/app')}
+            className="group h-16 px-12 rounded-full font-bold text-lg flex items-center gap-3 mx-auto transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 bg-stone-900 text-white hover:bg-stone-800"
           >
             Start Writing Free
-            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+            <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className={`py-8 px-6 border-t ${
-        isDark ? 'border-stone-800' : 'border-stone-200'
-      }`}>
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className={`w-6 h-6 rounded flex items-center justify-center ${
-              isDark ? 'bg-white' : 'bg-stone-900'
-            }`}>
-              <span className={`text-xs font-bold ${isDark ? 'text-stone-900' : 'text-white'}`}>S</span>
-            </div>
-            <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-stone-900'}`}>StoryVerse</span>
-          </div>
-          <div className={`flex items-center gap-6 text-sm ${isDark ? 'text-stone-500' : 'text-stone-500'}`}>
-            <Link to="/about" className={`transition-colors ${isDark ? 'hover:text-white' : 'hover:text-stone-900'}`}>About</Link>
-            <Link to="/contact" className={`transition-colors ${isDark ? 'hover:text-white' : 'hover:text-stone-900'}`}>Contact</Link>
-            <Link to="/privacy" className={`transition-colors ${isDark ? 'hover:text-white' : 'hover:text-stone-900'}`}>Privacy</Link>
-            <Link to="/terms" className={`transition-colors ${isDark ? 'hover:text-white' : 'hover:text-stone-900'}`}>Terms</Link>
-          </div>
-          <p className={`text-sm ${isDark ? 'text-stone-600' : 'text-stone-400'}`}>© 2025 StoryVerse</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

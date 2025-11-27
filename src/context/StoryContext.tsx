@@ -101,7 +101,6 @@ interface StoryContextType {
   updateSettings: (updates: Partial<AppSettings>) => void;
 
   // UI State
-  theme: 'light' | 'dark';
   saveStatus: SaveStatus;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
@@ -465,13 +464,6 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     [scripts, activeScriptId]
   );
 
-  const theme = useMemo(() => {
-    if (settings.theme === 'system') {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    return settings.theme;
-  }, [settings.theme]);
-
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return sources;
     const query = searchQuery.toLowerCase();
@@ -766,8 +758,8 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Apply theme to document
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-  }, [theme]);
+    document.documentElement.classList.remove('dark');
+  }, []);
 
   // ============================================
   // UNDO/REDO HELPERS
@@ -1368,7 +1360,6 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     updateSettings,
 
     // UI State
-    theme,
     saveStatus,
     searchQuery,
     setSearchQuery,

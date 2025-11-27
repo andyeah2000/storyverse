@@ -16,7 +16,7 @@ import {
   AutoCompleteType,
   TitlePageData
 } from './types';
-import { ELEMENT_STYLES, TRANSITIONS, SCENE_PREFIXES } from './constants';
+import { SCENE_PREFIXES } from './constants';
 
 // Utils
 import { 
@@ -42,7 +42,6 @@ const ScriptEditor: React.FC = () => {
     setActiveSourceId,
     updateSource, 
     addSource, 
-    theme, 
     settings
   } = useStory();
   
@@ -50,8 +49,6 @@ const ScriptEditor: React.FC = () => {
   const activeScriptSource = activeSourceId 
     ? sources.find(s => s.id === activeSourceId && s.type === 'script')
     : sources.find(s => s.type === 'script');
-  
-  const isDark = theme === 'dark';
   
   // If no active source and there are scripts, select the first one
   useEffect(() => {
@@ -618,7 +615,6 @@ ${titlePage.contact ? `\n\n${titlePage.contact}` : ''}
       {/* Navigator */}
       {showNavigator && !focusMode && (
         <Navigator
-          isDark={isDark}
           activeTab={navigatorTab}
           scenes={scenes}
           characterStats={characterStats}
@@ -642,13 +638,9 @@ ${titlePage.contact ? `\n\n${titlePage.contact}` : ''}
       )}
 
       {/* Main Editor */}
-      <div className={cn(
-        "flex-1 flex flex-col h-full rounded-xl border overflow-hidden",
-        isDark ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200'
-      )}>
+      <div className="flex-1 flex flex-col h-full rounded-xl border overflow-hidden bg-white border-stone-200">
         {/* Toolbar */}
         <Toolbar
-          isDark={isDark}
           currentElement={currentElement}
           stats={stats}
           showNavigator={showNavigator}
@@ -677,21 +669,13 @@ ${titlePage.contact ? `\n\n${titlePage.contact}` : ''}
 
         {/* Note Input Bar */}
         {showNoteInput && (
-          <div className={cn(
-            "h-12 flex items-center gap-3 px-4 border-b shrink-0",
-            isDark ? 'bg-amber-500/10 border-stone-800' : 'bg-amber-50 border-stone-200'
-          )}>
+          <div className="h-12 flex items-center gap-3 px-4 border-b shrink-0 bg-amber-50 border-stone-200">
             <input
               type="text"
               value={newNoteText}
               onChange={(e) => setNewNoteText(e.target.value)}
               placeholder={`Add note at line ${currentLineInfo.lineIndex + 1}...`}
-              className={cn(
-                "flex-1 h-9 px-4 rounded-lg text-sm outline-none",
-                isDark 
-                  ? 'bg-stone-900 text-white placeholder:text-stone-600' 
-                  : 'bg-white text-stone-900 placeholder:text-stone-400'
-              )}
+              className="flex-1 h-9 px-4 rounded-lg text-sm outline-none bg-white text-stone-900 placeholder:text-stone-400"
               onKeyDown={(e) => e.key === 'Enter' && addNote()}
               autoFocus
             />
@@ -710,7 +694,6 @@ ${titlePage.contact ? `\n\n${titlePage.contact}` : ''}
 
         {/* Editor Area */}
         <EditorArea
-          isDark={isDark}
           content={content}
           cursorPosition={cursorPosition}
           currentElement={currentElement}
@@ -732,7 +715,6 @@ ${titlePage.contact ? `\n\n${titlePage.contact}` : ''}
 
         {/* Status Bar */}
         <StatusBar
-          isDark={isDark}
           currentElement={currentElement}
           currentLineInfo={currentLineInfo}
           stats={stats}
@@ -747,7 +729,6 @@ ${titlePage.contact ? `\n\n${titlePage.contact}` : ''}
 
       {/* Export Modal */}
       <ExportModal
-        isDark={isDark}
         isOpen={showExportModal}
         onClose={() => setShowExportModal(false)}
         onExportPDF={handleExportPDF}

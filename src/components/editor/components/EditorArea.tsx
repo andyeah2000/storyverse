@@ -21,7 +21,6 @@ import { REVISION_COLORS, LINES_PER_PAGE } from '../constants';
 // ============================================
 
 interface EditorAreaProps {
-  isDark: boolean;
   content: string;
   cursorPosition: number;
   currentElement: ScriptElement;
@@ -46,7 +45,6 @@ interface EditorAreaProps {
 // ============================================
 
 const EditorArea: React.FC<EditorAreaProps> = ({
-  isDark,
   content,
   currentLineInfo,
   fontSize,
@@ -104,12 +102,7 @@ const EditorArea: React.FC<EditorAreaProps> = ({
     >
       {/* Line Numbers Column */}
       <div 
-        className={cn(
-          "w-16 shrink-0 select-none border-r sticky left-0 z-10",
-          isDark 
-            ? 'bg-stone-900 text-stone-600 border-stone-800' 
-            : 'bg-stone-50 text-stone-400 border-stone-200'
-        )}
+        className="w-16 shrink-0 select-none border-r sticky left-0 z-10 bg-stone-50 text-stone-400 border-stone-200"
       >
         <div className="pt-3">
           {lines.map((_, i) => {
@@ -125,10 +118,9 @@ const EditorArea: React.FC<EditorAreaProps> = ({
                 className={cn(
                   "font-mono flex items-center justify-end pr-2 gap-1.5 relative transition-colors",
                   getFontSizeClass(),
-                  isPageBreak && 'border-b border-dashed',
-                  isPageBreak && (isDark ? 'border-stone-700' : 'border-stone-300'),
+                  isPageBreak && 'border-b border-dashed border-stone-300',
                   revColor && REVISION_COLORS[revColor].bg,
-                  isCurrentLine && (isDark ? 'bg-stone-800/50' : 'bg-blue-50/50')
+                  isCurrentLine && 'bg-blue-50/50'
                 )}
                 style={{ height: `${getLineHeight()}px` }}
               >
@@ -149,7 +141,7 @@ const EditorArea: React.FC<EditorAreaProps> = ({
                 {/* Line number */}
                 <span className={cn(
                   "text-[11px]",
-                  isCurrentLine && (isDark ? 'text-stone-300' : 'text-stone-600')
+                  isCurrentLine && 'text-stone-600'
                 )}>
                   {i + 1}
                 </span>
@@ -165,10 +157,7 @@ const EditorArea: React.FC<EditorAreaProps> = ({
       </div>
 
       {/* Editor Content */}
-      <div className={cn(
-        "flex-1 min-w-0 relative",
-        isDark ? 'bg-stone-900' : 'bg-white'
-      )}>
+      <div className="flex-1 min-w-0 relative bg-white">
         <textarea
           ref={textareaRef}
           id="script-editor-textarea"
@@ -180,9 +169,7 @@ const EditorArea: React.FC<EditorAreaProps> = ({
           className={cn(
             "w-full min-h-full py-3 px-6 resize-none outline-none font-mono",
             getFontSizeClass(),
-            isDark 
-              ? 'bg-transparent text-stone-100 placeholder:text-stone-600 caret-white' 
-              : 'bg-transparent text-stone-800 placeholder:text-stone-400 caret-stone-900',
+            "bg-transparent text-stone-800 placeholder:text-stone-400 caret-stone-900",
             "selection:bg-blue-500/30"
           )}
           style={{ 
@@ -208,19 +195,13 @@ Type character names in CAPS for auto-complete.`}
         {/* Auto-complete Popup */}
         {showAutoComplete && autoCompleteOptions.length > 0 && (
           <div
-            className={cn(
-              "absolute z-50 w-64 rounded-xl shadow-2xl border overflow-hidden",
-              isDark ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-200'
-            )}
+            className="absolute z-50 w-64 rounded-xl shadow-2xl border overflow-hidden bg-white border-stone-200"
             style={{
               top: `${(currentLineInfo.lineIndex + 1) * getLineHeight() + 12}px`,
               left: '24px'
             }}
           >
-            <div className={cn(
-              "px-3 py-2 text-[10px] font-semibold uppercase tracking-wider border-b",
-              isDark ? 'text-stone-500 border-stone-700 bg-stone-900/50' : 'text-stone-400 border-stone-100 bg-stone-50'
-            )}>
+            <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider border-b text-stone-400 border-stone-100 bg-stone-50">
               {autoCompleteType === 'character' && 'Characters'}
               {autoCompleteType === 'scene' && 'Scene Headings'}
               {autoCompleteType === 'transition' && 'Transitions'}
@@ -232,12 +213,8 @@ Type character names in CAPS for auto-complete.`}
                 className={cn(
                   "w-full px-4 py-2.5 text-[13px] text-left transition-all flex items-center gap-3",
                   i === autoCompleteIndex
-                    ? isDark 
-                      ? 'bg-blue-600 text-white' 
-                      : 'bg-blue-500 text-white'
-                    : isDark 
-                      ? 'text-stone-300 hover:bg-stone-700' 
-                      : 'text-stone-700 hover:bg-stone-50'
+                    ? 'bg-blue-500 text-white'
+                    : 'text-stone-700 hover:bg-stone-50'
                 )}
               >
                 {autoCompleteType === 'character' && <User size={14} />}
@@ -254,4 +231,3 @@ Type character names in CAPS for auto-complete.`}
 };
 
 export default EditorArea;
-

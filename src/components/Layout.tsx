@@ -11,15 +11,12 @@ import {
   StickyNote, 
   Image as ImageIcon,
   Settings,
-  Moon,
-  Sun,
   Undo2,
   Redo2,
   Check,
   Cloud,
   CloudOff,
   AlertTriangle,
-  FolderOpen,
   LogOut,
   ChevronDown,
   Menu,
@@ -42,7 +39,6 @@ const Layout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { 
-    theme, 
     saveStatus, 
     canUndo, 
     canRedo, 
@@ -50,16 +46,12 @@ const Layout: React.FC = () => {
     redo, 
     setSettingsOpen,
     currentProject,
-    settings,
-    updateSettings,
-    sidebarOpen,
-    setSidebarOpen,
-    openShareModal,
     currentProjectPermission,
     incomingInvites,
     acceptInvite,
     declineInvite,
-    projects
+    projects,
+    openShareModal
   } = useStory();
   const { user, logout, isSupabaseMode, subscription, startCheckout } = useAuth();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -161,30 +153,17 @@ const Layout: React.FC = () => {
   ];
 
   return (
-    <div className={cn(
-      "flex h-screen w-screen font-sans overflow-hidden transition-colors duration-300",
-      theme === 'dark' 
-        ? 'bg-stone-950 text-stone-100' 
-        : 'bg-stone-100 text-stone-900'
-    )}>
-      {/* Sidebar - File Explorer (hidden on mobile by default) */}
-      <div className={cn(
-        "hidden lg:block",
-        sidebarOpen ? '' : 'lg:hidden'
-      )}>
-        {sidebarOpen && <FileExplorer />}
+    <div className="flex h-screen w-screen font-sans overflow-hidden bg-stone-100 text-stone-900">
+      {/* Sidebar - File Explorer (always visible on desktop, hidden on mobile unless drawer) */}
+      <div className="hidden lg:block shrink-0">
+        <FileExplorer />
       </div>
 
       {/* Mobile File Explorer Drawer */}
-      {sidebarOpen && (
-        <div className="lg:hidden fixed inset-0 z-30">
-          <div 
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setSidebarOpen(false)}
-          />
-          <div className="absolute left-0 top-0 bottom-0 w-72 animate-in slide-in-from-left duration-300">
-            <FileExplorer />
-          </div>
+      {mobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-30 pointer-events-none">
+          {/* Logic handled by mobile menu mostly, but if we wanted a separate drawer: */}
+          {/* For now, file explorer is accessed via mobile menu or just hidden on mobile main view */}
         </div>
       )}
 
@@ -192,21 +171,13 @@ const Layout: React.FC = () => {
       <div className="flex-1 flex flex-col h-full min-w-0">
         
         {/* Header */}
-        <header className={cn(
-          "h-12 px-4 flex items-center justify-between shrink-0 border-b z-10 transition-colors",
-          theme === 'dark'
-            ? 'bg-stone-900/80 border-stone-800 backdrop-blur-xl'
-            : 'bg-white/80 border-stone-200/60 backdrop-blur-xl'
-        )}>
+        <header className="h-12 px-4 flex items-center justify-between shrink-0 border-b z-10 bg-white/80 border-stone-200/60 backdrop-blur-xl min-w-0">
           {/* Left: Logo + Project */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0">
             {/* Mobile Hamburger */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className={cn(
-                "w-8 h-8 rounded-lg flex items-center justify-center transition-colors lg:hidden",
-                theme === 'dark' ? 'hover:bg-stone-800' : 'hover:bg-stone-100'
-              )}
+              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-stone-100 lg:hidden transition-colors shrink-0"
             >
               {mobileMenuOpen ? (
                 <X size={18} strokeWidth={1.75} className="text-stone-500" />
@@ -215,39 +186,21 @@ const Layout: React.FC = () => {
               )}
             </button>
 
-            {/* Desktop File Explorer Toggle */}
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className={cn(
-                "w-8 h-8 rounded-lg items-center justify-center transition-colors hidden lg:flex",
-                theme === 'dark' ? 'hover:bg-stone-800' : 'hover:bg-stone-100'
-              )}
-            >
-              <FolderOpen size={16} strokeWidth={1.75} className="text-stone-500" />
-            </button>
+            {/* No toggle button on desktop anymore, File Explorer is fixed */}
             
-            <div className="flex items-center gap-2">
-              <div className={cn(
-                "w-7 h-7 rounded-lg flex items-center justify-center",
-                theme === 'dark' ? 'bg-white text-stone-900' : 'bg-stone-900 text-white'
-              )}>
+            <div className="flex items-center gap-2 min-w-0 shrink-0">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-stone-900 text-white shrink-0">
                 <svg width="14" height="14" viewBox="0 0 28 28" fill="none">
                   <path d="M8 10L14 7L20 10V18L14 21L8 18V10Z" stroke="currentColor" strokeWidth="2" fill="none"/>
                   <circle cx="14" cy="14" r="2" fill="currentColor"/>
                 </svg>
               </div>
-              <div className="flex flex-col">
-                <span className={cn(
-                  "text-sm font-semibold tracking-tight leading-tight",
-                  theme === 'dark' ? 'text-white' : 'text-stone-900'
-                )}>
+              <div className="flex flex-col min-w-0 hidden sm:flex">
+                <span className="text-sm font-semibold tracking-tight leading-tight text-stone-900 truncate">
                   {currentProject?.name || 'StoryVerse'}
                 </span>
                 {currentProject && (
-                  <span className={cn(
-                    'text-[11px] uppercase tracking-wide font-medium mt-0.5 w-fit px-2 py-0.5 rounded-full',
-                    theme === 'dark' ? 'bg-stone-800 text-stone-300' : 'bg-stone-200 text-stone-600'
-                  )}>
+                  <span className="text-[11px] uppercase tracking-wide font-medium mt-0.5 w-fit px-2 py-0.5 rounded-full bg-stone-200 text-stone-600 truncate">
                     {accessLabel}
                   </span>
                 )}
@@ -259,23 +212,21 @@ const Layout: React.FC = () => {
                 onClick={openShareModal}
                 disabled={currentProjectPermission === 'view'}
                 className={cn(
-                  'ml-2 h-8 px-3 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors border',
+                  'ml-2 h-8 px-3 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors border shrink-0',
                   currentProjectPermission === 'view'
                     ? 'cursor-not-allowed opacity-60'
-                    : theme === 'dark'
-                      ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20'
-                      : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                    : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
                 )}
               >
                 <Share2 size={14} strokeWidth={1.75} />
-                Share
+                <span className="hidden xl:inline">Share</span>
               </button>
             )}
 
             {/* Save Status */}
-            <div className="flex items-center gap-1.5 ml-2">
+            <div className="flex items-center gap-1.5 ml-2 shrink-0">
               {saveStatus === 'saved' && (
-                <span className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
+                <span className="flex items-center gap-1 text-xs text-emerald-600">
                   <Check size={12} />
                 </span>
               )}
@@ -298,33 +249,27 @@ const Layout: React.FC = () => {
           </div>
           
           {/* Center: Navigation - Hidden on mobile */}
-          <nav className={cn(
-            "hidden lg:flex items-center gap-0.5 p-1 rounded-xl",
-            theme === 'dark' ? 'bg-stone-800/50' : 'bg-stone-100/80'
-          )}>
-            <NavButton to="/app" icon={<PenTool size={14} strokeWidth={1.75} />} label="Editor" theme={theme} end />
-            <NavButton to="/app/characters" icon={<Users size={14} strokeWidth={1.75} />} label="Chars" theme={theme} />
-            <NavButton to="/app/wiki" icon={<Globe size={14} strokeWidth={1.75} />} label="Wiki" theme={theme} />
-            <NavButton to="/app/beats" icon={<Sparkles size={14} strokeWidth={1.75} />} label="Beats" theme={theme} />
-            <NavButton to="/app/outline" icon={<Layers size={14} strokeWidth={1.75} />} label="Outline" theme={theme} />
-            <NavButton to="/app/map" icon={<Map size={14} strokeWidth={1.75} />} label="Map" theme={theme} />
-            <NavButton to="/app/mindmap" icon={<GitBranch size={14} strokeWidth={1.75} />} label="Mind" theme={theme} />
-            <NavButton to="/app/co-writer" icon={<MessageSquare size={14} strokeWidth={1.75} />} label="Chat" theme={theme} />
-            <NavButton to="/app/table-read" icon={<Headphones size={14} strokeWidth={1.75} />} label="Audio" theme={theme} />
-            <NavButton to="/app/notes" icon={<StickyNote size={14} strokeWidth={1.75} />} label="Notes" theme={theme} />
-            <NavButton to="/app/mood-board" icon={<ImageIcon size={14} strokeWidth={1.75} />} label="Mood" theme={theme} />
+          <nav className="hidden lg:flex items-center gap-0.5 p-1 rounded-xl bg-stone-100/80 mx-2 flex-1 justify-center min-w-0 overflow-hidden">
+            <NavButton to="/app" icon={<PenTool size={14} strokeWidth={1.75} />} label="Editor" end />
+            <NavButton to="/app/characters" icon={<Users size={14} strokeWidth={1.75} />} label="Chars" />
+            <NavButton to="/app/wiki" icon={<Globe size={14} strokeWidth={1.75} />} label="Wiki" />
+            <NavButton to="/app/beats" icon={<Sparkles size={14} strokeWidth={1.75} />} label="Beats" />
+            <NavButton to="/app/outline" icon={<Layers size={14} strokeWidth={1.75} />} label="Outline" />
+            <NavButton to="/app/map" icon={<Map size={14} strokeWidth={1.75} />} label="Map" />
+            <NavButton to="/app/mindmap" icon={<GitBranch size={14} strokeWidth={1.75} />} label="Mind" />
+            <NavButton to="/app/co-writer" icon={<MessageSquare size={14} strokeWidth={1.75} />} label="Chat" />
+            <NavButton to="/app/table-read" icon={<Headphones size={14} strokeWidth={1.75} />} label="Audio" />
+            <NavButton to="/app/notes" icon={<StickyNote size={14} strokeWidth={1.75} />} label="Notes" />
+            <NavButton to="/app/mood-board" icon={<ImageIcon size={14} strokeWidth={1.75} />} label="Mood" />
           </nav>
           
           {/* Right: Actions */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             {/* Undo/Redo */}
             <button
               onClick={undo}
               disabled={!canUndo}
-              className={cn(
-                "w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30",
-                theme === 'dark' ? 'hover:bg-stone-800' : 'hover:bg-stone-100'
-              )}
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 hover:bg-stone-100"
               title="Undo (⌘Z)"
             >
               <Undo2 size={15} strokeWidth={1.75} className="text-stone-500" />
@@ -332,50 +277,21 @@ const Layout: React.FC = () => {
             <button
               onClick={redo}
               disabled={!canRedo}
-              className={cn(
-                "w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30",
-                theme === 'dark' ? 'hover:bg-stone-800' : 'hover:bg-stone-100'
-              )}
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 hover:bg-stone-100"
               title="Redo (⌘⇧Z)"
             >
               <Redo2 size={15} strokeWidth={1.75} className="text-stone-500" />
             </button>
 
-            <div className="w-px h-5 bg-stone-200 dark:bg-stone-700 mx-1" />
-
-            {/* Theme Toggle */}
-            <button
-              onClick={() => updateSettings({ 
-                theme: settings.theme === 'light' ? 'dark' : 
-                       settings.theme === 'dark' ? 'system' : 'light'
-              })}
-              className={cn(
-                "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-                theme === 'dark' ? 'hover:bg-stone-800' : 'hover:bg-stone-100'
-              )}
-              title={`Theme: ${settings.theme}`}
-            >
-              {theme === 'dark' ? (
-                <Moon size={15} strokeWidth={1.75} className="text-stone-400" />
-              ) : (
-                <Sun size={15} strokeWidth={1.75} className="text-stone-500" />
-              )}
-            </button>
-
+            <div className="w-px h-5 bg-stone-200 mx-1" />
 
             {/* User Menu */}
             <div className="relative">
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className={cn(
-                  "h-8 px-2 rounded-lg flex items-center gap-2 transition-colors",
-                  theme === 'dark' ? 'hover:bg-stone-800' : 'hover:bg-stone-100'
-                )}
+                className="h-8 px-2 rounded-lg flex items-center gap-2 hover:bg-stone-100 transition-colors"
               >
-                <div className={cn(
-                  "w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium",
-                  theme === 'dark' ? 'bg-stone-700 text-stone-300' : 'bg-stone-200 text-stone-600'
-                )}>
+                <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium bg-stone-200 text-stone-600">
                   {user?.name?.charAt(0).toUpperCase() || 'U'}
                 </div>
                 <ChevronDown size={12} className="text-stone-500" />
@@ -387,20 +303,9 @@ const Layout: React.FC = () => {
                     className="fixed inset-0 z-40" 
                     onClick={() => setUserMenuOpen(false)} 
                   />
-                  <div className={cn(
-                    "absolute right-0 top-full mt-2 w-56 rounded-xl shadow-lg z-50 overflow-hidden border",
-                    theme === 'dark' 
-                      ? 'bg-stone-900 border-stone-800' 
-                      : 'bg-white border-stone-200'
-                  )}>
-                    <div className={cn(
-                      "px-4 py-3 border-b",
-                      theme === 'dark' ? 'border-stone-800' : 'border-stone-100'
-                    )}>
-                      <p className={cn(
-                        "text-sm font-medium truncate",
-                        theme === 'dark' ? 'text-white' : 'text-stone-900'
-                      )}>
+                  <div className="absolute right-0 top-full mt-2 w-56 rounded-xl shadow-lg z-50 overflow-hidden border bg-white border-stone-200">
+                    <div className="px-4 py-3 border-b border-stone-100">
+                      <p className="text-sm font-medium truncate text-stone-900">
                         {user?.name}
                       </p>
                       <p className="text-xs text-stone-500 truncate">
@@ -413,12 +318,7 @@ const Layout: React.FC = () => {
                           setUserMenuOpen(false);
                           setSettingsOpen(true);
                         }}
-                        className={cn(
-                          "w-full px-4 py-2 text-sm text-left flex items-center gap-3 transition-colors",
-                          theme === 'dark' 
-                            ? 'text-stone-300 hover:bg-stone-800' 
-                            : 'text-stone-700 hover:bg-stone-50'
-                        )}
+                        className="w-full px-4 py-2 text-sm text-left flex items-center gap-3 text-stone-700 hover:bg-stone-50 transition-colors"
                       >
                         <Settings size={14} />
                         Settings
@@ -428,10 +328,7 @@ const Layout: React.FC = () => {
                           setUserMenuOpen(false);
                           handleLogout();
                         }}
-                        className={cn(
-                          "w-full px-4 py-2 text-sm text-left flex items-center gap-3 text-red-500 transition-colors",
-                          theme === 'dark' ? 'hover:bg-stone-800' : 'hover:bg-stone-50'
-                        )}
+                        className="w-full px-4 py-2 text-sm text-left flex items-center gap-3 text-red-500 hover:bg-stone-50 transition-colors"
                       >
                         <LogOut size={14} />
                         Sign Out
@@ -445,14 +342,7 @@ const Layout: React.FC = () => {
         </header>
 
         {(showProjectLimitBanner || showAiLimitBanner) && (
-          <div
-            className={cn(
-              'px-4 py-2 border-b flex flex-col gap-2 text-xs',
-              theme === 'dark'
-                ? 'bg-amber-500/10 border-amber-500/30 text-amber-100'
-                : 'bg-amber-50 border-amber-200 text-amber-700'
-            )}
-          >
+          <div className="px-4 py-2 border-b flex flex-col gap-2 text-xs bg-amber-50 border-amber-200 text-amber-700">
             {showProjectLimitBanner && (
               <div className="flex flex-wrap items-center gap-2">
                 <AlertTriangle size={14} />
@@ -492,14 +382,7 @@ const Layout: React.FC = () => {
         )}
 
         {incomingInvites.length > 0 && (
-          <div
-            className={cn(
-              'px-4 py-3 border-b space-y-2',
-              theme === 'dark'
-                ? 'bg-amber-500/10 border-amber-500/30 text-amber-100'
-                : 'bg-amber-50 border-amber-200 text-amber-700'
-            )}
-          >
+          <div className="px-4 py-3 border-b space-y-2 bg-amber-50 border-amber-200 text-amber-700">
             <p className="text-xs font-semibold tracking-wide uppercase flex items-center gap-2">
               <Bell size={14} />
               Collaboration invites
@@ -507,10 +390,7 @@ const Layout: React.FC = () => {
             {incomingInvites.map(invite => (
               <div
                 key={invite.id}
-                className={cn(
-                  'flex flex-col gap-2 rounded-xl px-3 py-2 border',
-                  theme === 'dark' ? 'bg-stone-900/60 border-stone-800' : 'bg-white border-stone-200'
-                )}
+                className="flex flex-col gap-2 rounded-xl px-3 py-2 border bg-white border-stone-200"
               >
                 <div>
                   <p className="text-sm font-semibold">{invite.project_name}</p>
@@ -523,8 +403,7 @@ const Layout: React.FC = () => {
                     onClick={() => handleAcceptInvite(invite.id)}
                     disabled={processingInviteId === invite.id}
                     className={cn(
-                      'inline-flex items-center gap-1 px-3 h-8 rounded-lg text-xs font-semibold transition-colors',
-                      theme === 'dark' ? 'bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/30' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200',
+                      'inline-flex items-center gap-1 px-3 h-8 rounded-lg text-xs font-semibold transition-colors bg-emerald-100 text-emerald-700 hover:bg-emerald-200',
                       processingInviteId === invite.id && 'cursor-not-allowed opacity-75'
                     )}
                   >
@@ -538,8 +417,7 @@ const Layout: React.FC = () => {
                     onClick={() => handleDeclineInvite(invite.id)}
                     disabled={processingInviteId === invite.id}
                     className={cn(
-                      'inline-flex items-center gap-1 px-3 h-8 rounded-lg text-xs font-semibold transition-colors',
-                      theme === 'dark' ? 'bg-stone-900 text-stone-300 border border-stone-800 hover:bg-stone-800' : 'bg-white border border-stone-200 text-stone-600 hover:bg-stone-100',
+                      'inline-flex items-center gap-1 px-3 h-8 rounded-lg text-xs font-semibold transition-colors bg-white border border-stone-200 text-stone-600 hover:bg-stone-100',
                       processingInviteId === invite.id && 'cursor-not-allowed opacity-75'
                     )}
                   >
@@ -552,10 +430,7 @@ const Layout: React.FC = () => {
         )}
 
         {/* Workspace */}
-        <main className={cn(
-          "flex-1 overflow-hidden relative transition-colors pb-24 lg:pb-0",
-          theme === 'dark' ? 'bg-stone-950' : 'bg-stone-100'
-        )}>
+        <main className="flex-1 overflow-hidden relative pb-24 lg:pb-0 bg-stone-100">
           <div className="h-full w-full max-w-[1920px] mx-auto px-3 sm:px-4 pt-3 sm:pt-4">
             <Outlet />
           </div>
@@ -563,8 +438,7 @@ const Layout: React.FC = () => {
 
         <MobileNavDock 
           items={mobileNavItems}
-          theme={theme}
-          hidden={mobileMenuOpen || sidebarOpen}
+          hidden={mobileMenuOpen}
         />
       </div>
 
@@ -579,38 +453,23 @@ const Layout: React.FC = () => {
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <div className={cn(
-            "fixed left-0 top-0 bottom-0 w-72 z-50 lg:hidden animate-in slide-in-from-left duration-300",
-            theme === 'dark' ? 'bg-stone-900' : 'bg-white'
-          )}>
+          <div className="fixed left-0 top-0 bottom-0 w-72 z-50 lg:hidden animate-in slide-in-from-left duration-300 bg-white">
             {/* Mobile Menu Header */}
-            <div className={cn(
-              "h-14 px-4 flex items-center justify-between border-b",
-              theme === 'dark' ? 'border-stone-800' : 'border-stone-200'
-            )}>
+            <div className="h-14 px-4 flex items-center justify-between border-b border-stone-200">
               <div className="flex items-center gap-2">
-                <div className={cn(
-                  "w-8 h-8 rounded-lg flex items-center justify-center",
-                  theme === 'dark' ? 'bg-white text-stone-900' : 'bg-stone-900 text-white'
-                )}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-stone-900 text-white">
                   <svg width="16" height="16" viewBox="0 0 28 28" fill="none">
                     <path d="M8 10L14 7L20 10V18L14 21L8 18V10Z" stroke="currentColor" strokeWidth="2" fill="none"/>
                     <circle cx="14" cy="14" r="2" fill="currentColor"/>
                   </svg>
                 </div>
-                <span className={cn(
-                  "font-semibold",
-                  theme === 'dark' ? 'text-white' : 'text-stone-900'
-                )}>
+                <span className="font-semibold text-stone-900">
                   StoryVerse
                 </span>
               </div>
               <button
                 onClick={() => setMobileMenuOpen(false)}
-                className={cn(
-                  "w-8 h-8 rounded-lg flex items-center justify-center",
-                  theme === 'dark' ? 'hover:bg-stone-800' : 'hover:bg-stone-100'
-                )}
+                className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-stone-100"
               >
                 <X size={18} className="text-stone-500" />
               </button>
@@ -627,12 +486,8 @@ const Layout: React.FC = () => {
                   className={({ isActive }) => cn(
                     "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all",
                     isActive 
-                      ? theme === 'dark'
-                        ? 'bg-white text-stone-900'
-                        : 'bg-stone-900 text-white'
-                      : theme === 'dark'
-                        ? 'text-stone-300 hover:bg-stone-800'
-                        : 'text-stone-600 hover:bg-stone-100'
+                      ? 'bg-stone-900 text-white'
+                      : 'text-stone-600 hover:bg-stone-100'
                   )}
                 >
                   {item.icon}
@@ -642,60 +497,26 @@ const Layout: React.FC = () => {
             </nav>
 
             {/* Mobile Menu Footer */}
-            <div className={cn(
-              "absolute bottom-0 left-0 right-0 p-4 border-t",
-              theme === 'dark' ? 'border-stone-800' : 'border-stone-200'
-            )}>
-              {/* File Explorer Toggle */}
-              <button
-                onClick={() => {
-                  setSidebarOpen(!sidebarOpen);
-                  setMobileMenuOpen(false);
-                }}
-                className={cn(
-                  "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors mb-2",
-                  theme === 'dark' 
-                    ? 'text-stone-300 hover:bg-stone-800'
-                    : 'text-stone-600 hover:bg-stone-100'
-                )}
-              >
-                <FolderOpen size={18} />
-                {sidebarOpen ? 'Hide Story Bible' : 'Show Story Bible'}
-              </button>
-
+            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-stone-200">
               {/* Settings */}
               <button
                 onClick={() => {
                   setSettingsOpen(true);
                   setMobileMenuOpen(false);
                 }}
-                className={cn(
-                  "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors",
-                  theme === 'dark' 
-                    ? 'text-stone-300 hover:bg-stone-800'
-                    : 'text-stone-600 hover:bg-stone-100'
-                )}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors text-stone-600 hover:bg-stone-100"
               >
                 <Settings size={18} />
                 Settings
               </button>
 
               {/* User Info */}
-              <div className={cn(
-                "mt-4 pt-4 border-t flex items-center gap-3",
-                theme === 'dark' ? 'border-stone-800' : 'border-stone-200'
-              )}>
-                <div className={cn(
-                  "w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium",
-                  theme === 'dark' ? 'bg-stone-700 text-stone-300' : 'bg-stone-200 text-stone-600'
-                )}>
+              <div className="mt-4 pt-4 border-t border-stone-200 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium bg-stone-200 text-stone-600">
                   {user?.name?.charAt(0).toUpperCase() || 'U'}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={cn(
-                    "text-sm font-medium truncate",
-                    theme === 'dark' ? 'text-white' : 'text-stone-900'
-                  )}>
+                  <p className="text-sm font-medium truncate text-stone-900">
                     {user?.name}
                   </p>
                   <p className="text-xs text-stone-500 truncate">
@@ -721,24 +542,19 @@ interface NavButtonProps {
   to: string;
   icon: React.ReactNode;
   label: string;
-  theme: 'light' | 'dark';
   end?: boolean;
 }
 
-const NavButton: React.FC<NavButtonProps> = ({ to, icon, label, theme, end }) => {
+const NavButton: React.FC<NavButtonProps> = ({ to, icon, label, end }) => {
   return (
     <NavLink 
       to={to}
       end={end}
       className={({ isActive }) => cn(
-        "px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all duration-200",
+        "px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all duration-200 whitespace-nowrap shrink-0",
         isActive 
-          ? theme === 'dark'
-            ? 'bg-stone-700 text-white shadow-sm'
-            : 'bg-white text-stone-900 shadow-subtle'
-          : theme === 'dark'
-            ? 'text-stone-400 hover:text-white hover:bg-stone-700/50'
-            : 'text-stone-500 hover:text-stone-900 hover:bg-stone-200/50'
+          ? 'bg-white text-stone-900 shadow-subtle'
+          : 'text-stone-500 hover:text-stone-900 hover:bg-stone-200/50'
       )}
     >
       {icon}
@@ -749,18 +565,14 @@ const NavButton: React.FC<NavButtonProps> = ({ to, icon, label, theme, end }) =>
 
 interface MobileNavDockProps {
   items: { to: string; icon: React.ReactNode; label: string; end?: boolean }[];
-  theme: 'light' | 'dark';
   hidden: boolean;
 }
 
-const MobileNavDock: React.FC<MobileNavDockProps> = ({ items, theme, hidden }) => {
+const MobileNavDock: React.FC<MobileNavDockProps> = ({ items, hidden }) => {
   return (
     <div
       className={cn(
-        "lg:hidden fixed bottom-0 left-0 right-0 border-t px-2 pb-[env(safe-area-inset-bottom)] pt-2 z-30 transition-transform duration-300 backdrop-blur-lg",
-        theme === 'dark'
-          ? 'bg-stone-950/90 border-stone-800/70'
-          : 'bg-white/95 border-stone-200',
+        "lg:hidden fixed bottom-0 left-0 right-0 border-t px-2 pb-[env(safe-area-inset-bottom)] pt-2 z-30 transition-transform duration-300 backdrop-blur-lg bg-white/95 border-stone-200",
         hidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
       )}
     >
@@ -773,12 +585,8 @@ const MobileNavDock: React.FC<MobileNavDockProps> = ({ items, theme, hidden }) =
             className={({ isActive }) => cn(
               "flex flex-col items-center justify-center gap-1 py-2 rounded-2xl text-[11px] font-medium transition-colors",
               isActive
-                ? theme === 'dark'
-                  ? 'bg-white text-stone-900'
-                  : 'bg-stone-900 text-white'
-                : theme === 'dark'
-                  ? 'text-stone-400 hover:bg-stone-900'
-                  : 'text-stone-500 hover:bg-stone-100'
+                ? 'bg-stone-900 text-white'
+                : 'text-stone-500 hover:bg-stone-100'
             )}
           >
             <span className="h-5 flex items-center">{item.icon}</span>

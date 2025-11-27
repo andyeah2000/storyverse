@@ -35,7 +35,6 @@ const ICONS: Record<string, React.ReactNode> = {
 // ============================================
 
 interface StatusBarProps {
-  isDark: boolean;
   currentElement: ScriptElement;
   currentLineInfo: LineInfo;
   stats: ScriptStats;
@@ -52,7 +51,6 @@ interface StatusBarProps {
 // ============================================
 
 const StatusBar: React.FC<StatusBarProps> = ({
-  isDark,
   currentElement,
   currentLineInfo,
   stats,
@@ -66,21 +64,18 @@ const StatusBar: React.FC<StatusBarProps> = ({
   const elementStyle = ELEMENT_STYLES[currentElement];
 
   return (
-    <div className={cn(
-      "h-7 flex items-center justify-between px-3 border-t shrink-0 text-[10px] font-mono",
-      isDark ? 'border-stone-800 bg-stone-900/50 text-stone-500' : 'border-stone-200 bg-stone-50 text-stone-400'
-    )}>
+    <div className="h-7 flex items-center justify-between px-3 border-t shrink-0 text-[10px] font-mono border-stone-200 bg-stone-50 text-stone-400">
       {/* Left Section */}
       <div className="flex items-center gap-3">
         {/* Line:Column */}
         <span className="flex items-center gap-1">
           <span className="opacity-60">Ln</span>
-          <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>
+          <span className="text-stone-600">
             {currentLineInfo.lineIndex + 1}
           </span>
           <span className="opacity-40">:</span>
           <span className="opacity-60">Col</span>
-          <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>
+          <span className="text-stone-600">
             {currentLineInfo.column}
           </span>
         </span>
@@ -89,12 +84,9 @@ const StatusBar: React.FC<StatusBarProps> = ({
         <span className="opacity-30">•</span>
 
         {/* Current Element */}
-        <span className={cn(
-          "flex items-center gap-1 px-1.5 py-0.5 rounded",
-          isDark ? 'bg-stone-800' : 'bg-stone-200'
-        )}>
+        <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-stone-200">
           {ICONS[elementStyle.icon]}
-          <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>
+          <span className="text-stone-600">
             {elementStyle.label}
           </span>
         </span>
@@ -116,7 +108,7 @@ const StatusBar: React.FC<StatusBarProps> = ({
         {/* Character Count */}
         <span className="flex items-center gap-1">
           <span className="opacity-60">Chars</span>
-          <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>
+          <span className="text-stone-600">
             {stats.characterCount}
           </span>
         </span>
@@ -124,7 +116,7 @@ const StatusBar: React.FC<StatusBarProps> = ({
         {/* Word Count */}
         <span className="flex items-center gap-1">
           <span className="opacity-60">Words</span>
-          <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>
+          <span className="text-stone-600">
             {stats.words.toLocaleString()}
           </span>
         </span>
@@ -132,7 +124,7 @@ const StatusBar: React.FC<StatusBarProps> = ({
         {/* Dialogue Percentage */}
         <span className="flex items-center gap-1">
           <span className="opacity-60">Dialog</span>
-          <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>
+          <span className="text-stone-600">
             {stats.dialoguePercent}%
           </span>
         </span>
@@ -147,10 +139,7 @@ const StatusBar: React.FC<StatusBarProps> = ({
             Saving
           </span>
         ) : isDirty ? (
-          <span className={cn(
-            "flex items-center gap-1",
-            isDark ? 'text-amber-500' : 'text-amber-600'
-          )}>
+          <span className="flex items-center gap-1 text-amber-600">
             <Save size={10} />
             Unsaved
           </span>
@@ -174,4 +163,3 @@ const StatusBar: React.FC<StatusBarProps> = ({
 };
 
 export default StatusBar;
-

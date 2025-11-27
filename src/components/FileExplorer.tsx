@@ -57,11 +57,8 @@ const FileExplorer: React.FC = () => {
     deleteSource,
     updateSource,
     setActiveSourceId,
-    theme,
     currentProject
   } = useStory();
-
-  const isDark = theme === 'dark';
 
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
     new Set(['story-bible', 'scripts', 'workspace'])
@@ -376,8 +373,8 @@ const FileExplorer: React.FC = () => {
           className={cn(
             "flex items-center h-7 rounded-md cursor-pointer group transition-colors",
             isSelected
-              ? isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-500/10 text-blue-600'
-              : isDark ? 'hover:bg-white/5 text-stone-400' : 'hover:bg-black/5 text-stone-600'
+              ? 'bg-blue-500/10 text-blue-600'
+              : 'hover:bg-black/5 text-stone-600'
           )}
           style={{ paddingLeft: `${depth * 12 + 6}px`, paddingRight: '6px' }}
           onClick={() => {
@@ -397,9 +394,8 @@ const FileExplorer: React.FC = () => {
               <ChevronRight 
                 size={10} 
                 className={cn(
-                  "transition-transform duration-150",
-                  isExpanded && "rotate-90",
-                  isDark ? 'text-stone-500' : 'text-stone-400'
+                  "transition-transform duration-150 text-stone-400",
+                  isExpanded && "rotate-90"
                 )} 
               />
             )}
@@ -408,7 +404,7 @@ const FileExplorer: React.FC = () => {
           {/* Icon */}
           <span className={cn(
             "w-4 h-4 flex items-center justify-center shrink-0",
-            node.color || (isDark ? 'text-stone-500' : 'text-stone-400')
+            node.color || 'text-stone-400'
           )}>
             {isFolder 
               ? (isExpanded ? <FolderOpen size={13} /> : <Folder size={13} />)
@@ -420,18 +416,15 @@ const FileExplorer: React.FC = () => {
           <span className={cn(
             "flex-1 text-[11px] font-medium ml-1.5 truncate",
             isSelected 
-              ? isDark ? 'text-blue-300' : 'text-blue-700'
-              : isDark ? 'text-stone-300' : 'text-stone-700'
+              ? 'text-blue-700'
+              : 'text-stone-700'
           )}>
             {node.name}
           </span>
 
           {/* Count */}
           {node.count !== undefined && node.count > 0 && (
-            <span className={cn(
-              "text-[9px] font-medium min-w-[16px] h-4 px-1 rounded flex items-center justify-center",
-              isDark ? 'bg-white/10 text-stone-500' : 'bg-black/5 text-stone-400'
-            )}>
+            <span className="text-[9px] font-medium min-w-[16px] h-4 px-1 rounded flex items-center justify-center bg-black/5 text-stone-400">
               {node.count}
             </span>
           )}
@@ -440,10 +433,7 @@ const FileExplorer: React.FC = () => {
           {isFolder && !isWorkspaceItem && (
             <button
               onClick={(e) => { e.stopPropagation(); setIsCreating(node.id); setExpandedFolders(prev => new Set([...prev, node.id])); }}
-              className={cn(
-                "w-5 h-5 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity ml-0.5",
-                isDark ? 'hover:bg-white/10 text-stone-500' : 'hover:bg-black/10 text-stone-400'
-              )}
+              className="w-5 h-5 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity ml-0.5 hover:bg-black/10 text-stone-400"
             >
               <Plus size={10} />
             </button>
@@ -457,7 +447,7 @@ const FileExplorer: React.FC = () => {
             style={{ paddingLeft: `${(depth + 1) * 12 + 6}px`, paddingRight: '6px' }}
           >
             <span className="w-4 h-4 shrink-0" />
-            <File size={12} className={isDark ? 'text-stone-500' : 'text-stone-400'} />
+            <File size={12} className="text-stone-400" />
             <input
               type="text"
               value={newItemName}
@@ -469,12 +459,7 @@ const FileExplorer: React.FC = () => {
               onBlur={() => { setIsCreating(null); setNewItemName(''); }}
               autoFocus
               placeholder="Name..."
-              className={cn(
-                "flex-1 h-5 px-1.5 ml-1.5 text-[11px] outline-none rounded",
-                isDark
-                  ? 'bg-white/10 text-white placeholder:text-stone-600'
-                  : 'bg-black/5 text-stone-900 placeholder:text-stone-400'
-              )}
+              className="flex-1 h-5 px-1.5 ml-1.5 text-[11px] outline-none rounded bg-black/5 text-stone-900 placeholder:text-stone-400"
             />
           </div>
         )}
@@ -493,23 +478,12 @@ const FileExplorer: React.FC = () => {
 
   return (
     <div 
-      className={cn(
-        "w-60 min-w-60 max-w-60 border-r flex flex-col h-full select-none",
-        isDark 
-          ? 'bg-stone-900 border-stone-800' 
-          : 'bg-stone-50/50 border-stone-200'
-      )}
+      className="w-56 min-w-56 max-w-56 border-r flex flex-col h-full select-none bg-stone-50/50 border-stone-200"
       onClick={() => setContextMenu(null)}
     >
       {/* Header */}
-      <div className={cn(
-        "h-10 px-3 flex items-center gap-2 border-b shrink-0",
-        isDark ? 'border-stone-800' : 'border-stone-200'
-      )}>
-        <span className={cn(
-          "text-[11px] font-semibold uppercase tracking-wider",
-          isDark ? 'text-stone-500' : 'text-stone-400'
-        )}>
+      <div className="h-12 px-3 flex items-center gap-2 border-b shrink-0 border-stone-200">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 truncate">
           {currentProject?.name || 'Project'}
         </span>
       </div>
@@ -517,29 +491,18 @@ const FileExplorer: React.FC = () => {
       {/* Search */}
       <div className="px-2 py-2">
         <div className="relative">
-          <Search size={11} className={cn(
-            "absolute left-2 top-1/2 -translate-y-1/2",
-            isDark ? 'text-stone-600' : 'text-stone-400'
-          )} />
+          <Search size={11} className="absolute left-2 top-1/2 -translate-y-1/2 text-stone-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search..."
-            className={cn(
-              "w-full h-7 pl-6 pr-2 rounded-md text-[11px] outline-none transition-colors",
-              isDark
-                ? 'bg-white/5 text-white placeholder:text-stone-600 focus:bg-white/10'
-                : 'bg-black/5 text-stone-900 placeholder:text-stone-400 focus:bg-black/10'
-            )}
+            className="w-full h-7 pl-6 pr-2 rounded-md text-[11px] outline-none transition-colors bg-black/5 text-stone-900 placeholder:text-stone-400 focus:bg-black/10"
           />
           {searchQuery && (
             <button 
               onClick={() => setSearchQuery('')}
-              className={cn(
-                "absolute right-1.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded flex items-center justify-center",
-                isDark ? 'hover:bg-white/10 text-stone-500' : 'hover:bg-black/10 text-stone-400'
-              )}
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded flex items-center justify-center hover:bg-black/10 text-stone-400"
             >
               <X size={10} />
             </button>
@@ -555,34 +518,19 @@ const FileExplorer: React.FC = () => {
       {/* File Preview Modal */}
       {editingFile && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-8">
-          <div className={cn(
-            "w-full max-w-xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]",
-            isDark ? 'bg-stone-900' : 'bg-white'
-          )}>
-            <div className={cn(
-              "h-12 px-4 flex items-center justify-between border-b shrink-0",
-              isDark ? 'border-stone-800' : 'border-stone-100'
-            )}>
+          <div className="w-full max-w-xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh] bg-white">
+            <div className="h-12 px-4 flex items-center justify-between border-b shrink-0 border-stone-100">
               <div className="flex items-center gap-2">
-                <span className={cn(
-                  "px-1.5 py-0.5 rounded text-[10px] font-medium uppercase",
-                  isDark ? 'bg-white/10 text-stone-400' : 'bg-black/5 text-stone-500'
-                )}>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-medium uppercase bg-black/5 text-stone-500">
                   {editingFile.type}
                 </span>
-                <span className={cn(
-                  "text-sm font-medium",
-                  isDark ? 'text-white' : 'text-stone-900'
-                )}>
+                <span className="text-sm font-medium text-stone-900">
                   {editingFile.title}
                 </span>
               </div>
               <button
                 onClick={() => setEditingFile(null)}
-                className={cn(
-                  "w-7 h-7 rounded-md flex items-center justify-center transition-colors",
-                  isDark ? 'hover:bg-white/10 text-stone-400' : 'hover:bg-black/5 text-stone-500'
-                )}
+                className="w-7 h-7 rounded-md flex items-center justify-center transition-colors hover:bg-black/5 text-stone-500"
               >
                 <X size={14} />
               </button>
@@ -591,25 +539,14 @@ const FileExplorer: React.FC = () => {
               <textarea
                 value={editingFile.content}
                 onChange={(e) => setEditingFile({ ...editingFile, content: e.target.value })}
-                className={cn(
-                  "w-full h-full min-h-[240px] p-3 rounded-lg text-sm outline-none resize-none",
-                  isDark
-                    ? 'bg-white/5 text-stone-100 placeholder:text-stone-600'
-                    : 'bg-stone-50 text-stone-900 placeholder:text-stone-400'
-                )}
+                className="w-full h-full min-h-[240px] p-3 rounded-lg text-sm outline-none resize-none bg-stone-50 text-stone-900 placeholder:text-stone-400"
                 placeholder="Content..."
               />
             </div>
-            <div className={cn(
-              "h-12 px-4 flex items-center justify-end gap-2 border-t shrink-0",
-              isDark ? 'border-stone-800' : 'border-stone-100'
-            )}>
+            <div className="h-12 px-4 flex items-center justify-end gap-2 border-t shrink-0 border-stone-100">
               <button
                 onClick={() => setEditingFile(null)}
-                className={cn(
-                  "h-8 px-3 rounded-md text-xs font-medium transition-colors",
-                  isDark ? 'text-stone-400 hover:bg-white/5' : 'text-stone-600 hover:bg-black/5'
-                )}
+                className="h-8 px-3 rounded-md text-xs font-medium transition-colors text-stone-600 hover:bg-black/5"
               >
                 Cancel
               </button>
@@ -618,10 +555,7 @@ const FileExplorer: React.FC = () => {
                   updateSource(editingFile.id, { content: editingFile.content });
                   setEditingFile(null);
                 }}
-                className={cn(
-                  "h-8 px-3 rounded-md text-xs font-medium transition-colors",
-                  isDark ? 'bg-white text-stone-900 hover:bg-stone-100' : 'bg-stone-900 text-white hover:bg-stone-800'
-                )}
+                className="h-8 px-3 rounded-md text-xs font-medium transition-colors bg-stone-900 text-white hover:bg-stone-800"
               >
                 Save
               </button>
@@ -635,17 +569,12 @@ const FileExplorer: React.FC = () => {
         <>
           <div className="fixed inset-0 z-40" onClick={() => setContextMenu(null)} />
           <div 
-            className={cn(
-              "fixed z-50 w-36 rounded-lg shadow-xl border overflow-hidden py-1",
-              isDark ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-200'
-            )}
+            className="fixed z-50 w-36 rounded-lg shadow-xl border overflow-hidden py-1 bg-white border-stone-200"
             style={{ left: contextMenu.x, top: contextMenu.y }}
           >
             <button
               onClick={handleDeleteItem}
-              className={cn(
-                "w-full px-3 py-1.5 text-xs flex items-center gap-2 transition-colors text-red-500 hover:bg-red-500/10"
-              )}
+              className="w-full px-3 py-1.5 text-xs flex items-center gap-2 transition-colors text-red-500 hover:bg-red-500/10"
             >
               <Trash2 size={11} />
               Delete

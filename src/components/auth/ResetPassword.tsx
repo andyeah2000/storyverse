@@ -1,15 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../hooks';
-import ThemeToggleButton from '../ThemeToggleButton';
 import { Eye, EyeOff, ArrowRight, ArrowLeft, Loader2, Check, CheckCircle, Lock, AlertTriangle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 const ResetPassword: React.FC = () => {
   const { resetPassword, isSupabaseMode } = useAuth();
-  const theme = useTheme();
-  const isDark = theme === 'dark';
   
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -91,45 +87,32 @@ const ResetPassword: React.FC = () => {
   // Invalid Supabase link state
   if (!isCheckingLink && isSupabaseMode && !linkValid) {
     return (
-      <div className={`min-h-screen flex flex-col transition-colors duration-300 ${
-        isDark ? 'bg-[#0c0a09]' : 'bg-[#FAFAF9]'
-      }`}>
+      <div className="min-h-screen flex flex-col transition-colors duration-300 bg-stone-50">
         <header className="px-6 py-5 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-              isDark ? 'bg-white' : 'bg-stone-900'
-            }`}>
-              <span className={`text-xs font-bold ${isDark ? 'text-stone-900' : 'text-white'}`}>S</span>
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-stone-900">
+              <span className="text-xs font-bold text-white">S</span>
             </div>
-            <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-stone-900'}`}>
+            <span className="text-sm font-semibold text-stone-900">
               StoryVerse
             </span>
           </Link>
-          <ThemeToggleButton />
         </header>
         
         <main className="flex-1 flex items-center justify-center px-6 py-8">
           <div className="text-center max-w-[360px]">
-            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 ${
-              isDark ? 'bg-amber-500/10' : 'bg-amber-100'
-            }`}>
-              <AlertTriangle size={32} className={isDark ? 'text-amber-400' : 'text-amber-600'} />
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-amber-100">
+              <AlertTriangle size={32} className="text-amber-600" />
             </div>
-            <h1 className={`text-[28px] font-bold tracking-tight mb-3 ${
-              isDark ? 'text-white' : 'text-stone-900'
-            }`}>
+            <h1 className="text-[28px] font-bold tracking-tight mb-3 text-stone-900">
               Invalid Reset Link
             </h1>
-            <p className={`text-[15px] mb-8 ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
+            <p className="text-[15px] mb-8 text-stone-500">
               This password reset link is invalid or has expired.
             </p>
             <Link
               to="/forgot-password"
-              className={`w-full h-[52px] rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${
-                isDark 
-                  ? 'bg-white text-stone-900 hover:bg-stone-100' 
-                  : 'bg-stone-900 text-white hover:bg-stone-800'
-              }`}
+              className="w-full h-[52px] rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] bg-stone-900 text-white hover:bg-stone-800"
             >
               Request New Link
               <ArrowRight size={18} />
@@ -141,22 +124,17 @@ const ResetPassword: React.FC = () => {
   }
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${
-      isDark ? 'bg-[#0c0a09]' : 'bg-[#FAFAF9]'
-    }`}>
+    <div className="min-h-screen flex flex-col transition-colors duration-300 bg-stone-50">
       {/* Header */}
       <header className="px-6 py-5 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5">
-          <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-            isDark ? 'bg-white' : 'bg-stone-900'
-          }`}>
-            <span className={`text-xs font-bold ${isDark ? 'text-stone-900' : 'text-white'}`}>S</span>
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-stone-900">
+            <span className="text-xs font-bold text-white">S</span>
           </div>
-          <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-stone-900'}`}>
+          <span className="text-sm font-semibold text-stone-900">
             StoryVerse
           </span>
         </Link>
-        <ThemeToggleButton />
       </header>
 
       {/* Main */}
@@ -165,26 +143,18 @@ const ResetPassword: React.FC = () => {
           {isSuccess ? (
             /* Success State */
             <div className="text-center">
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 ${
-                isDark ? 'bg-emerald-500/10' : 'bg-emerald-100'
-              }`}>
-                <CheckCircle size={32} className={isDark ? 'text-emerald-400' : 'text-emerald-600'} />
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-emerald-100">
+                <CheckCircle size={32} className="text-emerald-600" />
               </div>
-              <h1 className={`text-[28px] font-bold tracking-tight mb-3 ${
-                isDark ? 'text-white' : 'text-stone-900'
-              }`}>
+              <h1 className="text-[28px] font-bold tracking-tight mb-3 text-stone-900">
                 Password reset!
               </h1>
-              <p className={`text-[15px] mb-8 ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
+              <p className="text-[15px] mb-8 text-stone-500">
                 Your password has been successfully reset.
               </p>
               <Link
                 to="/login"
-                className={`w-full h-[52px] rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${
-                  isDark 
-                    ? 'bg-white text-stone-900 hover:bg-stone-100' 
-                    : 'bg-stone-900 text-white hover:bg-stone-800'
-                }`}
+                className="w-full h-[52px] rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] bg-stone-900 text-white hover:bg-stone-800"
               >
                 Sign In
                 <ArrowRight size={18} />
@@ -194,36 +164,26 @@ const ResetPassword: React.FC = () => {
             /* Form State */
             <>
               <div className="text-center mb-10">
-                <div className={`w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-6 ${
-                  isDark ? 'bg-stone-800' : 'bg-stone-100'
-                }`}>
-                  <Lock size={24} className={isDark ? 'text-stone-400' : 'text-stone-500'} />
+                <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-6 bg-stone-100">
+                  <Lock size={24} className="text-stone-500" />
                 </div>
-                <h1 className={`text-[28px] font-bold tracking-tight mb-2 ${
-                  isDark ? 'text-white' : 'text-stone-900'
-                }`}>
+                <h1 className="text-[28px] font-bold tracking-tight mb-2 text-stone-900">
                   Set new password
                 </h1>
-                <p className={isDark ? 'text-stone-400' : 'text-stone-500'}>
+                <p className="text-stone-500">
                   Create a strong password for your account
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 {error && (
-                  <div className={`p-3.5 rounded-xl text-sm text-center ${
-                    isDark 
-                      ? 'bg-red-500/10 border border-red-500/20 text-red-400' 
-                      : 'bg-red-50 border border-red-100 text-red-600'
-                  }`}>
+                  <div className="p-3.5 rounded-xl text-sm text-center bg-red-50 border border-red-100 text-red-600">
                     {error}
                   </div>
                 )}
 
                 <div>
-                  <label htmlFor="password" className={`block text-sm font-medium mb-2 ${
-                    isDark ? 'text-stone-300' : 'text-stone-900'
-                  }`}>
+                  <label htmlFor="password" className="block text-sm font-medium mb-2 text-stone-900">
                     New password
                   </label>
                   <div className="relative">
@@ -236,18 +196,12 @@ const ResetPassword: React.FC = () => {
                       required
                       autoComplete="new-password"
                       autoFocus
-                      className={`w-full h-[52px] px-4 pr-12 rounded-xl border outline-none transition-all ${
-                        isDark
-                          ? 'bg-stone-900 border-stone-800 text-white placeholder:text-stone-600 focus:border-stone-600 focus:ring-2 focus:ring-white/5'
-                          : 'bg-white border-stone-200 text-stone-900 placeholder:text-stone-400 focus:border-stone-900 focus:ring-2 focus:ring-stone-900/5'
-                      }`}
+                      className="w-full h-[52px] px-4 pr-12 rounded-xl border outline-none transition-all bg-white border-stone-200 text-stone-900 placeholder:text-stone-400 focus:border-stone-900 focus:ring-2 focus:ring-stone-900/5"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className={`absolute right-4 top-1/2 -translate-y-1/2 p-1 transition-colors ${
-                        isDark ? 'text-stone-500 hover:text-stone-300' : 'text-stone-400 hover:text-stone-600'
-                      }`}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-1 transition-colors text-stone-400 hover:text-stone-600"
                       tabIndex={-1}
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -260,12 +214,12 @@ const ResetPassword: React.FC = () => {
                       {passwordRequirements.map((req, i) => (
                         <div key={i} className="flex items-center gap-1.5">
                           <div className={`w-4 h-4 rounded-full flex items-center justify-center transition-all ${
-                            req.met ? 'bg-emerald-500' : isDark ? 'bg-stone-700' : 'bg-stone-200'
+                            req.met ? 'bg-emerald-500' : 'bg-stone-200'
                           }`}>
                             {req.met && <Check size={10} className="text-white" />}
                           </div>
                           <span className={`text-xs ${
-                            req.met ? 'text-emerald-500' : isDark ? 'text-stone-500' : 'text-stone-400'
+                            req.met ? 'text-emerald-500' : 'text-stone-400'
                           }`}>
                             {req.text}
                           </span>
@@ -276,9 +230,7 @@ const ResetPassword: React.FC = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="confirm" className={`block text-sm font-medium mb-2 ${
-                    isDark ? 'text-stone-300' : 'text-stone-900'
-                  }`}>
+                  <label htmlFor="confirm" className="block text-sm font-medium mb-2 text-stone-900">
                     Confirm password
                   </label>
                   <input
@@ -294,13 +246,9 @@ const ResetPassword: React.FC = () => {
                         ? passwordsMatch
                           ? 'border-emerald-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
                           : 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
-                        : isDark
-                          ? 'bg-stone-900 border-stone-800 focus:border-stone-600 focus:ring-2 focus:ring-white/5'
-                          : 'bg-white border-stone-200 focus:border-stone-900 focus:ring-2 focus:ring-stone-900/5'
+                        : 'bg-white border-stone-200 focus:border-stone-900 focus:ring-2 focus:ring-stone-900/5'
                     } ${
-                      isDark
-                        ? 'bg-stone-900 text-white placeholder:text-stone-600'
-                        : 'bg-white text-stone-900 placeholder:text-stone-400'
+                      'bg-white text-stone-900 placeholder:text-stone-400'
                     }`}
                   />
                   {confirmPassword.length > 0 && !passwordsMatch && (
@@ -311,11 +259,7 @@ const ResetPassword: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isLoading || !allRequirementsMet || !passwordsMatch}
-                  className={`w-full h-[52px] rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 ${
-                    isDark 
-                      ? 'bg-white text-stone-900 hover:bg-stone-100' 
-                      : 'bg-stone-900 text-white hover:bg-stone-800'
-                  }`}
+                  className="w-full h-[52px] rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 bg-stone-900 text-white hover:bg-stone-800"
                 >
                   {isLoading ? (
                     <Loader2 size={18} className="animate-spin" />
@@ -330,15 +274,18 @@ const ResetPassword: React.FC = () => {
               
               <Link
                 to="/login"
-                className={`mt-6 inline-flex w-full h-[48px] items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-all active:scale-[0.98] ${
-                  isDark
-                    ? 'border border-stone-800 text-stone-200 hover:bg-stone-800'
-                    : 'border border-stone-200 text-stone-700 hover:bg-stone-100'
-                }`}
+                className="mt-6 inline-flex w-full h-[48px] items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-all active:scale-[0.98] border border-stone-200 text-stone-700 hover:bg-stone-100"
               >
                 <ArrowLeft size={16} />
                 Back to login
               </Link>
+              
+              <p className="text-center text-[15px] mt-8 text-stone-500">
+                Remember your password?{' '}
+                <Link to="/login" className="font-semibold hover:underline text-stone-900">
+                  Sign in
+                </Link>
+              </p>
             </>
           )}
         </div>

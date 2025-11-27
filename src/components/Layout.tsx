@@ -39,7 +39,6 @@ const Layout: React.FC = () => {
   const { 
     saveStatus, 
     setSettingsOpen,
-    currentProjectPermission,
     incomingInvites,
     acceptInvite,
     declineInvite,
@@ -47,6 +46,10 @@ const Layout: React.FC = () => {
   } = useStory();
   const { user, logout, isSupabaseMode, subscription, startCheckout } = useAuth();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [processingInviteId, setProcessingInviteId] = useState<string | null>(null);
+  const [bannerCheckoutLoading, setBannerCheckoutLoading] = useState(false);
+  const [aiUsage, setAiUsage] = useState(0);
 
   const handleAcceptInvite = async (shareId: string) => {
     setProcessingInviteId(shareId);

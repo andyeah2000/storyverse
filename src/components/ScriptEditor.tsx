@@ -42,7 +42,6 @@ import { cn } from '../lib/utils';
 // ============================================
 
 type ScriptElement = 'scene' | 'action' | 'character' | 'dialogue' | 'parenthetical' | 'transition' | 'shot' | 'general';
-type ViewMode = 'script' | 'index-cards' | 'outline' | 'split';
 type RevisionColor = 'white' | 'blue' | 'pink' | 'yellow' | 'green' | 'goldenrod' | 'buff' | 'salmon' | 'cherry';
 
 interface ScriptNote {
@@ -216,8 +215,8 @@ const ScriptEditor: React.FC = () => {
   const [revisionMarks, setRevisionMarks] = useState<Map<number, RevisionColor>>(new Map());
   
   // Scene management
-  const [lockedScenes, setLockedScenes] = useState<Set<number>>(new Set());
-  const [omittedScenes, setOmittedScenes] = useState<Set<number>>(new Set());
+  const [lockedScenes] = useState<Set<number>>(new Set());
+  const [omittedScenes] = useState<Set<number>>(new Set());
   const [sceneNumbers] = useState<Map<number, string>>(new Map());
   const [autoSceneNumbers] = useState(true);
   
@@ -296,11 +295,11 @@ const ScriptEditor: React.FC = () => {
     let autoNum = 1;
     
     lines.forEach((line, lineNum) => {
-      const trimmed = line.trim();
+      const trimmed = (line ?? '').trim();
       regex.lastIndex = 0;
       const match = regex.exec(trimmed);
       if (match || /^(?:INT\.|EXT\.|INT\/EXT|I\/E\.)/.test(trimmed.toUpperCase())) {
-        const sceneNum = sceneNumbers.get(lineNum) || (autoSceneNumbers ? String(autoNum++) : undefined);
+        const sceneNum = sceneNumbers.get(lineNum) ?? (autoSceneNumbers ? String(autoNum++) : undefined);
         matches.push({
           index: charIndex,
           text: trimmed,
@@ -310,7 +309,7 @@ const ScriptEditor: React.FC = () => {
           omitted: omittedScenes.has(lineNum)
         });
       }
-      charIndex += line.length + 1;
+      charIndex += (line?.length ?? 0) + 1;
     });
     
     return matches;
@@ -406,7 +405,7 @@ const ScriptEditor: React.FC = () => {
   // ============================================
 
   useEffect(() => {
-    const line = currentLineInfo.lineText;
+    const line = currentLineInfo.lineText || '';
     const lineUpper = line.toUpperCase().trim();
     
     // Check for character auto-complete (after empty line or at start)
@@ -435,7 +434,8 @@ const ScriptEditor: React.FC = () => {
     
     // Check for transition auto-complete
     if (lineUpper.endsWith(':') || lineUpper.includes('CUT') || lineUpper.includes('FADE') || lineUpper.includes('DISSOLVE')) {
-      const matches = TRANSITIONS.filter(t => t.startsWith(lineUpper) || lineUpper.includes(t.split(' ')[0]));
+      const transitionPart = TRANSITIONS[0]?.split(' ')[0] || 'CUT';
+      const matches = TRANSITIONS.filter(t => t.startsWith(lineUpper) || lineUpper.includes(transitionPart));
       if (matches.length > 0) {
         setAutoCompleteOptions(matches);
         setAutoCompleteType('transition');
@@ -471,7 +471,8 @@ const ScriptEditor: React.FC = () => {
 
   const handleTab = useCallback((e: React.KeyboardEvent) => {
     e.preventDefault();
-    const line = currentLineInfo.lineText.trim();
+    const lineText = currentLineInfo.lineText || '';
+    const line = lineText.trim();
     
     // Determine next element based on context
     let nextElement: ScriptElement = 'action';
@@ -480,10 +481,11 @@ const ScriptEditor: React.FC = () => {
       // Empty line: cycle through common elements
       const cycle: ScriptElement[] = ['action', 'character', 'scene', 'transition'];
       const currentIdx = cycle.indexOf(currentElement);
-      nextElement = cycle[(currentIdx + 1) % cycle.length];
+      nextElement = cycle[(currentIdx + 1) % cycle.length] ?? 'action';
     } else {
       // Non-empty line: use the defined next element
-      nextElement = ELEMENT_STYLES[currentElement].nextElement || 'action';
+      const styleNextElement = ELEMENT_STYLES[currentElement].nextElement;
+      nextElement = styleNextElement ?? 'action';
     }
     
     setCurrentElement(nextElement);
@@ -519,7 +521,10 @@ const ScriptEditor: React.FC = () => {
       }
       if (e.key === 'Enter' || e.key === 'Tab') {
         e.preventDefault();
-        applyAutoComplete(autoCompleteOptions[autoCompleteIndex]);
+        const selectedOption = autoCompleteOptions[autoCompleteIndex];
+        if (selectedOption) {
+          applyAutoComplete(selectedOption);
+        }
         return;
       }
       if (e.key === 'Escape') {
@@ -536,7 +541,8 @@ const ScriptEditor: React.FC = () => {
     
     // Enter handling for smart formatting
     if (e.key === 'Enter') {
-      const line = currentLineInfo.lineText.trim();
+      const lineText = currentLineInfo.lineText || '';
+      const line = lineText.trim();
       
       // After character name, prepare for dialogue
       if (currentElement === 'character' && line.match(/^[A-Z][A-Z\s.']+$/)) {
@@ -643,33 +649,7 @@ const ScriptEditor: React.FC = () => {
     setShowElementMenu(false);
   };
 
-  // ============================================
-  // SCENE MANAGEMENT
-  // ============================================
-
-  const toggleSceneLock = (lineNumber: number) => {
-    setLockedScenes(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(lineNumber)) {
-        newSet.delete(lineNumber);
-      } else {
-        newSet.add(lineNumber);
-      }
-      return newSet;
-    });
-  };
-
-  const toggleSceneOmit = (lineNumber: number) => {
-    setOmittedScenes(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(lineNumber)) {
-        newSet.delete(lineNumber);
-      } else {
-        newSet.add(lineNumber);
-      }
-      return newSet;
-    });
-  };
+  // Scene lock/omit setters are available via setLockedScenes/setOmittedScenes
 
   // ============================================
   // NOTES
@@ -725,7 +705,7 @@ const ScriptEditor: React.FC = () => {
     const lines = content.split('\n');
     let charIndex = 0;
     for (let i = 0; i < lineNumber - 1 && i < lines.length; i++) {
-      charIndex += lines[i].length + 1;
+      charIndex += (lines[i]?.length ?? 0) + 1;
     }
     
     textarea.focus();
@@ -762,23 +742,6 @@ const ScriptEditor: React.FC = () => {
     setContent(content.replace(regex, replaceText));
   };
 
-  // ============================================
-  // ANALYSIS
-  // ============================================
-
-  const runAnalysis = async () => {
-    if (!content.trim()) return;
-    setIsAnalyzing(true);
-    try {
-      const result = await analyzeScriptTension(content);
-      setAnalysis(result);
-      setLastAnalyzedContent(content);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
 
   // ============================================
   // AI FUNCTIONS
@@ -846,13 +809,11 @@ const ScriptEditor: React.FC = () => {
 
   const startTableRead = () => {
     setIsTableReading(true);
-    setTableReadLine(0);
     // TODO: Implement text-to-speech with character voices
   };
 
   const stopTableRead = () => {
     setIsTableReading(false);
-    setTableReadLine(0);
   };
 
   // ============================================
@@ -902,27 +863,6 @@ const ScriptEditor: React.FC = () => {
       case 'large': return 'text-[15px]';
       default: return 'text-[13px]';
     }
-  };
-
-  const getLineStyle = (lineIndex: number): React.CSSProperties => {
-    const style = ELEMENT_STYLES[currentElement];
-    const line = content.split('\n')[lineIndex] || '';
-    const trimmed = line.trim().toUpperCase();
-    
-    // Detect element type for this specific line
-    let marginLeft = '0';
-    let marginRight = '0';
-    let textAlign: 'left' | 'center' | 'right' = 'left';
-    
-    if (/^(INT\.|EXT\.|INT\/EXT|I\/E\.)/.test(trimmed)) {
-      // Scene heading
-    } else if (/^[A-Z][A-Z\s.']+(?:\s*\(.*\))?$/.test(trimmed) && !TRANSITIONS.includes(trimmed)) {
-      marginLeft = '37%';
-    } else if (TRANSITIONS.some(t => trimmed.includes(t))) {
-      textAlign = 'right';
-    }
-    
-    return { marginLeft, marginRight, textAlign };
   };
 
   // ============================================
@@ -1570,7 +1510,7 @@ const ScriptEditor: React.FC = () => {
             )}
           >
             <div className="pt-3">
-              {content.split('\n').map((line, i) => {
+              {content.split('\n').map((_, i) => {
                 const hasNote = notes.some(n => n.lineNumber === i + 1);
                 const hasBookmark = bookmarks.has(i);
                 const revColor = revisionMarks.get(i);
@@ -1810,7 +1750,23 @@ Type character names in CAPS for auto-complete.`}
                   <div className={cn("text-xs mt-0.5", isDark ? 'text-stone-500' : 'text-stone-400')}>.fdx format</div>
                 </button>
                 <button
-                  onClick={() => { setShowExportModal(false); setShowTitlePageModal(true); }}
+                  onClick={() => {
+                    // Generate title page and export with it
+                    const titlePageContent = `
+
+
+                    ${exportTitle.toUpperCase()}
+
+
+
+                    ${exportAuthor ? `Written by\n\n                    ${exportAuthor}` : ''}
+
+
+
+`;
+                    exportToPDF(titlePageContent + '\n\n' + content, { title: exportTitle, author: exportAuthor });
+                    setShowExportModal(false);
+                  }}
                   className={cn(
                     "p-4 rounded-xl border transition-all text-left",
                     isDark ? 'bg-stone-800 border-stone-700 hover:border-stone-600' : 'bg-stone-50 border-stone-200 hover:border-stone-300'
@@ -1819,8 +1775,8 @@ Type character names in CAPS for auto-complete.`}
                   <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center mb-3", isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-600')}>
                     <BookOpen size={20} />
                   </div>
-                  <div className={cn("font-medium text-sm", isDark ? 'text-white' : 'text-stone-900')}>Title Page</div>
-                  <div className={cn("text-xs mt-0.5", isDark ? 'text-stone-500' : 'text-stone-400')}>Generate cover</div>
+                  <div className={cn("font-medium text-sm", isDark ? 'text-white' : 'text-stone-900')}>With Title Page</div>
+                  <div className={cn("text-xs mt-0.5", isDark ? 'text-stone-500' : 'text-stone-400')}>PDF with cover</div>
                 </button>
               </div>
             </div>

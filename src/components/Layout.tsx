@@ -11,8 +11,6 @@ import {
   StickyNote, 
   Image as ImageIcon,
   Settings,
-  Undo2,
-  Redo2,
   Check,
   Cloud,
   CloudOff,
@@ -23,7 +21,6 @@ import {
   X,
   Users,
   Globe,
-  Share2,
   Loader2,
   Bell
 } from 'lucide-react';
@@ -41,10 +38,6 @@ const Layout: React.FC = () => {
   const location = useLocation();
   const { 
     saveStatus, 
-    canUndo, 
-    canRedo, 
-    undo, 
-    redo, 
     setSettingsOpen,
     currentProject,
     currentProjectPermission,
@@ -52,7 +45,6 @@ const Layout: React.FC = () => {
     acceptInvite,
     declineInvite,
     projects,
-    openShareModal
   } = useStory();
   const { user, logout, isSupabaseMode, subscription, startCheckout } = useAuth();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -189,43 +181,10 @@ const Layout: React.FC = () => {
 
             {/* No toggle button on desktop anymore, File Explorer is fixed */}
             
-            <div className="flex items-center gap-2 min-w-0 shrink-0">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-stone-900 text-white shrink-0">
-                <svg width="14" height="14" viewBox="0 0 28 28" fill="none">
-                  <path d="M8 10L14 7L20 10V18L14 21L8 18V10Z" stroke="currentColor" strokeWidth="2" fill="none"/>
-                  <circle cx="14" cy="14" r="2" fill="currentColor"/>
-                </svg>
-              </div>
-              <div className="flex flex-col min-w-0 hidden sm:flex">
-                <span className="text-sm font-semibold tracking-tight leading-tight text-stone-900 truncate">
-                  {currentProject?.name || 'StoryVerse'}
-                </span>
-                {currentProject && (
-                  <span className="text-[11px] uppercase tracking-wide font-medium mt-0.5 w-fit px-2 py-0.5 rounded-full bg-stone-200 text-stone-600 truncate">
-                    {accessLabel}
-                  </span>
-                )}
-              </div>
-            </div>
-
             {/* AI Agent in Header - Removed as it's now in FileExplorer */}
             
-            {currentProject && isSupabaseMode && (
-              <button
-                onClick={openShareModal}
-                disabled={currentProjectPermission === 'view'}
-                className={cn(
-                  'ml-2 h-8 px-3 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors border shrink-0',
-                  currentProjectPermission === 'view'
-                    ? 'cursor-not-allowed opacity-60'
-                    : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
-                )}
-              >
-                <Share2 size={14} strokeWidth={1.75} />
-                <span className="hidden xl:inline">Share</span>
-              </button>
-            )}
-
+            {/* Share button moved to Settings */}
+            
             {/* Save Status */}
             <div className="flex items-center gap-1.5 ml-2 shrink-0">
               {saveStatus === 'saved' && (
@@ -252,43 +211,27 @@ const Layout: React.FC = () => {
           </div>
           
           {/* Center: Navigation - Hidden on mobile */}
-          <nav className="hidden lg:flex items-center gap-1 px-1 rounded-xl mx-2 flex-1 justify-center min-w-0 overflow-hidden h-full">
-            <NavButton to="/app" icon={<PenTool size={15} strokeWidth={2} />} label="Editor" end />
-            <div className="w-px h-4 bg-stone-200 mx-1 opacity-50" />
-            <NavButton to="/app/beats" icon={<Sparkles size={15} strokeWidth={2} />} label="Beats" />
-            <NavButton to="/app/outline" icon={<Layers size={15} strokeWidth={2} />} label="Outline" />
-            <div className="w-px h-4 bg-stone-200 mx-1 opacity-50" />
-            <NavButton to="/app/characters" icon={<Users size={15} strokeWidth={2} />} label="Characters" />
-            <NavButton to="/app/map" icon={<Map size={15} strokeWidth={2} />} label="Story Map" />
-            <NavButton to="/app/mindmap" icon={<GitBranch size={15} strokeWidth={2} />} label="Mind Map" />
-            <div className="w-px h-4 bg-stone-200 mx-1 opacity-50" />
-            <NavButton to="/app/wiki" icon={<Globe size={15} strokeWidth={2} />} label="Wiki" />
-            <NavButton to="/app/notes" icon={<StickyNote size={15} strokeWidth={2} />} label="Notes" />
-            <NavButton to="/app/mood-board" icon={<ImageIcon size={15} strokeWidth={2} />} label="Mood Board" />
-            <div className="w-px h-4 bg-stone-200 mx-1 opacity-50" />
-            <NavButton to="/app/co-writer" icon={<MessageSquare size={15} strokeWidth={2} />} label="Co-Writer" />
-            <NavButton to="/app/table-read" icon={<Headphones size={15} strokeWidth={2} />} label="Table Read" />
+          <nav className="hidden lg:flex items-center gap-1 px-1 rounded-xl mx-2 flex-1 justify-center min-w-0 h-full overflow-x-auto no-scrollbar">
+            <NavButton to="/app" icon={<PenTool size={16} strokeWidth={2} />} label="Editor" end />
+            <div className="w-px h-4 bg-stone-200 mx-1 opacity-50 shrink-0" />
+            <NavButton to="/app/beats" icon={<Sparkles size={16} strokeWidth={2} />} label="Beats" />
+            <NavButton to="/app/outline" icon={<Layers size={16} strokeWidth={2} />} label="Outline" />
+            <div className="w-px h-4 bg-stone-200 mx-1 opacity-50 shrink-0" />
+            <NavButton to="/app/characters" icon={<Users size={16} strokeWidth={2} />} label="Characters" />
+            <NavButton to="/app/map" icon={<Map size={16} strokeWidth={2} />} label="Story Map" />
+            <NavButton to="/app/mindmap" icon={<GitBranch size={16} strokeWidth={2} />} label="Mind Map" />
+            <div className="w-px h-4 bg-stone-200 mx-1 opacity-50 shrink-0" />
+            <NavButton to="/app/wiki" icon={<Globe size={16} strokeWidth={2} />} label="Wiki" />
+            <NavButton to="/app/notes" icon={<StickyNote size={16} strokeWidth={2} />} label="Notes" />
+            <NavButton to="/app/mood-board" icon={<ImageIcon size={16} strokeWidth={2} />} label="Mood Board" />
+            <div className="w-px h-4 bg-stone-200 mx-1 opacity-50 shrink-0" />
+            <NavButton to="/app/co-writer" icon={<MessageSquare size={16} strokeWidth={2} />} label="Co-Writer" />
+            <NavButton to="/app/table-read" icon={<Headphones size={16} strokeWidth={2} />} label="Table Read" />
           </nav>
           
           {/* Right: Actions */}
           <div className="flex items-center gap-1 shrink-0">
-            {/* Undo/Redo */}
-            <button
-              onClick={undo}
-              disabled={!canUndo}
-              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 hover:bg-stone-100"
-              title="Undo (⌘Z)"
-            >
-              <Undo2 size={15} strokeWidth={1.75} className="text-stone-500" />
-            </button>
-            <button
-              onClick={redo}
-              disabled={!canRedo}
-              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 hover:bg-stone-100"
-              title="Redo (⌘⇧Z)"
-            >
-              <Redo2 size={15} strokeWidth={1.75} className="text-stone-500" />
-            </button>
+            {/* Undo/Redo - Removed from here */}
 
             <div className="w-px h-5 bg-stone-200 mx-1" />
 
@@ -558,7 +501,7 @@ const NavButton: React.FC<NavButtonProps> = ({ to, icon, label, end }) => {
       to={to}
       end={end}
       className={({ isActive }) => cn(
-        "px-3 py-1.5 rounded-lg text-[11px] font-semibold uppercase tracking-wide flex items-center gap-2 transition-all duration-200 whitespace-nowrap shrink-0 h-8",
+        "px-2 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide flex items-center gap-1.5 transition-all duration-200 whitespace-nowrap shrink-0 h-8",
         isActive 
           ? 'bg-stone-900 text-white shadow-sm'
           : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'

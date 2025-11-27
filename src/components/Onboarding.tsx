@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useStory } from '../context/StoryContext';
-import { useTheme } from '../hooks';
 import { 
   ArrowRight, 
   ArrowLeft,
@@ -9,30 +8,18 @@ import {
   BookOpen,
   Check,
   Key,
-  ExternalLink,
-  Moon,
-  Sun
+  ExternalLink
 } from 'lucide-react';
 
 const Onboarding: React.FC = () => {
   const navigate = useNavigate();
   const { updateSettings, addSource, updateProject } = useStory();
-  const theme = useTheme();
-  const isDark = theme === 'dark';
   
   const [currentStep, setCurrentStep] = useState(0);
   const [projectName, setProjectName] = useState('');
   const [apiKey, setApiKey] = useState('');
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [createdCharacter, setCreatedCharacter] = useState(false);
-
-  const toggleTheme = () => {
-    const current = localStorage.getItem('storyverse_settings');
-    const settings = current ? JSON.parse(current) : {};
-    const newTheme = isDark ? 'light' : 'dark';
-    localStorage.setItem('storyverse_settings', JSON.stringify({ ...settings, theme: newTheme }));
-    window.location.reload();
-  };
 
   const genres = [
     { id: 'scifi', label: 'Sci-Fi', emoji: '🚀' },
@@ -75,15 +62,13 @@ const Onboarding: React.FC = () => {
     {
       content: (
         <div className="text-center">
-          <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-xl ${
-            isDark ? 'bg-white shadow-white/5' : 'bg-stone-900 shadow-black/10'
-          }`}>
-            <span className={`text-3xl font-bold ${isDark ? 'text-stone-900' : 'text-white'}`}>S</span>
+          <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-xl bg-stone-900 shadow-black/10">
+            <span className="text-3xl font-bold text-white">S</span>
           </div>
-          <h1 className={`text-[32px] font-bold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-stone-900'}`}>
+          <h1 className="text-[32px] font-bold tracking-tight mb-4 text-stone-900">
             Welcome to StoryVerse
           </h1>
-          <p className={`text-lg max-w-md mx-auto leading-relaxed ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
+          <p className="text-lg max-w-md mx-auto leading-relaxed text-stone-500">
             Your AI-powered screenwriting companion.<br />Let's set up your workspace in 30 seconds.
           </p>
         </div>
@@ -94,24 +79,20 @@ const Onboarding: React.FC = () => {
       content: (
         <div className="max-w-sm mx-auto">
           <div className="text-center mb-10">
-            <p className={`text-sm uppercase tracking-widest font-medium mb-3 ${isDark ? 'text-stone-500' : 'text-stone-400'}`}>
+            <p className="text-sm uppercase tracking-widest font-medium mb-3 text-stone-400">
               Step 1 of 4
             </p>
-            <h1 className={`text-[28px] font-bold tracking-tight mb-2 ${isDark ? 'text-white' : 'text-stone-900'}`}>
+            <h1 className="text-[28px] font-bold tracking-tight mb-2 text-stone-900">
               Name your project
             </h1>
-            <p className={isDark ? 'text-stone-400' : 'text-stone-500'}>What story are you working on?</p>
+            <p className="text-stone-500">What story are you working on?</p>
           </div>
           <input
             type="text"
             value={projectName}
             onChange={(e) => setProjectName(e.target.value)}
             placeholder="e.g., The Last Horizon"
-            className={`w-full h-14 px-5 rounded-xl border outline-none transition-all text-lg ${
-              isDark
-                ? 'bg-stone-900 border-stone-800 text-white placeholder:text-stone-600 focus:border-stone-600 focus:ring-2 focus:ring-white/5'
-                : 'bg-white border-stone-200 text-stone-900 placeholder:text-stone-400 focus:border-stone-900 focus:ring-2 focus:ring-stone-900/5'
-            }`}
+            className="w-full h-14 px-5 rounded-xl border outline-none transition-all text-lg bg-white border-stone-200 text-stone-900 placeholder:text-stone-400 focus:border-stone-900 focus:ring-2 focus:ring-stone-900/5"
             autoFocus
           />
         </div>
@@ -122,13 +103,13 @@ const Onboarding: React.FC = () => {
       content: (
         <div className="max-w-md mx-auto">
           <div className="text-center mb-10">
-            <p className={`text-sm uppercase tracking-widest font-medium mb-3 ${isDark ? 'text-stone-500' : 'text-stone-400'}`}>
+            <p className="text-sm uppercase tracking-widest font-medium mb-3 text-stone-400">
               Step 2 of 4
             </p>
-            <h1 className={`text-[28px] font-bold tracking-tight mb-2 ${isDark ? 'text-white' : 'text-stone-900'}`}>
+            <h1 className="text-[28px] font-bold tracking-tight mb-2 text-stone-900">
               Choose a genre
             </h1>
-            <p className={isDark ? 'text-stone-400' : 'text-stone-500'}>This helps the AI understand your story's tone</p>
+            <p className="text-stone-500">This helps the AI understand your story's tone</p>
           </div>
           <div className="grid grid-cols-4 gap-2 mb-6">
             {genres.map((genre) => (
@@ -137,12 +118,8 @@ const Onboarding: React.FC = () => {
                 onClick={() => setSelectedGenre(genre.id)}
                 className={`p-3 rounded-xl text-sm font-medium transition-all flex flex-col items-center gap-1 ${
                   selectedGenre === genre.id
-                    ? isDark 
-                      ? 'bg-white text-stone-900 shadow-lg shadow-white/5'
-                      : 'bg-stone-900 text-white shadow-lg shadow-black/10'
-                    : isDark
-                      ? 'bg-stone-800 border border-stone-700 text-stone-300 hover:bg-stone-700'
-                      : 'bg-white border border-stone-200 text-stone-600 hover:border-stone-300'
+                    ? 'bg-stone-900 text-white shadow-lg shadow-black/10'
+                    : 'bg-white border border-stone-200 text-stone-600 hover:border-stone-300'
                 }`}
               >
                 <span className="text-lg">{genre.emoji}</span>
@@ -151,22 +128,18 @@ const Onboarding: React.FC = () => {
             ))}
           </div>
           {selectedGenre && (
-            <label className={`flex items-center gap-3 p-4 rounded-xl cursor-pointer transition-colors ${
-              isDark 
-                ? 'bg-stone-800 border border-stone-700 hover:border-stone-600' 
-                : 'bg-white border border-stone-200 hover:border-stone-300'
-            }`}>
+            <label className="flex items-center gap-3 p-4 rounded-xl cursor-pointer transition-colors bg-white border border-stone-200 hover:border-stone-300">
               <input
                 type="checkbox"
                 checked={createdCharacter}
                 onChange={(e) => setCreatedCharacter(e.target.checked)}
-                className="w-5 h-5 rounded border-stone-300 dark:border-stone-600 text-stone-900 dark:text-white focus:ring-stone-900/10 focus:ring-offset-0"
+                className="w-5 h-5 rounded border-stone-300 text-stone-900 focus:ring-stone-900/10 focus:ring-offset-0"
               />
               <div>
-                <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-stone-900'}`}>
+                <p className="text-sm font-medium text-stone-900">
                   Create a starter character
                 </p>
-                <p className={`text-xs ${isDark ? 'text-stone-500' : 'text-stone-500'}`}>
+                <p className="text-xs text-stone-500">
                   We'll add a sample to get you started
                 </p>
               </div>
@@ -180,19 +153,17 @@ const Onboarding: React.FC = () => {
       content: (
         <div className="max-w-sm mx-auto">
           <div className="text-center mb-10">
-            <p className={`text-sm uppercase tracking-widest font-medium mb-3 ${isDark ? 'text-stone-500' : 'text-stone-400'}`}>
+            <p className="text-sm uppercase tracking-widest font-medium mb-3 text-stone-400">
               Step 3 of 4
             </p>
-            <h1 className={`text-[28px] font-bold tracking-tight mb-2 ${isDark ? 'text-white' : 'text-stone-900'}`}>
+            <h1 className="text-[28px] font-bold tracking-tight mb-2 text-stone-900">
               Connect your AI
             </h1>
-            <p className={isDark ? 'text-stone-400' : 'text-stone-500'}>Add your Gemini API key for AI features</p>
+            <p className="text-stone-500">Add your Gemini API key for AI features</p>
           </div>
-          <div className={`flex items-center gap-3 mb-5 p-3 rounded-xl ${
-            isDark ? 'bg-stone-800' : 'bg-stone-100'
-          }`}>
-            <Key size={18} className={`shrink-0 ${isDark ? 'text-stone-500' : 'text-stone-400'}`} />
-            <span className={`text-sm ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
+          <div className="flex items-center gap-3 mb-5 p-3 rounded-xl bg-stone-100">
+            <Key size={18} className="shrink-0 text-stone-400" />
+            <span className="text-sm text-stone-500">
               Optional — you can add this later in settings
             </span>
           </div>
@@ -201,19 +172,13 @@ const Onboarding: React.FC = () => {
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
             placeholder="AIza..."
-            className={`w-full h-14 px-5 rounded-xl border outline-none transition-all font-mono ${
-              isDark
-                ? 'bg-stone-900 border-stone-800 text-white placeholder:text-stone-600 focus:border-stone-600 focus:ring-2 focus:ring-white/5'
-                : 'bg-white border-stone-200 text-stone-900 placeholder:text-stone-400 focus:border-stone-900 focus:ring-2 focus:ring-stone-900/5'
-            }`}
+            className="w-full h-14 px-5 rounded-xl border outline-none transition-all font-mono bg-white border-stone-200 text-stone-900 placeholder:text-stone-400 focus:border-stone-900 focus:ring-2 focus:ring-stone-900/5"
           />
           <a 
             href="https://aistudio.google.com/apikey" 
             target="_blank" 
             rel="noopener noreferrer"
-            className={`inline-flex items-center gap-1.5 mt-4 text-sm transition-colors ${
-              isDark ? 'text-stone-500 hover:text-white' : 'text-stone-500 hover:text-stone-900'
-            }`}
+            className="inline-flex items-center gap-1.5 mt-4 text-sm transition-colors text-stone-500 hover:text-stone-900"
           >
             Get a free API key
             <ExternalLink size={14} />
@@ -225,33 +190,27 @@ const Onboarding: React.FC = () => {
     {
       content: (
         <div className="text-center">
-          <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8 ${
-            isDark ? 'bg-emerald-500/10' : 'bg-emerald-100'
-          }`}>
-            <Check size={36} className={isDark ? 'text-emerald-400' : 'text-emerald-600'} />
+          <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8 bg-emerald-100">
+            <Check size={36} className="text-emerald-600" />
           </div>
-          <h1 className={`text-[32px] font-bold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-stone-900'}`}>
+          <h1 className="text-[32px] font-bold tracking-tight mb-4 text-stone-900">
             You're all set!
           </h1>
-          <p className={`text-lg max-w-md mx-auto mb-10 ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
-            Your project <span className={`font-semibold ${isDark ? 'text-white' : 'text-stone-900'}`}>
+          <p className="text-lg max-w-md mx-auto mb-10 text-stone-500">
+            Your project <span className="font-semibold text-stone-900">
               "{projectName || 'Untitled'}"
             </span> is ready.
           </p>
           <div className="flex justify-center gap-4">
-            <div className={`p-5 rounded-xl text-center w-36 ${
-              isDark ? 'bg-stone-800 border border-stone-700' : 'bg-white border border-stone-200'
-            }`}>
-              <Mic size={22} className={`mx-auto mb-3 ${isDark ? 'text-stone-400' : 'text-stone-500'}`} />
-              <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-stone-900'}`}>Voice Agent</p>
-              <p className={`text-xs mt-1 ${isDark ? 'text-stone-500' : 'text-stone-400'}`}>⌘⇧A to start</p>
+            <div className="p-5 rounded-xl text-center w-36 bg-white border border-stone-200">
+              <Mic size={22} className="mx-auto mb-3 text-stone-500" />
+              <p className="text-sm font-medium text-stone-900">Voice Agent</p>
+              <p className="text-xs mt-1 text-stone-400">⌘⇧A to start</p>
             </div>
-            <div className={`p-5 rounded-xl text-center w-36 ${
-              isDark ? 'bg-stone-800 border border-stone-700' : 'bg-white border border-stone-200'
-            }`}>
-              <BookOpen size={22} className={`mx-auto mb-3 ${isDark ? 'text-stone-400' : 'text-stone-500'}`} />
-              <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-stone-900'}`}>Story Bible</p>
-              <p className={`text-xs mt-1 ${isDark ? 'text-stone-500' : 'text-stone-400'}`}>Left sidebar</p>
+            <div className="p-5 rounded-xl text-center w-36 bg-white border border-stone-200">
+              <BookOpen size={22} className="mx-auto mb-3 text-stone-500" />
+              <p className="text-sm font-medium text-stone-900">Story Bible</p>
+              <p className="text-xs mt-1 text-stone-400">Left sidebar</p>
             </div>
           </div>
         </div>
@@ -265,34 +224,20 @@ const Onboarding: React.FC = () => {
                      currentStep >= 2;
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${
-      isDark ? 'bg-[#0c0a09]' : 'bg-[#FAFAF9]'
-    }`}>
+    <div className="min-h-screen flex flex-col transition-colors duration-300 bg-[#FAFAF9]">
       {/* Header */}
       <header className="px-6 py-6">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-              isDark ? 'bg-white' : 'bg-stone-900'
-            }`}>
-              <span className={`text-sm font-bold ${isDark ? 'text-stone-900' : 'text-white'}`}>S</span>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-stone-900">
+              <span className="text-sm font-bold text-white">S</span>
             </div>
-            <span className={`text-base font-semibold ${isDark ? 'text-white' : 'text-stone-900'}`}>
+            <span className="text-base font-semibold text-stone-900">
               StoryVerse
             </span>
           </Link>
           
           <div className="flex items-center gap-4">
-            {/* Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                isDark ? 'hover:bg-stone-800' : 'hover:bg-stone-100'
-              }`}
-            >
-              {isDark ? <Sun size={18} className="text-stone-400" /> : <Moon size={18} className="text-stone-500" />}
-            </button>
-            
             {/* Progress dots */}
             <div className="flex items-center gap-2">
               {steps.map((_, i) => (
@@ -300,10 +245,10 @@ const Onboarding: React.FC = () => {
                   key={i}
                   className={`rounded-full transition-all duration-300 ${
                     i === currentStep 
-                      ? `w-6 h-2 ${isDark ? 'bg-white' : 'bg-stone-900'}`
+                      ? 'w-6 h-2 bg-stone-900'
                       : i < currentStep 
-                        ? `w-2 h-2 ${isDark ? 'bg-white' : 'bg-stone-900'}`
-                        : `w-2 h-2 ${isDark ? 'bg-stone-700' : 'bg-stone-200'}`
+                        ? 'w-2 h-2 bg-stone-900'
+                        : 'w-2 h-2 bg-stone-200'
                   }`}
                 />
               ))}
@@ -327,9 +272,7 @@ const Onboarding: React.FC = () => {
             className={`h-12 px-6 rounded-xl flex items-center gap-2 font-medium transition-all active:scale-[0.98] ${
               currentStep === 0
                 ? 'opacity-0 pointer-events-none'
-                : isDark 
-                  ? 'text-stone-400 hover:bg-stone-800' 
-                  : 'text-stone-500 hover:bg-stone-100'
+                : 'text-stone-500 hover:bg-stone-100'
             }`}
           >
             <ArrowLeft size={18} />
@@ -339,11 +282,7 @@ const Onboarding: React.FC = () => {
           {isLastStep ? (
             <button
               onClick={handleComplete}
-              className={`h-12 px-8 rounded-xl font-semibold flex items-center gap-2 transition-all active:scale-[0.98] shadow-lg ${
-                isDark 
-                  ? 'bg-white text-stone-900 hover:bg-stone-100 shadow-white/5' 
-                  : 'bg-stone-900 text-white hover:bg-stone-800 shadow-black/10'
-              }`}
+              className="h-12 px-8 rounded-xl font-semibold flex items-center gap-2 transition-all active:scale-[0.98] shadow-lg bg-stone-900 text-white hover:bg-stone-800 shadow-black/10"
             >
               Open StoryVerse
               <ArrowRight size={18} />
@@ -354,12 +293,8 @@ const Onboarding: React.FC = () => {
               disabled={!canProceed}
               className={`h-12 px-8 rounded-xl font-semibold flex items-center gap-2 transition-all ${
                 canProceed
-                  ? isDark
-                    ? 'bg-white text-stone-900 hover:bg-stone-100 active:scale-[0.98] shadow-lg shadow-white/5'
-                    : 'bg-stone-900 text-white hover:bg-stone-800 active:scale-[0.98] shadow-lg shadow-black/10'
-                  : isDark
-                    ? 'bg-stone-800 text-stone-600 cursor-not-allowed'
-                    : 'bg-stone-200 text-stone-400 cursor-not-allowed'
+                  ? 'bg-stone-900 text-white hover:bg-stone-800 active:scale-[0.98] shadow-lg shadow-black/10'
+                  : 'bg-stone-200 text-stone-400 cursor-not-allowed'
               }`}
             >
               {currentStep === 0 ? 'Get Started' : 'Continue'}

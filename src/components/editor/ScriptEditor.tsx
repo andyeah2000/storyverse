@@ -42,7 +42,11 @@ const ScriptEditor: React.FC = () => {
     setActiveSourceId,
     updateSource, 
     addSource, 
-    settings
+    settings,
+    canUndo,
+    canRedo,
+    undo,
+    redo
   } = useStory();
   
   // Find the active script source - either the selected one or the first script
@@ -644,6 +648,8 @@ ${titlePage.contact ? `\n\n${titlePage.contact}` : ''}
           isAIWorking={isAIWorking}
           focusMode={focusMode}
           hasSelection={selectedText.length > 0}
+          canUndo={canUndo}
+          canRedo={canRedo}
           onElementChange={setCurrentElement}
           onToggleRevision={() => setRevisionMode(!revisionMode)}
           onRevisionColorChange={(color) => {
@@ -658,6 +664,8 @@ ${titlePage.contact ? `\n\n${titlePage.contact}` : ''}
           onAIDialogue={handleAIDialogue}
           onToggleFocus={() => setFocusMode(!focusMode)}
           onExport={() => setShowExportModal(true)}
+          onUndo={undo}
+          onRedo={redo}
         />
 
         {/* Note Input Bar */}
@@ -735,4 +743,3 @@ ${titlePage.contact ? `\n\n${titlePage.contact}` : ''}
 };
 
 export default ScriptEditor;
-

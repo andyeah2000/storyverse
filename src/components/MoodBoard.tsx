@@ -27,7 +27,7 @@ const ASPECT_RATIOS = [
 ] as const;
 
 const MoodBoardComponent: React.FC = () => {
-  const { moodBoard, addMoodBoardItem, updateMoodBoardItem, deleteMoodBoardItem, theme } = useStory();
+  const { moodBoard, addMoodBoardItem, updateMoodBoardItem, deleteMoodBoardItem } = useStory();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('add');
   const [addType, setAddType] = useState<MoodBoardItem['type']>('image');
@@ -171,26 +171,26 @@ const MoodBoardComponent: React.FC = () => {
 
   return (
     <div 
-      className="h-full flex flex-col bg-white dark:bg-stone-900 rounded-2xl shadow-subtle border border-stone-200/60 dark:border-stone-800 overflow-hidden relative"
+      className="h-full flex flex-col bg-white rounded-2xl shadow-subtle border border-stone-200/60 overflow-hidden relative"
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
     >
       {/* Drop overlay */}
       {isDragging && (
-        <div className="absolute inset-4 z-50 bg-stone-50 dark:bg-stone-800 flex flex-col items-center justify-center border-2 border-stone-300 dark:border-stone-600 border-dashed rounded-2xl pointer-events-none">
+        <div className="absolute inset-4 z-50 bg-stone-50 flex flex-col items-center justify-center border-2 border-stone-300 border-dashed rounded-2xl pointer-events-none">
           <Upload size={32} className="text-stone-400 mb-3" strokeWidth={1.5} />
-          <p className="text-sm font-medium text-stone-600 dark:text-stone-300">Drop images here</p>
+          <p className="text-sm font-medium text-stone-600">Drop images here</p>
         </div>
       )}
 
       {/* Header */}
-      <div className="h-14 px-6 flex items-center justify-between border-b border-stone-100 dark:border-stone-800 shrink-0">
+      <div className="h-14 px-6 flex items-center justify-between border-b border-stone-100 shrink-0">
         <div className="flex items-center gap-3">
           <Image size={18} className="text-stone-400" strokeWidth={1.75} />
           <div>
-            <h2 className="text-base font-semibold text-stone-900 dark:text-white">Mood Board</h2>
-            <p className="text-xs text-stone-500 dark:text-stone-400">{moodBoard.length} items</p>
+            <h2 className="text-base font-semibold text-stone-900">Mood Board</h2>
+            <p className="text-xs text-stone-500">{moodBoard.length} items</p>
           </div>
         </div>
 
@@ -204,7 +204,7 @@ const MoodBoardComponent: React.FC = () => {
           </button>
           <button
             onClick={() => { setActiveTab('add'); setIsModalOpen(true); }}
-            className="h-8 px-3 bg-stone-900 dark:bg-white text-white dark:text-stone-900 rounded-lg font-medium text-xs hover:bg-stone-800 dark:hover:bg-stone-100 transition-all flex items-center gap-1.5"
+            className="h-8 px-3 bg-stone-900 text-white rounded-lg font-medium text-xs hover:bg-stone-800 transition-all flex items-center gap-1.5"
           >
             <Plus size={14} strokeWidth={2} />
             Add
@@ -216,11 +216,11 @@ const MoodBoardComponent: React.FC = () => {
       <div className="flex-1 overflow-y-auto p-6">
         {moodBoard.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center py-12">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-100 to-purple-100 dark:from-violet-900/30 dark:to-purple-900/30 flex items-center justify-center mb-4">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center mb-4">
               <Sparkles size={28} className="text-violet-500" strokeWidth={1.5} />
             </div>
-            <h3 className="text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">Create your mood board</h3>
-            <p className="text-xs text-stone-500 dark:text-stone-400 max-w-xs mb-4">
+            <h3 className="text-sm font-medium text-stone-700 mb-1">Create your mood board</h3>
+            <p className="text-xs text-stone-500 max-w-xs mb-4">
               Add images, generate AI art, or drop files to visualize your story's aesthetic
             </p>
             <button
@@ -240,7 +240,6 @@ const MoodBoardComponent: React.FC = () => {
                 onUpdate={(updates) => updateMoodBoardItem(item.id, updates)}
                 onDelete={() => deleteMoodBoardItem(item.id)}
                 onEdit={() => openEditModal(item)}
-                theme={theme}
               />
             ))}
           </div>
@@ -249,14 +248,14 @@ const MoodBoardComponent: React.FC = () => {
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-stone-900/50 dark:bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-          <div className="bg-white dark:bg-stone-900 rounded-2xl w-full max-w-lg shadow-floating animate-in zoom-in-95 fade-in duration-200 max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 bg-stone-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-floating animate-in zoom-in-95 fade-in duration-200 max-h-[90vh] flex flex-col">
             
             {/* Header with Tabs */}
-            <div className="px-6 pt-5 pb-4 border-b border-stone-100 dark:border-stone-800">
+            <div className="px-6 pt-5 pb-4 border-b border-stone-100">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-stone-900 dark:text-white">
+                  <h3 className="text-lg font-semibold text-stone-900">
                     {activeTab === 'generate' ? 'AI Image Generation' : 
                      activeTab === 'edit' ? 'Edit Image' : 'Add to Mood Board'}
                   </h3>
@@ -266,7 +265,7 @@ const MoodBoardComponent: React.FC = () => {
                 </div>
                 <button 
                   onClick={resetAndClose} 
-                  className="w-8 h-8 flex items-center justify-center text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors"
+                  className="w-8 h-8 flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-lg transition-colors"
                 >
                   <X size={18} strokeWidth={1.75} />
                 </button>
@@ -274,14 +273,14 @@ const MoodBoardComponent: React.FC = () => {
 
               {/* Tabs */}
               {!editingItem && (
-                <div className="flex gap-1 p-1 bg-stone-100 dark:bg-stone-800 rounded-xl">
+                <div className="flex gap-1 p-1 bg-stone-100 rounded-xl">
                   <button
                     onClick={() => setActiveTab('add')}
                     className={cn(
                       "flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-2",
                       activeTab === 'add'
-                        ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-white shadow-sm'
-                        : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'
+                        ? 'bg-white text-stone-900 shadow-sm'
+                        : 'text-stone-500 hover:text-stone-700'
                     )}
                   >
                     <Plus size={14} />
@@ -293,7 +292,7 @@ const MoodBoardComponent: React.FC = () => {
                       "flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-2",
                       activeTab === 'generate'
                         ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-sm'
-                        : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'
+                        : 'text-stone-500 hover:text-stone-700'
                     )}
                   >
                     <Sparkles size={14} />
@@ -321,19 +320,19 @@ const MoodBoardComponent: React.FC = () => {
                         className={cn(
                           "p-3 rounded-xl border-2 transition-all flex flex-col items-center gap-2",
                           addType === type.id
-                            ? 'border-stone-900 dark:border-white bg-stone-50 dark:bg-stone-800'
-                            : 'border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600'
+                            ? 'border-stone-900 bg-stone-50'
+                            : 'border-stone-200 hover:border-stone-300'
                         )}
                       >
-                        <type.icon size={18} className="text-stone-600 dark:text-stone-300" />
-                        <span className="text-xs font-medium text-stone-900 dark:text-white">{type.label}</span>
+                        <type.icon size={18} className="text-stone-600" />
+                        <span className="text-xs font-medium text-stone-900">{type.label}</span>
                       </button>
                     ))}
                   </div>
 
                   {/* Input */}
                   <div>
-                    <label className="block text-xs font-medium text-stone-500 dark:text-stone-400 mb-2">
+                    <label className="block text-xs font-medium text-stone-500 mb-2">
                       {addType === 'image' ? 'Image URL' : 
                        addType === 'color' ? 'Color (hex)' :
                        addType === 'link' ? 'URL' : 'Text'}
@@ -351,7 +350,7 @@ const MoodBoardComponent: React.FC = () => {
                           value={inputValue}
                           onChange={(e) => setInputValue(e.target.value)}
                           placeholder="#000000"
-                          className="flex-1 h-11 px-4 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-stone-900/10 font-mono"
+                          className="flex-1 h-11 px-4 bg-stone-50 border border-stone-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-stone-900/10 font-mono"
                         />
                       </div>
                     ) : addType === 'text' ? (
@@ -359,7 +358,7 @@ const MoodBoardComponent: React.FC = () => {
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         placeholder="Enter text..."
-                        className="w-full h-24 px-4 py-3 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-stone-900/10 resize-none"
+                        className="w-full h-24 px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-stone-900/10 resize-none"
                       />
                     ) : (
                       <input
@@ -367,14 +366,14 @@ const MoodBoardComponent: React.FC = () => {
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         placeholder="https://..."
-                        className="w-full h-11 px-4 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-stone-900/10"
+                        className="w-full h-11 px-4 bg-stone-50 border border-stone-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-stone-900/10"
                       />
                     )}
                   </div>
 
                   {/* Caption */}
                   <div>
-                    <label className="block text-xs font-medium text-stone-500 dark:text-stone-400 mb-2">
+                    <label className="block text-xs font-medium text-stone-500 mb-2">
                       Caption (optional)
                     </label>
                     <input
@@ -382,7 +381,7 @@ const MoodBoardComponent: React.FC = () => {
                       value={captionValue}
                       onChange={(e) => setCaptionValue(e.target.value)}
                       placeholder="Add a caption..."
-                      className="w-full h-11 px-4 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-stone-900/10"
+                      className="w-full h-11 px-4 bg-stone-50 border border-stone-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-stone-900/10"
                     />
                   </div>
                 </div>
@@ -392,20 +391,20 @@ const MoodBoardComponent: React.FC = () => {
                 <div className="space-y-5">
                   {/* Prompt */}
                   <div>
-                    <label className="block text-xs font-medium text-stone-500 dark:text-stone-400 mb-2">
+                    <label className="block text-xs font-medium text-stone-500 mb-2">
                       Describe your image
                     </label>
                     <textarea
                       value={aiPrompt}
                       onChange={(e) => setAiPrompt(e.target.value)}
                       placeholder="A noir detective in a rain-soaked alley, dramatic lighting..."
-                      className="w-full h-24 px-4 py-3 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500/20 resize-none"
+                      className="w-full h-24 px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500/20 resize-none"
                     />
                   </div>
 
                   {/* Style */}
                   <div>
-                    <label className="block text-xs font-medium text-stone-500 dark:text-stone-400 mb-2">
+                    <label className="block text-xs font-medium text-stone-500 mb-2">
                       Style
                     </label>
                     <div className="flex gap-2 flex-wrap">
@@ -417,7 +416,7 @@ const MoodBoardComponent: React.FC = () => {
                             "h-9 px-3 rounded-lg text-xs font-medium transition-all flex items-center gap-2",
                             aiStyle === style.id
                               ? 'bg-violet-600 text-white'
-                              : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700'
+                              : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                           )}
                         >
                           <style.icon size={14} />
@@ -429,7 +428,7 @@ const MoodBoardComponent: React.FC = () => {
 
                   {/* Aspect Ratio */}
                   <div>
-                    <label className="block text-xs font-medium text-stone-500 dark:text-stone-400 mb-2">
+                    <label className="block text-xs font-medium text-stone-500 mb-2">
                       Aspect Ratio
                     </label>
                     <div className="flex gap-2">
@@ -440,8 +439,8 @@ const MoodBoardComponent: React.FC = () => {
                           className={cn(
                             "h-9 px-4 rounded-lg text-xs font-medium transition-all",
                             aiAspectRatio === ratio.id
-                              ? 'bg-stone-900 dark:bg-white text-white dark:text-stone-900'
-                              : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700'
+                              ? 'bg-stone-900 text-white'
+                              : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                           )}
                         >
                           {ratio.label}
@@ -452,15 +451,15 @@ const MoodBoardComponent: React.FC = () => {
 
                   {/* Generated Image Preview */}
                   {generatedImage && (
-                    <div className="relative rounded-xl overflow-hidden border border-stone-200 dark:border-stone-700">
+                    <div className="relative rounded-xl overflow-hidden border border-stone-200">
                       <img 
                         src={generatedImage} 
                         alt="Generated" 
-                        className="w-full max-h-64 object-contain bg-stone-50 dark:bg-stone-800"
+                        className="w-full max-h-64 object-contain bg-stone-50"
                       />
                       <button
                         onClick={handleGenerate}
-                        className="absolute top-2 right-2 w-8 h-8 bg-white/90 dark:bg-stone-800/90 rounded-lg flex items-center justify-center hover:bg-white dark:hover:bg-stone-700 transition-colors"
+                        className="absolute top-2 right-2 w-8 h-8 bg-white/90 rounded-lg flex items-center justify-center hover:bg-white transition-colors"
                       >
                         <RefreshCw size={14} />
                       </button>
@@ -469,7 +468,7 @@ const MoodBoardComponent: React.FC = () => {
 
                   {/* Error */}
                   {generationError && (
-                    <div className="p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm">
+                    <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
                       {generationError}
                     </div>
                   )}
@@ -479,17 +478,17 @@ const MoodBoardComponent: React.FC = () => {
               {activeTab === 'edit' && editingItem && (
                 <div className="space-y-5">
                   {/* Current Image */}
-                  <div className="rounded-xl overflow-hidden border border-stone-200 dark:border-stone-700">
+                  <div className="rounded-xl overflow-hidden border border-stone-200">
                     <img 
                       src={editingItem.content} 
                       alt="To edit" 
-                      className="w-full max-h-48 object-contain bg-stone-50 dark:bg-stone-800"
+                      className="w-full max-h-48 object-contain bg-stone-50"
                     />
                   </div>
 
                   {/* Edit Type */}
                   <div>
-                    <label className="block text-xs font-medium text-stone-500 dark:text-stone-400 mb-2">
+                    <label className="block text-xs font-medium text-stone-500 mb-2">
                       Edit Type
                     </label>
                     <div className="grid grid-cols-2 gap-2">
@@ -506,7 +505,7 @@ const MoodBoardComponent: React.FC = () => {
                             "h-11 px-3 rounded-xl text-xs font-medium transition-all flex items-center gap-2",
                             editType === type.id
                               ? 'bg-violet-600 text-white'
-                              : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700'
+                              : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                           )}
                         >
                           <type.icon size={14} />
@@ -518,7 +517,7 @@ const MoodBoardComponent: React.FC = () => {
 
                   {/* Edit Prompt */}
                   <div>
-                    <label className="block text-xs font-medium text-stone-500 dark:text-stone-400 mb-2">
+                    <label className="block text-xs font-medium text-stone-500 mb-2">
                       {editType === 'enhance' ? 'Enhancement details (optional)' :
                        editType === 'style-transfer' ? 'Target style' :
                        editType === 'expand' ? 'What to add' :
@@ -534,13 +533,13 @@ const MoodBoardComponent: React.FC = () => {
                         editType === 'expand' ? 'Extend the forest on the left...' :
                         'Golden hour, dramatic side lighting...'
                       }
-                      className="w-full h-11 px-4 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500/20"
+                      className="w-full h-11 px-4 bg-stone-50 border border-stone-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500/20"
                     />
                   </div>
 
                   {/* Error */}
                   {generationError && (
-                    <div className="p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm">
+                    <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
                       {generationError}
                     </div>
                   )}
@@ -549,10 +548,10 @@ const MoodBoardComponent: React.FC = () => {
             </div>
 
             {/* Footer */}
-            <div className="h-16 px-6 flex justify-end items-center gap-3 border-t border-stone-100 dark:border-stone-800">
+            <div className="h-16 px-6 flex justify-end items-center gap-3 border-t border-stone-100">
               <button 
                 onClick={resetAndClose}
-                className="h-10 px-5 text-stone-600 dark:text-stone-300 font-medium hover:bg-stone-100 dark:hover:bg-stone-800 rounded-xl text-sm transition-colors"
+                className="h-10 px-5 text-stone-600 font-medium hover:bg-stone-100 rounded-xl text-sm transition-colors"
               >
                 Cancel
               </button>
@@ -561,7 +560,7 @@ const MoodBoardComponent: React.FC = () => {
                 <button 
                   onClick={handleAdd}
                   disabled={!inputValue.trim()}
-                  className="h-10 px-6 bg-stone-900 dark:bg-white text-white dark:text-stone-900 font-medium rounded-xl hover:bg-stone-800 dark:hover:bg-stone-100 disabled:opacity-40 text-sm transition-all"
+                  className="h-10 px-6 bg-stone-900 text-white font-medium rounded-xl hover:bg-stone-800 disabled:opacity-40 text-sm transition-all"
                 >
                   Add Item
                 </button>
@@ -590,7 +589,7 @@ const MoodBoardComponent: React.FC = () => {
                   ) : (
                     <button 
                       onClick={handleSaveGenerated}
-                      className="h-10 px-6 bg-stone-900 dark:bg-white text-white dark:text-stone-900 font-medium rounded-xl hover:bg-stone-800 dark:hover:bg-stone-100 text-sm transition-all"
+                      className="h-10 px-6 bg-stone-900 text-white font-medium rounded-xl hover:bg-stone-800 text-sm transition-all"
                     >
                       Add to Board
                     </button>
@@ -630,7 +629,6 @@ interface MoodBoardCardProps {
   onUpdate: (updates: Partial<MoodBoardItem>) => void;
   onDelete: () => void;
   onEdit: () => void;
-  theme: 'light' | 'dark';
 }
 
 const MoodBoardCard: React.FC<MoodBoardCardProps> = ({ item, onUpdate, onDelete, onEdit }) => {
@@ -664,8 +662,8 @@ const MoodBoardCard: React.FC<MoodBoardCardProps> = ({ item, onUpdate, onDelete,
         );
       case 'text':
         return (
-          <div className="w-full h-40 p-4 bg-stone-50 dark:bg-stone-800 rounded-t-xl flex items-center justify-center">
-            <p className="text-sm text-stone-600 dark:text-stone-300 text-center italic line-clamp-5">
+          <div className="w-full h-40 p-4 bg-stone-50 rounded-t-xl flex items-center justify-center">
+            <p className="text-sm text-stone-600 text-center italic line-clamp-5">
               "{item.content}"
             </p>
           </div>
@@ -676,10 +674,10 @@ const MoodBoardCard: React.FC<MoodBoardCardProps> = ({ item, onUpdate, onDelete,
             href={item.content}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full h-40 p-4 bg-stone-50 dark:bg-stone-800 rounded-t-xl flex flex-col items-center justify-center gap-2 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+            className="w-full h-40 p-4 bg-stone-50 rounded-t-xl flex flex-col items-center justify-center gap-2 hover:bg-stone-100 transition-colors"
           >
             <Link size={24} className="text-stone-400" />
-            <span className="text-xs text-stone-500 dark:text-stone-400 truncate max-w-full px-2">
+            <span className="text-xs text-stone-500 truncate max-w-full px-2">
               {(() => { try { return new URL(item.content).hostname; } catch { return item.content; }})()}
             </span>
           </a>
@@ -688,7 +686,7 @@ const MoodBoardCard: React.FC<MoodBoardCardProps> = ({ item, onUpdate, onDelete,
   };
 
   return (
-    <div className="group rounded-xl border border-stone-200 dark:border-stone-700 overflow-hidden hover:shadow-md transition-all bg-white dark:bg-stone-800">
+    <div className="group rounded-xl border border-stone-200 overflow-hidden hover:shadow-md transition-all bg-white">
       {renderContent()}
       
       <div className="p-3 flex items-center justify-between">
@@ -696,7 +694,7 @@ const MoodBoardCard: React.FC<MoodBoardCardProps> = ({ item, onUpdate, onDelete,
           value={item.caption || ''}
           onChange={(e) => onUpdate({ caption: e.target.value })}
           placeholder="Add caption..."
-          className="flex-1 text-xs text-stone-600 dark:text-stone-300 bg-transparent outline-none placeholder:text-stone-400"
+          className="flex-1 text-xs text-stone-600 bg-transparent outline-none placeholder:text-stone-400"
         />
         <button
           onClick={onDelete}

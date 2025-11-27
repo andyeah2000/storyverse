@@ -21,7 +21,9 @@ import {
   List,
   FileEdit,
   PenLine,
-  Wand2
+  Wand2,
+  Undo2,
+  Redo2
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { ScriptElement, RevisionColor, ScriptStats } from '../types';
@@ -55,6 +57,8 @@ interface ToolbarProps {
   isAIWorking: boolean;
   focusMode: boolean;
   hasSelection: boolean;
+  canUndo: boolean;
+  canRedo: boolean;
   onElementChange: (element: ScriptElement) => void;
   onToggleRevision: () => void;
   onRevisionColorChange: (color: RevisionColor) => void;
@@ -66,6 +70,8 @@ interface ToolbarProps {
   onAIDialogue: () => void;
   onToggleFocus: () => void;
   onExport: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
 }
 
 // ============================================
@@ -81,6 +87,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
   isAIWorking,
   focusMode,
   hasSelection,
+  canUndo,
+  canRedo,
   onElementChange,
   onToggleRevision,
   onRevisionColorChange,
@@ -92,6 +100,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onAIDialogue,
   onToggleFocus,
   onExport,
+  onUndo,
+  onRedo,
 }) => {
   const [showElementMenu, setShowElementMenu] = useState(false);
   const [showRevisionMenu, setShowRevisionMenu] = useState(false);
@@ -108,6 +118,28 @@ const Toolbar: React.FC<ToolbarProps> = ({
       {/* Left Section: Writing Tools */}
       <div className="flex items-center gap-2 shrink-0">
         
+        {/* Undo/Redo */}
+        <div className="flex items-center gap-1">
+          <button
+            onClick={onUndo}
+            disabled={!canUndo}
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors text-stone-500 hover:bg-stone-100 hover:text-stone-900 disabled:opacity-30"
+            title="Undo (⌘Z)"
+          >
+            <Undo2 size={15} />
+          </button>
+          <button
+            onClick={onRedo}
+            disabled={!canRedo}
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors text-stone-500 hover:bg-stone-100 hover:text-stone-900 disabled:opacity-30"
+            title="Redo (⌘⇧Z)"
+          >
+            <Redo2 size={15} />
+          </button>
+        </div>
+
+        <Divider />
+
         {/* Element Type Selector */}
         <div className="relative">
           <button

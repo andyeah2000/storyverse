@@ -3,9 +3,8 @@ import { useStory } from '../context/StoryContext';
 import { useAuth } from '../context/AuthContext';
 import { 
   X, 
-  Moon, 
+  Share2,
   Sun, 
-  Monitor, 
   Key, 
   Keyboard, 
   Eye, 
@@ -38,7 +37,8 @@ const SettingsModal: React.FC = () => {
     deleteProject,
     duplicateProject,
     exportProject,
-    importProject
+    importProject,
+    openShareModal
   } = useStory();
   const { subscription, startCheckout, openBillingPortal, startCreditTopUp } = useAuth();
 
@@ -137,15 +137,15 @@ const SettingsModal: React.FC = () => {
   ];
 
   return (
-    <div className="fixed inset-0 bg-stone-900/50 dark:bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6">
-      <div className="bg-white dark:bg-stone-900 rounded-2xl w-full max-w-2xl shadow-floating flex flex-col overflow-hidden h-[90vh] sm:h-[80vh] lg:h-[640px] max-h-[95vh] animate-in zoom-in-95 fade-in duration-200">
+    <div className="fixed inset-0 bg-stone-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6">
+      <div className="bg-white rounded-2xl w-full max-w-2xl shadow-floating flex flex-col overflow-hidden h-[90vh] sm:h-[80vh] lg:h-[640px] max-h-[95vh] animate-in zoom-in-95 fade-in duration-200">
         
         {/* Header */}
-        <div className="h-14 px-6 flex justify-between items-center border-b border-stone-100 dark:border-stone-800 shrink-0">
-          <h3 className="text-base font-semibold text-stone-900 dark:text-white">Settings</h3>
+        <div className="h-14 px-6 flex justify-between items-center border-b border-stone-100 shrink-0">
+          <h3 className="text-base font-semibold text-stone-900">Settings</h3>
           <button 
             onClick={() => setSettingsOpen(false)} 
-            className="w-8 h-8 flex items-center justify-center text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors"
+            className="w-8 h-8 flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-lg transition-colors"
           >
             <X size={18} strokeWidth={1.75} />
           </button>
@@ -153,7 +153,7 @@ const SettingsModal: React.FC = () => {
 
         <div className="flex flex-1 min-h-0 gap-6">
           {/* Sidebar */}
-          <div className="w-48 border-r border-stone-100 dark:border-stone-800 p-3 space-y-1 shrink-0 overflow-y-auto">
+          <div className="w-48 border-r border-stone-100 p-3 space-y-1 shrink-0 overflow-y-auto">
             {tabs.map(tab => (
               <button
                 key={tab.id}
@@ -161,8 +161,8 @@ const SettingsModal: React.FC = () => {
                 className={cn(
                   "w-full px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2.5 transition-all",
                   activeTab === tab.id
-                    ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-white'
-                    : 'text-stone-500 hover:text-stone-900 dark:hover:text-white hover:bg-stone-50 dark:hover:bg-stone-800/50'
+                    ? 'bg-stone-100 text-stone-900'
+                    : 'text-stone-500 hover:text-stone-900 hover:bg-stone-50'
                 )}
               >
                 {tab.icon}
@@ -179,8 +179,8 @@ const SettingsModal: React.FC = () => {
             {activeTab === 'general' && (
               <div className="space-y-6">
                 <div>
-                  <h4 className="text-sm font-semibold text-stone-900 dark:text-white mb-1">API Key</h4>
-                  <p className="text-xs text-stone-500 dark:text-stone-400 mb-3">
+                  <h4 className="text-sm font-semibold text-stone-900 mb-1">API Key</h4>
+                  <p className="text-xs text-stone-500 mb-3">
                     Enter your Gemini API key to enable AI features
                   </p>
                   <div className="relative">
@@ -189,11 +189,11 @@ const SettingsModal: React.FC = () => {
                       value={settings.apiKey || ''}
                       onChange={(e) => updateSettings({ apiKey: e.target.value })}
                       placeholder="AIza..."
-                      className="w-full h-11 pl-4 pr-12 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-white/10 focus:border-stone-400 dark:focus:border-stone-600 outline-none font-mono text-sm transition-all placeholder:text-stone-400"
+                      className="w-full h-11 pl-4 pr-12 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-900/10 focus:border-stone-400 outline-none font-mono text-sm transition-all placeholder:text-stone-400"
                     />
                     <button
                       onClick={() => setShowApiKey(!showApiKey)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
                     >
                       {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
@@ -201,8 +201,8 @@ const SettingsModal: React.FC = () => {
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-semibold text-stone-900 dark:text-white mb-1">Auto-Save</h4>
-                  <p className="text-xs text-stone-500 dark:text-stone-400 mb-3">
+                  <h4 className="text-sm font-semibold text-stone-900 mb-1">Auto-Save</h4>
+                  <p className="text-xs text-stone-500 mb-3">
                     Automatically save your work
                   </p>
                   <label className="flex items-center gap-3 cursor-pointer">
@@ -210,23 +210,23 @@ const SettingsModal: React.FC = () => {
                       onClick={() => updateSettings({ autoSave: !settings.autoSave })}
                       className={cn(
                         "w-10 h-6 rounded-full transition-colors relative",
-                        settings.autoSave ? 'bg-stone-900 dark:bg-white' : 'bg-stone-200 dark:bg-stone-700'
+                        settings.autoSave ? 'bg-stone-900' : 'bg-stone-200'
                       )}
                     >
                       <div className={cn(
-                        "w-4 h-4 rounded-full bg-white dark:bg-stone-900 absolute top-1 transition-all",
+                        "w-4 h-4 rounded-full bg-white absolute top-1 transition-all",
                         settings.autoSave ? 'left-5' : 'left-1'
                       )} />
                     </div>
-                    <span className="text-sm text-stone-600 dark:text-stone-300">
+                    <span className="text-sm text-stone-600">
                       {settings.autoSave ? 'Enabled' : 'Disabled'}
                     </span>
                   </label>
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-semibold text-stone-900 dark:text-white mb-1">Word & Page Count</h4>
-                  <p className="text-xs text-stone-500 dark:text-stone-400 mb-3">
+                  <h4 className="text-sm font-semibold text-stone-900 mb-1">Word & Page Count</h4>
+                  <p className="text-xs text-stone-500 mb-3">
                     Show statistics in the editor
                   </p>
                   <div className="space-y-2">
@@ -235,18 +235,18 @@ const SettingsModal: React.FC = () => {
                         type="checkbox"
                         checked={settings.showWordCount}
                         onChange={(e) => updateSettings({ showWordCount: e.target.checked })}
-                        className="w-4 h-4 rounded border-stone-300 dark:border-stone-600 text-stone-900 dark:text-white focus:ring-stone-900/10"
+                        className="w-4 h-4 rounded border-stone-300 text-stone-900 focus:ring-stone-900/10"
                       />
-                      <span className="text-sm text-stone-600 dark:text-stone-300">Show word count</span>
+                      <span className="text-sm text-stone-600">Show word count</span>
                     </label>
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={settings.showPageCount}
                         onChange={(e) => updateSettings({ showPageCount: e.target.checked })}
-                        className="w-4 h-4 rounded border-stone-300 dark:border-stone-600 text-stone-900 dark:text-white focus:ring-stone-900/10"
+                        className="w-4 h-4 rounded border-stone-300 text-stone-900 focus:ring-stone-900/10"
                       />
-                      <span className="text-sm text-stone-600 dark:text-stone-300">Show page estimate</span>
+                      <span className="text-sm text-stone-600">Show page estimate</span>
                     </label>
                   </div>
                 </div>
@@ -256,39 +256,8 @@ const SettingsModal: React.FC = () => {
             {activeTab === 'appearance' && (
               <div className="space-y-6">
                 <div>
-                  <h4 className="text-sm font-semibold text-stone-900 dark:text-white mb-1">Theme</h4>
-                  <p className="text-xs text-stone-500 dark:text-stone-400 mb-3">
-                    Choose your preferred color scheme
-                  </p>
-                  <div className="grid grid-cols-3 gap-3">
-                    {[
-                      { id: 'light', label: 'Light', icon: <Sun size={18} /> },
-                      { id: 'dark', label: 'Dark', icon: <Moon size={18} /> },
-                      { id: 'system', label: 'System', icon: <Monitor size={18} /> },
-                    ].map(theme => (
-                      <button
-                        key={theme.id}
-                        onClick={() => updateSettings({ theme: theme.id as 'light' | 'dark' | 'system' })}
-                        className={cn(
-                          "p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2",
-                          settings.theme === theme.id
-                            ? 'border-stone-900 dark:border-white bg-stone-50 dark:bg-stone-800'
-                            : 'border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600'
-                        )}
-                      >
-                        <div className="text-stone-600 dark:text-stone-300">{theme.icon}</div>
-                        <span className="text-xs font-medium text-stone-900 dark:text-white">{theme.label}</span>
-                        {settings.theme === theme.id && (
-                          <Check size={14} className="text-stone-900 dark:text-white" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-semibold text-stone-900 dark:text-white mb-1">Font Size</h4>
-                  <p className="text-xs text-stone-500 dark:text-stone-400 mb-3">
+                  <h4 className="text-sm font-semibold text-stone-900 mb-1">Font Size</h4>
+                  <p className="text-xs text-stone-500 mb-3">
                     Adjust the editor font size
                   </p>
                   <div className="grid grid-cols-3 gap-3">
@@ -303,27 +272,27 @@ const SettingsModal: React.FC = () => {
                         className={cn(
                           "p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2",
                           settings.fontSize === size.id
-                            ? 'border-stone-900 dark:border-white bg-stone-50 dark:bg-stone-800'
-                            : 'border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600'
+                            ? 'border-stone-900 bg-stone-50'
+                            : 'border-stone-200 hover:border-stone-300'
                         )}
                       >
                         <span className={cn(
-                          "font-mono text-stone-900 dark:text-white",
+                          "font-mono text-stone-900",
                           size.id === 'small' && 'text-sm',
                           size.id === 'medium' && 'text-base',
                           size.id === 'large' && 'text-lg'
                         )}>
                           {size.preview}
                         </span>
-                        <span className="text-xs font-medium text-stone-600 dark:text-stone-300">{size.label}</span>
+                        <span className="text-xs font-medium text-stone-600">{size.label}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-semibold text-stone-900 dark:text-white mb-1">Font Family</h4>
-                  <p className="text-xs text-stone-500 dark:text-stone-400 mb-3">
+                  <h4 className="text-sm font-semibold text-stone-900 mb-1">Font Family</h4>
+                  <p className="text-xs text-stone-500 mb-3">
                     Choose your editor font
                   </p>
                   <div className="grid grid-cols-3 gap-3">
@@ -338,12 +307,12 @@ const SettingsModal: React.FC = () => {
                         className={cn(
                           "p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2",
                           settings.fontFamily === font.id
-                            ? 'border-stone-900 dark:border-white bg-stone-50 dark:bg-stone-800'
-                            : 'border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600'
+                            ? 'border-stone-900 bg-stone-50'
+                            : 'border-stone-200 hover:border-stone-300'
                         )}
                       >
-                        <span className={cn("text-stone-900 dark:text-white", font.font)}>Abc</span>
-                        <span className="text-xs font-medium text-stone-600 dark:text-stone-300">{font.label}</span>
+                        <span className={cn("text-stone-900", font.font)}>Abc</span>
+                        <span className="text-xs font-medium text-stone-600">{font.label}</span>
                       </button>
                     ))}
                   </div>
@@ -353,16 +322,16 @@ const SettingsModal: React.FC = () => {
 
             {activeTab === 'shortcuts' && (
               <div className="space-y-4">
-                <p className="text-xs text-stone-500 dark:text-stone-400 mb-4">
+                <p className="text-xs text-stone-500 mb-4">
                   Keyboard shortcuts to boost your productivity
                 </p>
                 <div className="space-y-3">
                   {Object.entries(settings.keyboardShortcuts).map(([key, value]) => (
-                    <div key={key} className="flex items-center justify-between py-2 border-b border-stone-100 dark:border-stone-800">
-                      <span className="text-sm text-stone-600 dark:text-stone-300 capitalize">
+                    <div key={key} className="flex items-center justify-between py-2 border-b border-stone-100">
+                      <span className="text-sm text-stone-600 capitalize">
                         {key.replace(/([A-Z])/g, ' $1').trim()}
                       </span>
-                      <kbd className="px-2 py-1 bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 text-xs font-mono rounded-md border border-stone-200 dark:border-stone-700">
+                      <kbd className="px-2 py-1 bg-stone-100 text-stone-600 text-xs font-mono rounded-md border border-stone-200">
                         {value}
                       </kbd>
                     </div>
@@ -374,7 +343,7 @@ const SettingsModal: React.FC = () => {
             {activeTab === 'projects' && (
               <div className="space-y-6">
                 <div>
-                  <h4 className="text-sm font-semibold text-stone-900 dark:text-white mb-3">Your Projects</h4>
+                  <h4 className="text-sm font-semibold text-stone-900 mb-3">Your Projects</h4>
                   <div className="space-y-2 mb-4">
                     {projects.map(project => (
                       <div 
@@ -382,25 +351,34 @@ const SettingsModal: React.FC = () => {
                         className={cn(
                           "p-3 rounded-xl border transition-all flex items-center justify-between group",
                           project.id === currentProject?.id
-                            ? 'border-stone-900 dark:border-white bg-stone-50 dark:bg-stone-800'
-                            : 'border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600'
+                            ? 'border-stone-900 bg-stone-50'
+                            : 'border-stone-200 hover:border-stone-300'
                         )}
                       >
                         <button
                           onClick={() => selectProject(project.id)}
                           className="flex-1 text-left"
                         >
-                          <div className="font-medium text-sm text-stone-900 dark:text-white">
+                          <div className="font-medium text-sm text-stone-900">
                             {project.name}
                           </div>
-                          <div className="text-xs text-stone-500 dark:text-stone-400">
+                          <div className="text-xs text-stone-500">
                             {project.sources.length} sources · {project.scripts.length} scripts
                           </div>
                         </button>
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {project.id === currentProject?.id && (
+                            <button
+                              onClick={() => openShareModal()}
+                              className="p-1.5 text-stone-400 hover:text-emerald-600 rounded-lg hover:bg-stone-100"
+                              title="Share Project"
+                            >
+                              <Share2 size={14} />
+                            </button>
+                          )}
                           <button
                             onClick={() => duplicateProject(project.id)}
-                            className="p-1.5 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700"
+                            className="p-1.5 text-stone-400 hover:text-stone-600 rounded-lg hover:bg-stone-100"
                             title="Duplicate"
                           >
                             <Copy size={14} />
@@ -408,7 +386,7 @@ const SettingsModal: React.FC = () => {
                           {projects.length > 1 && (
                             <button
                               onClick={() => deleteProject(project.id)}
-                              className="p-1.5 text-stone-400 hover:text-red-500 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700"
+                              className="p-1.5 text-stone-400 hover:text-red-500 rounded-lg hover:bg-stone-100"
                               title="Delete"
                             >
                               <Trash2 size={14} />
@@ -425,7 +403,7 @@ const SettingsModal: React.FC = () => {
                       value={newProjectName}
                       onChange={(e) => setNewProjectName(e.target.value)}
                       placeholder="New project name..."
-                      className="flex-1 h-10 px-4 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-white/10 focus:border-stone-400 dark:focus:border-stone-600 outline-none text-sm transition-all placeholder:text-stone-400"
+                      className="flex-1 h-10 px-4 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-900/10 focus:border-stone-400 outline-none text-sm transition-all placeholder:text-stone-400"
                     />
                     <button
                       onClick={() => {
@@ -435,7 +413,7 @@ const SettingsModal: React.FC = () => {
                         }
                       }}
                       disabled={!newProjectName.trim()}
-                      className="h-10 px-4 bg-stone-900 dark:bg-white text-white dark:text-stone-900 rounded-xl font-medium text-sm hover:bg-stone-800 dark:hover:bg-stone-100 disabled:opacity-40 transition-all"
+                      className="h-10 px-4 bg-stone-900 text-white rounded-xl font-medium text-sm hover:bg-stone-800 disabled:opacity-40 transition-all"
                     >
                       Create
                     </button>
@@ -447,49 +425,49 @@ const SettingsModal: React.FC = () => {
             {activeTab === 'export' && (
               <div className="space-y-6">
                 <div>
-                  <h4 className="text-sm font-semibold text-stone-900 dark:text-white mb-1">Export Project</h4>
-                  <p className="text-xs text-stone-500 dark:text-stone-400 mb-4">
+                  <h4 className="text-sm font-semibold text-stone-900 mb-1">Export Project</h4>
+                  <p className="text-xs text-stone-500 mb-4">
                     Download your project in various formats
                   </p>
                   <div className="grid grid-cols-3 gap-3">
                     <button
                       onClick={() => exportProject('json')}
-                      className="p-4 rounded-xl border border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 transition-all flex flex-col items-center gap-2 hover:bg-stone-50 dark:hover:bg-stone-800"
+                      className="p-4 rounded-xl border border-stone-200 hover:border-stone-300 transition-all flex flex-col items-center gap-2 hover:bg-stone-50"
                     >
-                      <Download size={20} className="text-stone-600 dark:text-stone-300" />
-                      <span className="text-xs font-medium text-stone-900 dark:text-white">JSON</span>
-                      <span className="text-[10px] text-stone-500 dark:text-stone-400">Full backup</span>
+                      <Download size={20} className="text-stone-600" />
+                      <span className="text-xs font-medium text-stone-900">JSON</span>
+                      <span className="text-[10px] text-stone-500">Full backup</span>
                     </button>
                     <button
                       onClick={() => exportProject('fountain')}
-                      className="p-4 rounded-xl border border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 transition-all flex flex-col items-center gap-2 hover:bg-stone-50 dark:hover:bg-stone-800"
+                      className="p-4 rounded-xl border border-stone-200 hover:border-stone-300 transition-all flex flex-col items-center gap-2 hover:bg-stone-50"
                     >
-                      <Download size={20} className="text-stone-600 dark:text-stone-300" />
-                      <span className="text-xs font-medium text-stone-900 dark:text-white">Fountain</span>
-                      <span className="text-[10px] text-stone-500 dark:text-stone-400">Script only</span>
+                      <Download size={20} className="text-stone-600" />
+                      <span className="text-xs font-medium text-stone-900">Fountain</span>
+                      <span className="text-[10px] text-stone-500">Script only</span>
                     </button>
                     <button
                       onClick={() => exportProject('pdf')}
-                      className="p-4 rounded-xl border border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 transition-all flex flex-col items-center gap-2 hover:bg-stone-50 dark:hover:bg-stone-800"
+                      className="p-4 rounded-xl border border-stone-200 hover:border-stone-300 transition-all flex flex-col items-center gap-2 hover:bg-stone-50"
                     >
-                      <Download size={20} className="text-stone-600 dark:text-stone-300" />
-                      <span className="text-xs font-medium text-stone-900 dark:text-white">PDF</span>
-                      <span className="text-[10px] text-stone-500 dark:text-stone-400">Printable</span>
+                      <Download size={20} className="text-stone-600" />
+                      <span className="text-xs font-medium text-stone-900">PDF</span>
+                      <span className="text-[10px] text-stone-500">Printable</span>
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-semibold text-stone-900 dark:text-white mb-1">Import Project</h4>
-                  <p className="text-xs text-stone-500 dark:text-stone-400 mb-4">
+                  <h4 className="text-sm font-semibold text-stone-900 mb-1">Import Project</h4>
+                  <p className="text-xs text-stone-500 mb-4">
                     Load a previously exported project
                   </p>
                   <button
                     onClick={handleImport}
-                    className="w-full p-4 rounded-xl border-2 border-dashed border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 transition-all flex flex-col items-center gap-2 hover:bg-stone-50 dark:hover:bg-stone-800"
+                    className="w-full p-4 rounded-xl border-2 border-dashed border-stone-200 hover:border-stone-300 transition-all flex flex-col items-center gap-2 hover:bg-stone-50"
                   >
                     <Upload size={20} className="text-stone-400" />
-                    <span className="text-sm font-medium text-stone-600 dark:text-stone-300">
+                    <span className="text-sm font-medium text-stone-600">
                       Choose JSON file
                     </span>
                   </button>
@@ -499,17 +477,17 @@ const SettingsModal: React.FC = () => {
 
             {activeTab === 'billing' && (
               <div className="space-y-6">
-                <div className="rounded-2xl border border-stone-200 dark:border-stone-700 p-5 bg-stone-50/60 dark:bg-stone-800/40">
-                  <div className="flex items-center gap-2 mb-2 text-sm font-semibold text-stone-900 dark:text-white uppercase tracking-wide">
+                <div className="rounded-2xl border border-stone-200 p-5 bg-stone-50/60">
+                  <div className="flex items-center gap-2 mb-2 text-sm font-semibold text-stone-900 uppercase tracking-wide">
                     <CreditCard size={16} />
                     Current Plan
                   </div>
                   <div className="flex items-center justify-between flex-wrap gap-3">
                     <div>
-                      <p className="text-2xl font-bold capitalize text-stone-900 dark:text-white">{subscription.plan}</p>
-                      <p className="text-xs text-stone-500 dark:text-stone-400">Status: {subscription.status}</p>
+                      <p className="text-2xl font-bold capitalize text-stone-900">{subscription.plan}</p>
+                      <p className="text-xs text-stone-500">Status: {subscription.status}</p>
                       {subscription.current_period_end && (
-                        <p className="text-xs text-stone-500 dark:text-stone-400">
+                        <p className="text-xs text-stone-500">
                           Renews {new Date(subscription.current_period_end).toLocaleDateString()}
                         </p>
                       )}
@@ -540,33 +518,33 @@ const SettingsModal: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="rounded-2xl border border-stone-200 dark:border-stone-700 p-4 bg-white dark:bg-stone-900/40">
-                    <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-stone-500 dark:text-stone-400 mb-1">
+                  <div className="rounded-2xl border border-stone-200 p-4 bg-white">
+                    <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-stone-500 mb-1">
                       <FolderOpen size={14} />
                       Projects
                     </div>
-                    <p className="text-2xl font-bold text-stone-900 dark:text-white">
+                    <p className="text-2xl font-bold text-stone-900">
                       {projects.length} / {planLimits[subscription.plan].projects === Infinity ? '∞' : planLimits[subscription.plan].projects}
                     </p>
-                    <p className="text-xs text-stone-500 dark:text-stone-400">Free plan allows up to 3 projects.</p>
+                    <p className="text-xs text-stone-500">Free plan allows up to 3 projects.</p>
                   </div>
-                  <div className="rounded-2xl border border-stone-200 dark:border-stone-700 p-4 bg-white dark:bg-stone-900/40">
-                    <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-stone-500 dark:text-stone-400 mb-1">
+                  <div className="rounded-2xl border border-stone-200 p-4 bg-white">
+                    <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-stone-500 mb-1">
                       <Zap size={14} />
                       AI Requests (30 days)
                     </div>
-                    <p className="text-2xl font-bold text-stone-900 dark:text-white">
+                    <p className="text-2xl font-bold text-stone-900">
                       {monthlyAiUsage} / {planLimits[subscription.plan].ai === Infinity ? '∞' : planLimits[subscription.plan].ai}
                     </p>
-                    <p className="text-xs text-stone-500 dark:text-stone-400">Upgrade for higher or unlimited usage.</p>
+                    <p className="text-xs text-stone-500">Upgrade for higher or unlimited usage.</p>
                   </div>
-                  <div className="rounded-2xl border border-stone-200 dark:border-stone-700 p-4 bg-white dark:bg-stone-900/40 flex flex-col gap-2">
-                    <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-stone-500 dark:text-stone-400">
+                  <div className="rounded-2xl border border-stone-200 p-4 bg-white flex flex-col gap-2">
+                    <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-stone-500">
                       <CreditCard size={14} />
                       Credits
                     </div>
-                    <p className="text-2xl font-bold text-stone-900 dark:text-white">{subscription.credit_balance}</p>
-                    <p className="text-xs text-stone-500 dark:text-stone-400 flex-1">Credits erlauben zusätzliche AI-Requests über das Freikontingent hinaus.</p>
+                    <p className="text-2xl font-bold text-stone-900">{subscription.credit_balance}</p>
+                    <p className="text-xs text-stone-500 flex-1">Credits erlauben zusätzliche AI-Requests über das Freikontingent hinaus.</p>
                     <button
                       onClick={handleCreditTopUp}
                       disabled={creditLoading}
@@ -577,14 +555,14 @@ const SettingsModal: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-stone-200 dark:border-stone-700 p-4 bg-white dark:bg-stone-900/40">
-                  <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-stone-500 dark:text-stone-400 mb-3">
+                <div className="rounded-2xl border border-stone-200 p-4 bg-white">
+                  <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-stone-500 mb-3">
                     <BarChart3 size={14} />
                     Plan Comparison
                   </div>
-                  <div className="grid grid-cols-2 text-sm text-stone-600 dark:text-stone-300 gap-4">
+                  <div className="grid grid-cols-2 text-sm text-stone-600 gap-4">
                     <div className="space-y-2">
-                      <p className="font-semibold text-stone-900 dark:text-white">Free</p>
+                      <p className="font-semibold text-stone-900">Free</p>
                       <ul className="text-xs space-y-1">
                         <li>• 3 projects</li>
                         <li>• 30 AI requests / month</li>
@@ -592,7 +570,7 @@ const SettingsModal: React.FC = () => {
                       </ul>
                     </div>
                     <div className="space-y-2">
-                      <p className="font-semibold text-stone-900 dark:text-white">Pro</p>
+                      <p className="font-semibold text-stone-900">Pro</p>
                       <ul className="text-xs space-y-1">
                         <li>• Unlimited projects</li>
                         <li>• Priority AI processing</li>

@@ -42,7 +42,7 @@ const NODE_CONFIG: Record<NodeType, {
   label: string;
   sector: number;
 }> = {
-  central: { bg: 'bg-stone-900 dark:bg-white', border: 'border-stone-900 dark:border-white', icon: <Sparkles size={16} />, label: 'Central', sector: -1 },
+  central: { bg: 'bg-stone-900', border: 'border-stone-900', icon: <Sparkles size={16} />, label: 'Central', sector: -1 },
   character: { bg: 'bg-amber-500', border: 'border-amber-500', icon: <User size={12} />, label: 'Character', sector: 0 },
   location: { bg: 'bg-emerald-500', border: 'border-emerald-500', icon: <MapPin size={12} />, label: 'Location', sector: 1 },
   faction: { bg: 'bg-purple-500', border: 'border-purple-500', icon: <Crown size={12} />, label: 'Faction', sector: 2 },
@@ -206,7 +206,7 @@ const calculateHierarchicalLayout = (nodes: MindMapNode[], central: MindMapNode)
 // ============================================
 
 const MindMap: React.FC = () => {
-  const { theme, sources, currentProject } = useStory();
+  const { sources, currentProject } = useStory();
   const canvasRef = useRef<HTMLDivElement>(null);
   
   // Canvas state
@@ -639,24 +639,12 @@ const MindMap: React.FC = () => {
   const nodeCount = nodes.filter(n => n.type !== 'central').length;
 
   return (
-    <div className={cn(
-      "h-full flex rounded-2xl shadow-subtle border overflow-hidden",
-      theme === 'dark' ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200/60'
-    )}>
+    <div className="h-full flex rounded-2xl shadow-subtle border overflow-hidden bg-white border-stone-200/60">
       
       {/* Left Sidebar - Sector Controls */}
-      <div className={cn(
-        "w-48 border-r flex flex-col shrink-0",
-        theme === 'dark' ? 'border-stone-800 bg-stone-900/50' : 'border-stone-100 bg-stone-50/50'
-      )}>
-        <div className={cn(
-          "px-3 py-3 border-b",
-          theme === 'dark' ? 'border-stone-800' : 'border-stone-100'
-        )}>
-          <h3 className={cn(
-            "text-xs font-semibold uppercase tracking-wider",
-            theme === 'dark' ? 'text-stone-400' : 'text-stone-500'
-          )}>Categories</h3>
+      <div className="w-48 border-r flex flex-col shrink-0 border-stone-100 bg-stone-50/50">
+        <div className="px-3 py-3 border-b border-stone-100">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-stone-500">Categories</h3>
         </div>
         
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
@@ -667,8 +655,8 @@ const MindMap: React.FC = () => {
               className={cn(
                 "w-full px-3 py-2 rounded-lg text-left flex items-center gap-2 transition-all",
                 collapsed
-                  ? theme === 'dark' ? 'bg-stone-800/50 opacity-50' : 'bg-stone-100/50 opacity-50'
-                  : theme === 'dark' ? 'hover:bg-stone-800' : 'hover:bg-stone-100'
+                  ? 'bg-stone-100/50 opacity-50'
+                  : 'hover:bg-stone-100'
               )}
             >
               <div className={cn(
@@ -678,37 +666,24 @@ const MindMap: React.FC = () => {
                 {NODE_CONFIG[type].icon}
               </div>
               <div className="flex-1 min-w-0">
-                <p className={cn(
-                  "text-xs font-medium truncate",
-                  theme === 'dark' ? 'text-stone-300' : 'text-stone-700'
-                )}>
+                <p className="text-xs font-medium truncate text-stone-700">
                   {NODE_CONFIG[type].label}
                 </p>
-                <p className={cn(
-                  "text-[10px]",
-                  theme === 'dark' ? 'text-stone-500' : 'text-stone-400'
-                )}>
+                <p className="text-[10px] text-stone-400">
                   {count} {count === 1 ? 'node' : 'nodes'}
                 </p>
               </div>
               <ChevronRight size={12} className={cn(
-                "shrink-0 transition-transform",
-                !collapsed && "rotate-90",
-                theme === 'dark' ? 'text-stone-500' : 'text-stone-400'
+                "shrink-0 transition-transform text-stone-400",
+                !collapsed && "rotate-90"
               )} />
             </button>
           ))}
         </div>
 
         {/* Layout Selector */}
-        <div className={cn(
-          "p-2 border-t space-y-1",
-          theme === 'dark' ? 'border-stone-800' : 'border-stone-100'
-        )}>
-          <p className={cn(
-            "text-[10px] font-medium uppercase tracking-wider px-2 mb-2",
-            theme === 'dark' ? 'text-stone-500' : 'text-stone-400'
-          )}>Layout</p>
+        <div className="p-2 border-t space-y-1 border-stone-100">
+          <p className="text-[10px] font-medium uppercase tracking-wider px-2 mb-2 text-stone-400">Layout</p>
           {[
             { mode: 'radial' as LayoutMode, icon: <Layers size={12} />, label: 'Radial' },
             { mode: 'grid' as LayoutMode, icon: <Grid3X3 size={12} />, label: 'Grid' },
@@ -720,8 +695,8 @@ const MindMap: React.FC = () => {
               className={cn(
                 "w-full px-3 py-1.5 rounded-lg text-xs flex items-center gap-2 transition-colors",
                 layoutMode === mode
-                  ? theme === 'dark' ? 'bg-white text-stone-900' : 'bg-stone-900 text-white'
-                  : theme === 'dark' ? 'text-stone-400 hover:bg-stone-800' : 'text-stone-600 hover:bg-stone-100'
+                  ? 'bg-stone-900 text-white'
+                  : 'text-stone-600 hover:bg-stone-100'
               )}
             >
               {icon}
@@ -734,26 +709,14 @@ const MindMap: React.FC = () => {
       {/* Main Canvas Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <div className={cn(
-          "px-4 py-2 flex items-center justify-between border-b shrink-0",
-          theme === 'dark' ? 'border-stone-800' : 'border-stone-100'
-        )}>
+        <div className="px-4 py-2 flex items-center justify-between border-b shrink-0 border-stone-100">
           <div className="flex items-center gap-3">
-            <h2 className={cn(
-              "text-sm font-semibold",
-              theme === 'dark' ? 'text-white' : 'text-stone-900'
-            )}>Universe Mind Map</h2>
-            <span className={cn(
-              "text-[10px] px-2 py-0.5 rounded-full",
-              theme === 'dark' ? 'bg-stone-800 text-stone-400' : 'bg-stone-100 text-stone-500'
-            )}>
+            <h2 className="text-sm font-semibold text-stone-900">Universe Mind Map</h2>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-stone-100 text-stone-500">
               {nodeCount} nodes
             </span>
             {centralTheme && (
-              <span className={cn(
-                "text-[10px] px-2 py-0.5 rounded-full max-w-[200px] truncate",
-                theme === 'dark' ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700'
-              )}>
+              <span className="text-[10px] px-2 py-0.5 rounded-full max-w-[200px] truncate bg-purple-100 text-purple-700">
                 {centralTheme}
               </span>
             )}
@@ -767,7 +730,7 @@ const MindMap: React.FC = () => {
               className={cn(
                 "h-8 px-3 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all",
                 sources.length === 0
-                  ? 'bg-stone-200 text-stone-400 cursor-not-allowed dark:bg-stone-800 dark:text-stone-600'
+                  ? 'bg-stone-200 text-stone-400 cursor-not-allowed'
                   : 'bg-gradient-to-r from-violet-500 to-purple-500 text-white hover:from-violet-600 hover:to-purple-600 shadow-lg shadow-purple-500/20'
               )}
             >
@@ -779,39 +742,27 @@ const MindMap: React.FC = () => {
               <button
                 onClick={handleRegenerate}
                 disabled={isGenerating}
-                className={cn(
-                  "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-                  theme === 'dark' ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-stone-100 text-stone-500'
-                )}
+                className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-stone-100 text-stone-500"
                 title="Clear & Regenerate"
               >
                 <RotateCcw size={12} />
               </button>
             )}
 
-            <div className="w-px h-5 bg-stone-200 dark:bg-stone-700 mx-1" />
+            <div className="w-px h-5 bg-stone-200 mx-1" />
 
             <div className="relative group">
-              <button className={cn(
-                "h-8 px-2.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors",
-                theme === 'dark' ? 'hover:bg-stone-800 text-stone-300' : 'hover:bg-stone-100 text-stone-600'
-              )}>
+              <button className="h-8 px-2.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors hover:bg-stone-100 text-stone-600">
                 <Plus size={12} />
                 Add
                 <ChevronDown size={10} />
               </button>
-              <div className={cn(
-                "absolute right-0 top-full mt-1 w-40 rounded-xl shadow-lg z-50 overflow-hidden border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all",
-                theme === 'dark' ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200'
-              )}>
+              <div className="absolute right-0 top-full mt-1 w-40 rounded-xl shadow-lg z-50 overflow-hidden border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all bg-white border-stone-200">
                 {(['character', 'location', 'faction', 'concept', 'event', 'relationship'] as NodeType[]).map(type => (
                   <button
                     key={type}
                     onClick={() => addNode(type, selectedNode || undefined)}
-                    className={cn(
-                      "w-full px-3 py-2 text-xs text-left flex items-center gap-2 transition-colors",
-                      theme === 'dark' ? 'text-stone-300 hover:bg-stone-800' : 'text-stone-700 hover:bg-stone-50'
-                    )}
+                    className="w-full px-3 py-2 text-xs text-left flex items-center gap-2 transition-colors text-stone-700 hover:bg-stone-50"
                   >
                     <span className={cn("w-5 h-5 rounded-full flex items-center justify-center text-white", NODE_CONFIG[type].bg)}>
                       {NODE_CONFIG[type].icon}
@@ -822,31 +773,19 @@ const MindMap: React.FC = () => {
               </div>
             </div>
 
-            <div className="w-px h-5 bg-stone-200 dark:bg-stone-700 mx-1" />
+            <div className="w-px h-5 bg-stone-200 mx-1" />
 
-            <div className={cn(
-              "flex items-center gap-0.5 rounded-lg p-0.5",
-              theme === 'dark' ? 'bg-stone-800' : 'bg-stone-100'
-            )}>
+            <div className="flex items-center gap-0.5 rounded-lg p-0.5 bg-stone-100">
               <button
                 onClick={() => setZoom(z => Math.max(0.2, z - 0.1))}
-                className={cn(
-                  "w-6 h-6 rounded flex items-center justify-center transition-colors",
-                  theme === 'dark' ? 'hover:bg-stone-700' : 'hover:bg-stone-200'
-                )}
+                className="w-6 h-6 rounded flex items-center justify-center transition-colors hover:bg-stone-200"
               >
                 <ZoomOut size={12} />
               </button>
-              <span className={cn(
-                "text-[10px] font-mono w-10 text-center",
-                theme === 'dark' ? 'text-stone-400' : 'text-stone-500'
-              )}>{Math.round(zoom * 100)}%</span>
+              <span className="text-[10px] font-mono w-10 text-center text-stone-500">{Math.round(zoom * 100)}%</span>
               <button
                 onClick={() => setZoom(z => Math.min(1.5, z + 0.1))}
-                className={cn(
-                  "w-6 h-6 rounded flex items-center justify-center transition-colors",
-                  theme === 'dark' ? 'hover:bg-stone-700' : 'hover:bg-stone-200'
-                )}
+                className="w-6 h-6 rounded flex items-center justify-center transition-colors hover:bg-stone-200"
               >
                 <ZoomIn size={12} />
               </button>
@@ -854,10 +793,7 @@ const MindMap: React.FC = () => {
 
             <button
               onClick={resetView}
-              className={cn(
-                "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-                theme === 'dark' ? 'hover:bg-stone-800' : 'hover:bg-stone-100'
-              )}
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-stone-100"
               title="Reset View"
             >
               <Maximize2 size={12} />
@@ -877,10 +813,7 @@ const MindMap: React.FC = () => {
         {/* Canvas */}
         <div 
           ref={canvasRef}
-          className={cn(
-            "flex-1 relative overflow-hidden cursor-grab active:cursor-grabbing",
-            theme === 'dark' ? 'bg-stone-950' : 'bg-stone-50'
-          )}
+          className="flex-1 relative overflow-hidden cursor-grab active:cursor-grabbing bg-stone-50"
           onMouseDown={handleCanvasMouseDown}
           onMouseMove={handleCanvasMouseMove}
           onMouseUp={handleCanvasMouseUp}
@@ -888,7 +821,7 @@ const MindMap: React.FC = () => {
         >
           {/* Grid */}
           <div 
-            className={cn("absolute inset-0 pointer-events-none canvas-bg", theme === 'dark' ? 'opacity-[0.02]' : 'opacity-[0.04]')}
+            className="absolute inset-0 pointer-events-none canvas-bg opacity-[0.04]"
             style={{ 
               backgroundImage: 'radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)',
               backgroundSize: `${20 * zoom}px ${20 * zoom}px`,
@@ -908,7 +841,7 @@ const MindMap: React.FC = () => {
                     cy={0}
                     r={r}
                     fill="none"
-                    stroke={theme === 'dark' ? '#27272a' : '#e7e5e4'}
+                    stroke="#e7e5e4"
                     strokeWidth={1 / zoom}
                     strokeDasharray="4 4"
                   />
@@ -923,7 +856,7 @@ const MindMap: React.FC = () => {
                       y1={0}
                       x2={Math.cos(rad) * 700}
                       y2={Math.sin(rad) * 700}
-                      stroke={theme === 'dark' ? '#27272a' : '#e7e5e4'}
+                      stroke="#e7e5e4"
                       strokeWidth={1 / zoom}
                       strokeDasharray="4 4"
                     />
@@ -947,7 +880,7 @@ const MindMap: React.FC = () => {
                       y1={node.y}
                       x2={target.x}
                       y2={target.y}
-                      stroke={theme === 'dark' ? '#44403c' : '#d6d3d1'}
+                      stroke="#d6d3d1"
                       strokeWidth={1 / zoom}
                       opacity={0.5}
                     />
@@ -996,8 +929,8 @@ const MindMap: React.FC = () => {
                       <div className={cn(
                         "rounded-xl border transition-all duration-150",
                         isCentral ? "px-3 py-3" : "px-2.5 py-2",
-                        isSelected ? `${config.border} shadow-lg border-2` : theme === 'dark' ? 'border-stone-700 hover:border-stone-600' : 'border-stone-200 hover:border-stone-300',
-                        theme === 'dark' ? 'bg-stone-900' : 'bg-white',
+                        isSelected ? `${config.border} shadow-lg border-2` : 'border-stone-200 hover:border-stone-300',
+                        'bg-white',
                         isConnecting && 'ring-2 ring-blue-500'
                       )}>
                         {/* Icon */}
@@ -1017,10 +950,7 @@ const MindMap: React.FC = () => {
                               value={editTitle}
                               onChange={(e) => setEditTitle(e.target.value)}
                               onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditingNode(null); }}
-                              className={cn(
-                                "w-full text-center text-[10px] font-medium bg-transparent outline-none border-b",
-                                theme === 'dark' ? 'text-white border-stone-600' : 'text-stone-900 border-stone-300'
-                              )}
+                              className="w-full text-center text-[10px] font-medium bg-transparent outline-none border-b text-stone-900 border-stone-300"
                               onClick={(e) => e.stopPropagation()}
                             />
                             <button onClick={saveEdit} className="text-emerald-500"><Check size={10} /></button>
@@ -1029,7 +959,7 @@ const MindMap: React.FC = () => {
                           <h3 className={cn(
                             "text-center font-medium truncate",
                             isCentral ? "text-xs" : "text-[10px]",
-                            theme === 'dark' ? 'text-white' : 'text-stone-900'
+                            'text-stone-900'
                           )}>
                             {node.title}
                           </h3>
@@ -1037,10 +967,7 @@ const MindMap: React.FC = () => {
 
                         {/* Type label */}
                         {!isCentral && (
-                          <p className={cn(
-                            "text-[8px] text-center uppercase tracking-wider mt-0.5",
-                            theme === 'dark' ? 'text-stone-500' : 'text-stone-400'
-                          )}>
+                          <p className="text-[8px] text-center uppercase tracking-wider mt-0.5 text-stone-400">
                             {config.label}
                           </p>
                         )}
@@ -1061,7 +988,7 @@ const MindMap: React.FC = () => {
                             onClick={(e) => { e.stopPropagation(); toggleConnection(node.id); }}
                             className={cn(
                               "w-5 h-5 rounded-full flex items-center justify-center shadow-lg",
-                              connectingFrom === node.id ? 'bg-blue-500 text-white' : theme === 'dark' ? 'bg-stone-700 text-stone-300' : 'bg-white text-stone-600'
+                              connectingFrom === node.id ? 'bg-blue-500 text-white' : 'bg-white text-stone-600'
                             )}
                             title="Connect"
                           >
@@ -1069,7 +996,7 @@ const MindMap: React.FC = () => {
                           </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); deleteNode(node.id); }}
-                            className={cn("w-5 h-5 rounded-full flex items-center justify-center shadow-lg", theme === 'dark' ? 'bg-stone-700 text-stone-300 hover:bg-red-500 hover:text-white' : 'bg-white text-stone-600 hover:bg-red-500 hover:text-white')}
+                            className="w-5 h-5 rounded-full flex items-center justify-center shadow-lg bg-white text-stone-600 hover:bg-red-500 hover:text-white"
                             title="Delete"
                           >
                             <Trash2 size={8} />
@@ -1093,9 +1020,9 @@ const MindMap: React.FC = () => {
           {/* Loading */}
           {isGenerating && (
             <div className="absolute inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center">
-              <div className={cn("px-4 py-3 rounded-xl shadow-xl flex items-center gap-2", theme === 'dark' ? 'bg-stone-900' : 'bg-white')}>
+              <div className="px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 bg-white">
                 <Loader2 className="w-4 h-4 animate-spin text-purple-500" />
-                <span className={cn("text-sm", theme === 'dark' ? 'text-white' : 'text-stone-900')}>Analyzing universe...</span>
+                <span className="text-sm text-stone-900">Analyzing universe...</span>
               </div>
             </div>
           )}
@@ -1104,8 +1031,8 @@ const MindMap: React.FC = () => {
           {nodeCount === 0 && !isGenerating && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="text-center">
-                <Wand2 className={cn("w-10 h-10 mx-auto mb-2", theme === 'dark' ? 'text-stone-700' : 'text-stone-300')} />
-                <p className={cn("text-xs", theme === 'dark' ? 'text-stone-500' : 'text-stone-400')}>
+                <Wand2 className="w-10 h-10 mx-auto mb-2 text-stone-300" />
+                <p className="text-xs text-stone-400">
                   {sources.length === 0 ? 'Add sources first' : 'Click "AI Generate"'}
                 </p>
               </div>
@@ -1115,20 +1042,20 @@ const MindMap: React.FC = () => {
 
         {/* Footer */}
         {aiInsights.length > 0 && (
-          <div className={cn("border-t shrink-0", theme === 'dark' ? 'border-stone-800' : 'border-stone-100')}>
+          <div className="border-t shrink-0 border-stone-100">
             <button
               onClick={() => setShowInsights(!showInsights)}
-              className={cn("w-full px-3 py-1.5 flex items-center justify-between text-xs", theme === 'dark' ? 'hover:bg-stone-800' : 'hover:bg-stone-50')}
+              className="w-full px-3 py-1.5 flex items-center justify-between text-xs hover:bg-stone-50"
             >
-              <span className={cn("flex items-center gap-1.5", theme === 'dark' ? 'text-stone-300' : 'text-stone-600')}>
+              <span className="flex items-center gap-1.5 text-stone-600">
                 <Eye size={12} /> AI Insights ({aiInsights.length})
               </span>
-              <ChevronRight size={10} className={cn("transition-transform", showInsights && "rotate-90", theme === 'dark' ? 'text-stone-500' : 'text-stone-400')} />
+              <ChevronRight size={10} className={cn("transition-transform text-stone-400", showInsights && "rotate-90")} />
             </button>
             {showInsights && (
               <div className="px-3 pb-2 space-y-1 max-h-24 overflow-y-auto">
                 {aiInsights.map((insight, i) => (
-                  <p key={i} className={cn("text-[10px] pl-2 border-l-2", theme === 'dark' ? 'text-stone-400 border-purple-500/50' : 'text-stone-500 border-purple-500/50')}>
+                  <p key={i} className="text-[10px] pl-2 border-l-2 text-stone-500 border-purple-500/50">
                     {insight}
                   </p>
                 ))}

@@ -182,58 +182,58 @@ export const CHARACTER_EXTENSIONS = [
 
 export const REVISION_COLORS: Record<RevisionColor, RevisionColorConfig> = {
   white: { 
-    bg: 'bg-white dark:bg-stone-900', 
-    text: 'text-stone-900 dark:text-stone-100', 
+    bg: 'bg-white', 
+    text: 'text-stone-900', 
     label: 'White (Original)',
-    border: 'border-stone-200 dark:border-stone-800'
+    border: 'border-stone-200'
   },
   blue: { 
-    bg: 'bg-blue-50 dark:bg-blue-950/30', 
-    text: 'text-blue-900 dark:text-blue-100', 
+    bg: 'bg-blue-50', 
+    text: 'text-blue-900', 
     label: 'Blue (1st Revision)',
-    border: 'border-blue-200 dark:border-blue-800'
+    border: 'border-blue-200'
   },
   pink: { 
-    bg: 'bg-pink-50 dark:bg-pink-950/30', 
-    text: 'text-pink-900 dark:text-pink-100', 
+    bg: 'bg-pink-50', 
+    text: 'text-pink-900', 
     label: 'Pink (2nd Revision)',
-    border: 'border-pink-200 dark:border-pink-800'
+    border: 'border-pink-200'
   },
   yellow: { 
-    bg: 'bg-yellow-50 dark:bg-yellow-950/30', 
-    text: 'text-yellow-900 dark:text-yellow-100', 
+    bg: 'bg-yellow-50', 
+    text: 'text-yellow-900', 
     label: 'Yellow (3rd Revision)',
-    border: 'border-yellow-200 dark:border-yellow-800'
+    border: 'border-yellow-200'
   },
   green: { 
-    bg: 'bg-green-50 dark:bg-green-950/30', 
-    text: 'text-green-900 dark:text-green-100', 
+    bg: 'bg-green-50', 
+    text: 'text-green-900', 
     label: 'Green (4th Revision)',
-    border: 'border-green-200 dark:border-green-800'
+    border: 'border-green-200'
   },
   goldenrod: { 
-    bg: 'bg-amber-50 dark:bg-amber-950/30', 
-    text: 'text-amber-900 dark:text-amber-100', 
+    bg: 'bg-amber-50', 
+    text: 'text-amber-900', 
     label: 'Goldenrod (5th Revision)',
-    border: 'border-amber-200 dark:border-amber-800'
+    border: 'border-amber-200'
   },
   buff: { 
-    bg: 'bg-orange-50 dark:bg-orange-950/30', 
-    text: 'text-orange-900 dark:text-orange-100', 
+    bg: 'bg-orange-50', 
+    text: 'text-orange-900', 
     label: 'Buff (6th Revision)',
-    border: 'border-orange-200 dark:border-orange-800'
+    border: 'border-orange-200'
   },
   salmon: { 
-    bg: 'bg-red-50 dark:bg-red-950/30', 
-    text: 'text-red-900 dark:text-red-100', 
+    bg: 'bg-red-50', 
+    text: 'text-red-900', 
     label: 'Salmon (7th Revision)',
-    border: 'border-red-200 dark:border-red-800'
+    border: 'border-red-200'
   },
   cherry: { 
-    bg: 'bg-rose-100 dark:bg-rose-950/40', 
-    text: 'text-rose-900 dark:text-rose-100', 
+    bg: 'bg-rose-100', 
+    text: 'text-rose-900', 
     label: 'Cherry (8th Revision)',
-    border: 'border-rose-200 dark:border-rose-800'
+    border: 'border-rose-200'
   },
 };
 
@@ -367,4 +367,3 @@ export const PATTERNS = {
   // Underline: _text_
   UNDERLINE: /_([^_]+)_/g,
 };
-

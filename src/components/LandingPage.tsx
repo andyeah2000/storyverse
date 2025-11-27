@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '../hooks';
+import ThemeToggleButton from './ThemeToggleButton';
 import { 
   ArrowRight,
   Mic, 
@@ -8,8 +9,6 @@ import {
   Layers,
   Play,
   Check,
-  Moon,
-  Sun,
   Menu,
   X
 } from 'lucide-react';
@@ -33,14 +32,6 @@ const LandingPage: React.FC = () => {
       document.body.style.overflow = '';
     };
   }, [mobileNavOpen]);
-
-  const toggleTheme = () => {
-    const current = localStorage.getItem('storyverse_settings');
-    const settings = current ? JSON.parse(current) : {};
-    const newTheme = isDark ? 'light' : 'dark';
-    localStorage.setItem('storyverse_settings', JSON.stringify({ ...settings, theme: newTheme }));
-    window.location.reload();
-  };
 
   const navLinks = [
     { label: 'Features', href: '#features', type: 'anchor' as const },
@@ -101,14 +92,7 @@ const LandingPage: React.FC = () => {
               ))}
             </div>
 
-            <button
-              onClick={toggleTheme}
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                isDark ? 'hover:bg-stone-800' : 'hover:bg-stone-100'
-              }`}
-            >
-              {isDark ? <Sun size={18} className="text-stone-400" /> : <Moon size={18} className="text-stone-500" />}
-            </button>
+            <ThemeToggleButton />
             <div className="hidden md:flex items-center gap-2">
               <button 
                 onClick={() => navigate('/login')}

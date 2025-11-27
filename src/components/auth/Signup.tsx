@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../hooks';
-import { Eye, EyeOff, ArrowRight, ArrowLeft, Loader2, Check, Moon, Sun } from 'lucide-react';
+import ThemeToggleButton from '../ThemeToggleButton';
+import { Eye, EyeOff, ArrowRight, ArrowLeft, Loader2, Check } from 'lucide-react';
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
@@ -24,14 +25,6 @@ const Signup: React.FC = () => {
   ];
 
   const allRequirementsMet = password.length >= 8;
-
-  const toggleTheme = () => {
-    const current = localStorage.getItem('storyverse_settings');
-    const settings = current ? JSON.parse(current) : {};
-    const newTheme = isDark ? 'light' : 'dark';
-    localStorage.setItem('storyverse_settings', JSON.stringify({ ...settings, theme: newTheme }));
-    window.location.reload();
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,35 +53,17 @@ const Signup: React.FC = () => {
     }`}>
       {/* Header */}
       <header className="px-6 py-5 flex items-center justify-between">
-        <Link 
-          to="/" 
-          className={`flex items-center gap-2 text-sm transition-colors group ${
-            isDark ? 'text-stone-400 hover:text-white' : 'text-stone-500 hover:text-stone-900'
-          }`}
-        >
-          <ArrowLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />
-          Back
+        <Link to="/" className="flex items-center gap-2.5">
+          <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+            isDark ? 'bg-white' : 'bg-stone-900'
+          }`}>
+            <span className={`text-xs font-bold ${isDark ? 'text-stone-900' : 'text-white'}`}>S</span>
+          </div>
+          <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-stone-900'}`}>
+            StoryVerse
+          </span>
         </Link>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={toggleTheme}
-            className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-              isDark ? 'hover:bg-stone-800' : 'hover:bg-stone-100'
-            }`}
-          >
-            {isDark ? <Sun size={18} className="text-stone-400" /> : <Moon size={18} className="text-stone-500" />}
-          </button>
-          <Link to="/" className="flex items-center gap-2.5">
-            <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-              isDark ? 'bg-white' : 'bg-stone-900'
-            }`}>
-              <span className={`text-xs font-bold ${isDark ? 'text-stone-900' : 'text-white'}`}>S</span>
-            </div>
-            <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-stone-900'}`}>
-              StoryVerse
-            </span>
-          </Link>
-        </div>
+        <ThemeToggleButton />
       </header>
 
       {/* Main */}
@@ -236,6 +211,18 @@ const Signup: React.FC = () => {
               )}
             </button>
           </form>
+
+          <Link
+            to="/"
+            className={`mt-6 inline-flex w-full h-[48px] items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-all active:scale-[0.98] ${
+              isDark
+                ? 'border border-stone-800 text-stone-200 hover:bg-stone-800'
+                : 'border border-stone-200 text-stone-700 hover:bg-stone-100'
+            }`}
+          >
+            <ArrowLeft size={16} />
+            Back to landing
+          </Link>
 
           {/* Secondary CTA */}
           <p className={`text-center text-[15px] mt-8 ${isDark ? 'text-stone-500' : 'text-stone-500'}`}>

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { useTheme } from '../../hooks';
 import ThemeToggleButton from '../ThemeToggleButton';
 import { cn } from '../../lib/utils';
@@ -48,7 +48,7 @@ const LegalLayout: React.FC<LegalLayoutProps> = ({
           });
         },
         {
-          rootMargin: '-45% 0px -45% 0px',
+          rootMargin: '-20% 0px -70% 0px',
           threshold: 0,
         }
       );
@@ -69,6 +69,18 @@ const LegalLayout: React.FC<LegalLayoutProps> = ({
       top: target.offsetTop - 100,
       behavior: 'smooth',
     });
+    setActiveId(id);
+  };
+
+  // Extract section number from title if present (e.g., "1. Introduction" -> "1")
+  const getSectionNumber = (sectionTitle: string): string | null => {
+    const match = sectionTitle.match(/^(\d+)\./);
+    return match ? match[1] : null;
+  };
+
+  // Get title without number prefix
+  const getTitleWithoutNumber = (sectionTitle: string): string => {
+    return sectionTitle.replace(/^\d+\.\s*/, '');
   };
 
   return (
@@ -78,10 +90,10 @@ const LegalLayout: React.FC<LegalLayoutProps> = ({
     )}>
       {/* Header */}
       <header className={cn(
-        'border-b shrink-0',
-        isDark ? 'border-stone-800' : 'border-stone-200'
+        'border-b shrink-0 sticky top-0 z-40 backdrop-blur-xl',
+        isDark ? 'border-stone-800 bg-[#0c0a09]/90' : 'border-stone-200 bg-[#FAFAF9]/90'
       )}>
-        <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link 
             to={backHref} 
             className={cn(
@@ -112,76 +124,122 @@ const LegalLayout: React.FC<LegalLayoutProps> = ({
         </div>
       </header>
 
-      {/* Content */}
-      <main className="flex-1 py-10 px-4 sm:px-6">
-        <div className="max-w-6xl mx-auto grid lg:grid-cols-[220px_1fr] gap-8">
-          {/* Desktop TOC */}
-          <aside className="hidden lg:block">
-            <div className="sticky top-28">
-              <p className={cn(
-                'text-xs uppercase tracking-[0.2em] mb-4',
-                isDark ? 'text-stone-500' : 'text-stone-400'
-              )}>
-                Inhaltsverzeichnis
-              </p>
-              <nav className="space-y-1">
-                {sections.map(section => (
+      {/* Desktop TOC - Apple-style minimal sidebar, vertically centered */}
+      <aside className={cn(
+        'hidden lg:flex fixed left-0 top-[57px] bottom-0 w-56 flex-col items-start justify-center',
+        isDark ? 'bg-[#0c0a09]' : 'bg-[#FAFAF9]'
+      )}>
+        <div className="pl-8 pr-6">
+          <nav className="relative">
+            {/* Animated pill indicator */}
+            <div 
+              className={cn(
+                'absolute -left-1 w-[3px] rounded-full transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1)',
+                isDark ? 'bg-white' : 'bg-stone-900'
+              )}
+              style={{
+                top: `${sections.findIndex(s => s.id === activeId) * 36 + 6}px`,
+                height: '24px',
+                opacity: activeId ? 1 : 0,
+              }}
+            />
+            
+            <div className="space-y-0">
+              {sections.map((section, index) => {
+                const displayTitle = getTitleWithoutNumber(section.title);
+                const isActive = activeId === section.id;
+                
+                return (
                   <button
                     key={section.id}
                     onClick={() => handleScrollTo(section.id)}
+                    style={{
+                      transitionDelay: `${index * 20}ms`,
+                    }}
                     className={cn(
-                      'w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-all',
-                      activeId === section.id
+                      'group w-full text-left h-9 text-[13px] tracking-[-0.01em] transition-all duration-300 ease-out flex items-center',
+                      isActive
                         ? isDark 
-                          ? 'bg-stone-800 text-white' 
-                          : 'bg-white text-stone-900 shadow-sm shadow-stone-900/5'
+                          ? 'text-white font-medium' 
+                          : 'text-stone-900 font-medium'
                         : isDark
-                          ? 'text-stone-400 hover:text-white hover:bg-stone-900/60'
-                          : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
+                          ? 'text-stone-600 hover:text-stone-400'
+                          : 'text-stone-400 hover:text-stone-500'
                     )}
                   >
-                    {section.title}
+                    <span 
+                      className={cn(
+                        'truncate transition-transform duration-300 ease-out',
+                        isActive && 'translate-x-0.5'
+                      )}
+                    >
+                      {displayTitle}
+                    </span>
                   </button>
-                ))}
-              </nav>
+                );
+              })}
             </div>
-          </aside>
+          </nav>
+        </div>
+      </aside>
 
-          <div>
-            {/* Mobile TOC */}
-            <div className="lg:hidden mb-6 -mx-2">
-              <div className={cn(
-                'flex gap-2 overflow-x-auto px-2 py-3 rounded-2xl border',
-                isDark ? 'border-stone-800 bg-stone-900/60' : 'border-stone-200 bg-white'
+      {/* Content */}
+      <main className="flex-1 py-10 px-4 sm:px-6 lg:pl-60">
+        <div className="max-w-3xl mx-auto">
+          {/* Mobile TOC */}
+            <div className="lg:hidden mb-8">
+              <p className={cn(
+                'text-[10px] uppercase tracking-[0.2em] font-medium mb-3',
+                isDark ? 'text-stone-600' : 'text-stone-400'
               )}>
-                {sections.map(section => (
-                  <button
-                    key={section.id}
-                    onClick={() => handleScrollTo(section.id)}
-                    className={cn(
-                      'px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors',
-                      activeId === section.id
-                        ? isDark
-                          ? 'bg-white text-stone-900'
-                          : 'bg-stone-900 text-white'
-                        : isDark
-                          ? 'text-stone-400 hover:text-white'
-                          : 'text-stone-500 hover:text-stone-900'
-                    )}
-                  >
-                    {section.title}
-                  </button>
-                ))}
+                Contents
+              </p>
+              <div className="flex gap-2 overflow-x-auto pb-2 -mx-2 px-2 no-scrollbar">
+                {sections.map((section, index) => {
+                  const sectionNumber = getSectionNumber(section.title);
+                  const displayTitle = getTitleWithoutNumber(section.title);
+                  const isActive = activeId === section.id;
+                  
+                  return (
+                    <button
+                      key={section.id}
+                      onClick={() => handleScrollTo(section.id)}
+                      className={cn(
+                        'flex items-center gap-2 px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 shrink-0',
+                        isActive
+                          ? isDark
+                            ? 'bg-white text-stone-900 shadow-sm'
+                            : 'bg-stone-900 text-white shadow-sm'
+                          : isDark
+                            ? 'bg-stone-800/60 text-stone-400 hover:text-white hover:bg-stone-800'
+                            : 'bg-stone-100 text-stone-500 hover:text-stone-900 hover:bg-stone-200'
+                      )}
+                    >
+                      <span className={cn(
+                        'w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold',
+                        isActive
+                          ? isDark
+                            ? 'bg-stone-900 text-white'
+                            : 'bg-white text-stone-900'
+                          : isDark
+                            ? 'bg-stone-700 text-stone-400'
+                            : 'bg-stone-200 text-stone-500'
+                      )}>
+                        {sectionNumber || (index + 1)}
+                      </span>
+                      {displayTitle}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            <div className="max-w-3xl">
-              <div className="mb-10">
+            <div className="mb-10">
                 <p className={cn(
                   'text-xs uppercase tracking-[0.3em] mb-4',
                   isDark ? 'text-stone-500' : 'text-stone-400'
                 )}>
-                  {updatedAt ? `Aktualisiert ${updatedAt}` : 'Aktuell'}
+                  {updatedAt ? `Updated ${updatedAt}` : 'Current'}
                 </p>
                 <h1 className={cn(
                   'text-3xl sm:text-4xl font-bold',
@@ -211,9 +269,7 @@ const LegalLayout: React.FC<LegalLayoutProps> = ({
                     </div>
                   </section>
                 ))}
-              </div>
             </div>
-          </div>
         </div>
       </main>
 
@@ -222,25 +278,34 @@ const LegalLayout: React.FC<LegalLayoutProps> = ({
         'border-t shrink-0',
         isDark ? 'border-stone-800' : 'border-stone-200'
       )}>
-        <div className={cn(
-          'max-w-6xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm',
-          isDark ? 'text-stone-500' : 'text-stone-400'
-        )}>
-          <span>© {new Date().getFullYear()} StoryVerse</span>
-          <div className="flex gap-6">
-            <Link to="/privacy" className={cn(isDark ? 'hover:text-white' : 'hover:text-stone-900')}>
-              Privacy
+        <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <div className={cn(
+              'w-6 h-6 rounded flex items-center justify-center',
+              isDark ? 'bg-white' : 'bg-stone-900'
+            )}>
+              <span className={cn('text-xs font-bold', isDark ? 'text-stone-900' : 'text-white')}>S</span>
+            </div>
+            <span className={cn('text-sm font-medium', isDark ? 'text-white' : 'text-stone-900')}>StoryVerse</span>
+          </div>
+          <div className={cn(
+            'flex items-center gap-6 text-sm',
+            isDark ? 'text-stone-500' : 'text-stone-500'
+          )}>
+            <Link to="/about" className={cn('transition-colors', isDark ? 'hover:text-white' : 'hover:text-stone-900')}>
+              About
             </Link>
-            <Link to="/terms" className={cn(isDark ? 'hover:text-white' : 'hover:text-stone-900')}>
-              Terms
-            </Link>
-            <Link to="/impressum" className={cn(isDark ? 'hover:text-white' : 'hover:text-stone-900')}>
-              Impressum
-            </Link>
-            <Link to="/contact" className={cn(isDark ? 'hover:text-white' : 'hover:text-stone-900')}>
+            <Link to="/contact" className={cn('transition-colors', isDark ? 'hover:text-white' : 'hover:text-stone-900')}>
               Contact
             </Link>
+            <Link to="/privacy" className={cn('transition-colors', isDark ? 'hover:text-white' : 'hover:text-stone-900')}>
+              Privacy
+            </Link>
+            <Link to="/terms" className={cn('transition-colors', isDark ? 'hover:text-white' : 'hover:text-stone-900')}>
+              Terms
+            </Link>
           </div>
+          <p className={cn('text-sm', isDark ? 'text-stone-600' : 'text-stone-400')}>© {new Date().getFullYear()} StoryVerse</p>
         </div>
       </footer>
     </div>

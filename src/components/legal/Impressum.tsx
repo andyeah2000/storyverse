@@ -3,62 +3,62 @@ import LegalLayout, { LegalSection } from './LegalLayout';
 
 const sections: LegalSection[] = [
   {
-    id: 'angaben',
-    title: 'Angaben gemäß § 5 TMG',
+    id: 'company-info',
+    title: '1. Company Information',
     content: (
       <p>
         StoryVerse
         <br />
-        [Ihr Name / Firmenname]
+        [Your Name / Company Name]
         <br />
-        [Straße und Hausnummer]
+        [Street Address]
         <br />
-        [PLZ Ort]
+        [Postal Code, City]
         <br />
-        Deutschland
+        Germany
       </p>
     ),
   },
   {
-    id: 'kontakt',
-    title: 'Kontakt',
+    id: 'contact',
+    title: '2. Contact',
     content: (
       <p>
-        E-Mail: contact@storyverse.app
+        Email: contact@storyverse.app
         <br />
-        Telefon: [Telefonnummer]
+        Phone: [Phone Number]
       </p>
     ),
   },
   {
-    id: 'umsatzsteuer',
-    title: 'Umsatzsteuer-ID',
+    id: 'vat-id',
+    title: '3. VAT Identification Number',
     content: (
       <p>
-        Umsatzsteuer-Identifikationsnummer gemäß § 27 a Umsatzsteuergesetz:
+        VAT ID according to § 27a of the German VAT Act:
         <br />
-        [USt-IdNr.]
+        [VAT ID]
       </p>
     ),
   },
   {
-    id: 'verantwortlich',
-    title: 'Verantwortlich nach § 55 Abs. 2 RStV',
+    id: 'responsible',
+    title: '4. Responsible for Content',
     content: (
       <p>
         [Name]
         <br />
-        [Adresse]
+        [Address]
       </p>
     ),
   },
   {
-    id: 'streitschlichtung',
-    title: 'EU-Streitschlichtung',
+    id: 'dispute-resolution',
+    title: '5. EU Dispute Resolution',
     content: (
       <>
         <p>
-          Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:{' '}
+          The European Commission provides a platform for online dispute resolution (ODR):{' '}
           <a
             href="https://ec.europa.eu/consumers/odr/"
             target="_blank"
@@ -67,59 +67,58 @@ const sections: LegalSection[] = [
             https://ec.europa.eu/consumers/odr/
           </a>
         </p>
-        <p>Unsere E-Mail-Adresse finden Sie oben im Impressum.</p>
+        <p>You can find our email address above in the legal notice.</p>
       </>
     ),
   },
   {
-    id: 'verbraucherstreit',
-    title: 'Verbraucherstreitbeilegung',
+    id: 'consumer-disputes',
+    title: '6. Consumer Dispute Resolution',
     content: (
       <p>
-        Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.
+        We are not willing or obligated to participate in dispute resolution proceedings before a consumer arbitration board.
       </p>
     ),
   },
   {
-    id: 'haftung-inhalte',
-    title: 'Haftung für Inhalte',
+    id: 'liability-content',
+    title: '7. Liability for Content',
     content: (
       <>
         <p>
-          Als Diensteanbieter sind wir gemäß § 7 Abs.1 TMG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10
-          TMG sind wir als Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu
-          forschen, die auf eine rechtswidrige Tätigkeit hinweisen.
+          As a service provider, we are responsible for our own content on these pages in accordance with general laws pursuant to § 7 Para. 1 TMG.
+          However, according to §§ 8 to 10 TMG, we are not obligated to monitor transmitted or stored third-party information or to investigate circumstances
+          that indicate illegal activity.
         </p>
         <p>
-          Verpflichtungen zur Entfernung oder Sperrung der Nutzung von Informationen nach den allgemeinen Gesetzen bleiben hiervon unberührt. Eine
-          diesbezügliche Haftung ist jedoch erst ab dem Zeitpunkt der Kenntnis einer konkreten Rechtsverletzung möglich. Bei Bekanntwerden von entsprechenden
-          Rechtsverletzungen werden wir diese Inhalte umgehend entfernen.
+          Obligations to remove or block the use of information under general laws remain unaffected. However, liability in this regard is only possible
+          from the point in time at which a concrete infringement of the law becomes known. If we become aware of any such infringements, we will remove
+          this content immediately.
         </p>
       </>
     ),
   },
   {
-    id: 'haftung-links',
-    title: 'Haftung für Links',
+    id: 'liability-links',
+    title: '8. Liability for Links',
     content: (
       <p>
-        Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte
-        keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber verantwortlich. Eine permanente
-        inhaltliche Kontrolle der verlinkten Seiten ist ohne konkrete Anhaltspunkte einer Rechtsverletzung nicht zumutbar. Bei Bekanntwerden von
-        Rechtsverletzungen werden wir derartige Links umgehend entfernen.
+        Our offer contains links to external websites of third parties, on whose contents we have no influence. Therefore, we cannot assume any liability
+        for these external contents. The respective provider or operator of the pages is always responsible for the content of the linked pages. A permanent
+        content control of the linked pages is not reasonable without concrete evidence of an infringement. If we become aware of any infringements, we will
+        remove such links immediately.
       </p>
     ),
   },
   {
-    id: 'urheberrecht',
-    title: 'Urheberrecht',
+    id: 'copyright',
+    title: '9. Copyright',
     content: (
       <p>
-        Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Die Vervielfältigung, Bearbeitung,
-        Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechtes bedürfen der schriftlichen Zustimmung des jeweiligen Autors bzw.
-        Erstellers. Downloads und Kopien dieser Seite sind nur für den privaten, nicht kommerziellen Gebrauch gestattet. Sollten Sie trotzdem auf eine
-        Urheberrechtsverletzung aufmerksam werden, bitten wir um einen entsprechenden Hinweis. Bei Bekanntwerden von Rechtsverletzungen werden wir derartige
-        Inhalte umgehend entfernen.
+        The content and works created by the site operators on these pages are subject to German copyright law. Duplication, processing, distribution, or
+        any form of commercialization of such material beyond the scope of the copyright law requires the prior written consent of its respective author
+        or creator. Downloads and copies of this site are only permitted for private, non-commercial use. If you become aware of any copyright infringement,
+        please inform us accordingly. If we become aware of any infringements, we will remove such content immediately.
       </p>
     ),
   },
@@ -128,10 +127,10 @@ const sections: LegalSection[] = [
 const Impressum: React.FC = () => {
   return (
     <LegalLayout
-      title="Impressum"
+      title="Legal Notice (Impressum)"
       sections={sections}
-      updatedAt={new Date().toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}
-      backLabel="Zurück zur Startseite"
+      updatedAt={new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+      backLabel="Back to Home"
     />
   );
 };

@@ -33,12 +33,7 @@ const LandingPage: React.FC = () => {
     };
   }, [mobileNavOpen]);
 
-  const navLinks = [
-    { label: 'Features', href: '#features', type: 'anchor' as const },
-    { label: 'Pricing', href: '/pricing', type: 'route' as const },
-    { label: 'About', href: '/about', type: 'route' as const },
-    { label: 'Contact', href: '/contact', type: 'route' as const },
-  ];
+  const navLinks: { label: string; href: string; type: 'anchor' | 'route' }[] = [];
 
   return (
     <div className={`min-h-screen selection:bg-current selection:text-white overflow-x-hidden transition-colors duration-300 ${
@@ -597,7 +592,6 @@ const LandingPage: React.FC = () => {
           </div>
           <div className={`flex items-center gap-6 text-sm ${isDark ? 'text-stone-500' : 'text-stone-500'}`}>
             <Link to="/about" className={`transition-colors ${isDark ? 'hover:text-white' : 'hover:text-stone-900'}`}>About</Link>
-            <Link to="/pricing" className={`transition-colors ${isDark ? 'hover:text-white' : 'hover:text-stone-900'}`}>Pricing</Link>
             <Link to="/contact" className={`transition-colors ${isDark ? 'hover:text-white' : 'hover:text-stone-900'}`}>Contact</Link>
             <Link to="/privacy" className={`transition-colors ${isDark ? 'hover:text-white' : 'hover:text-stone-900'}`}>Privacy</Link>
             <Link to="/terms" className={`transition-colors ${isDark ? 'hover:text-white' : 'hover:text-stone-900'}`}>Terms</Link>

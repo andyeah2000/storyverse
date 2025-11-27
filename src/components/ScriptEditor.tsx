@@ -1,16 +1,10 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useStory } from '../context/StoryContext';
-import { AnalysisData } from '../types';
-import { analyzeScriptTension, generateDialogue, continueWriting, rewriteText } from '../services/geminiService';
-import { exportToPDF, exportToFountain, exportToFDX, exportStoryBiblePDF } from '../services/exportService';
+import { generateDialogue, continueWriting, rewriteText } from '../services/geminiService';
+import { exportToPDF, exportToFountain, exportToFDX } from '../services/exportService';
 import { 
-  BarChart2, 
-  Activity, 
-  RefreshCw, 
   CheckCircle, 
-  TrendingUp, 
   Film, 
-  Hash,
   Download,
   Type,
   User,
@@ -27,11 +21,54 @@ import {
   Minimize2,
   Loader2,
   FileText,
-  BookOpen
+  BookOpen,
+  Lock,
+  StickyNote,
+  List,
+  Play,
+  Pause,
+  Eye,
+  Bookmark,
+  Users,
+  FileEdit,
+  AlignLeft,
+  AlignCenter,
+  Plus
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
-type ScriptElement = 'scene' | 'action' | 'character' | 'dialogue' | 'parenthetical' | 'transition';
+// ============================================
+// TYPES
+// ============================================
+
+type ScriptElement = 'scene' | 'action' | 'character' | 'dialogue' | 'parenthetical' | 'transition' | 'shot' | 'general';
+type ViewMode = 'script' | 'index-cards' | 'outline' | 'split';
+type RevisionColor = 'white' | 'blue' | 'pink' | 'yellow' | 'green' | 'goldenrod' | 'buff' | 'salmon' | 'cherry';
+
+interface ScriptNote {
+  id: string;
+  lineNumber: number;
+  text: string;
+  resolved: boolean;
+  createdAt: number;
+}
+
+interface SceneData {
+  index: number;
+  text: string;
+  lineNumber: number;
+  sceneNumber?: string;
+  locked: boolean;
+  omitted: boolean;
+  color?: string;
+}
+
+interface CharacterStats {
+  name: string;
+  dialogueCount: number;
+  wordCount: number;
+  firstAppearance: number;
+}
 
 interface ElementStyle {
   label: string;
@@ -39,49 +76,105 @@ interface ElementStyle {
   shortcut: string;
   className: string;
   prefix?: string;
+  marginLeft?: string;
+  marginRight?: string;
+  uppercase?: boolean;
+  align?: 'left' | 'center' | 'right';
+  nextElement?: ScriptElement;
 }
+
+// ============================================
+// CONSTANTS
+// ============================================
 
 const ELEMENT_STYLES: Record<ScriptElement, ElementStyle> = {
   scene: {
     label: 'Scene Heading',
     icon: <Film size={14} />,
     shortcut: '⌘1',
-    className: 'uppercase font-bold',
-    prefix: 'INT. '
+    className: 'uppercase font-bold tracking-wide',
+    prefix: 'INT. ',
+    uppercase: true,
+    nextElement: 'action'
   },
   action: {
     label: 'Action',
     icon: <Type size={14} />,
     shortcut: '⌘2',
-    className: ''
+    className: '',
+    nextElement: 'action'
   },
   character: {
     label: 'Character',
     icon: <User size={14} />,
     shortcut: '⌘3',
-    className: 'uppercase text-center ml-[35%]'
+    className: 'uppercase',
+    marginLeft: '37%',
+    uppercase: true,
+    nextElement: 'dialogue'
   },
   dialogue: {
     label: 'Dialogue',
     icon: <MessageSquare size={14} />,
     shortcut: '⌘4',
-    className: 'ml-[15%] mr-[25%]'
+    className: '',
+    marginLeft: '17%',
+    marginRight: '25%',
+    nextElement: 'character'
   },
   parenthetical: {
     label: 'Parenthetical',
-    icon: <ArrowRight size={14} />,
+    icon: <AlignCenter size={14} />,
     shortcut: '⌘5',
-    className: 'ml-[25%] mr-[35%] italic'
+    className: 'italic',
+    marginLeft: '27%',
+    marginRight: '35%',
+    nextElement: 'dialogue'
   },
   transition: {
     label: 'Transition',
     icon: <ArrowRight size={14} />,
     shortcut: '⌘6',
-    className: 'uppercase text-right'
+    className: 'uppercase',
+    align: 'right',
+    uppercase: true,
+    nextElement: 'scene'
+  },
+  shot: {
+    label: 'Shot',
+    icon: <Eye size={14} />,
+    shortcut: '⌘7',
+    className: 'uppercase',
+    uppercase: true,
+    nextElement: 'action'
+  },
+  general: {
+    label: 'General',
+    icon: <AlignLeft size={14} />,
+    shortcut: '⌘8',
+    className: '',
+    nextElement: 'general'
   }
 };
 
-const TRANSITIONS = ['CUT TO:', 'DISSOLVE TO:', 'FADE IN:', 'FADE OUT.', 'FADE TO BLACK.', 'SMASH CUT TO:', 'MATCH CUT TO:'];
+const TRANSITIONS = ['CUT TO:', 'DISSOLVE TO:', 'FADE IN:', 'FADE OUT.', 'FADE TO BLACK.', 'SMASH CUT TO:', 'MATCH CUT TO:', 'JUMP CUT TO:', 'TIME CUT:', 'IRIS IN:', 'IRIS OUT:'];
+const SCENE_PREFIXES = ['INT. ', 'EXT. ', 'INT./EXT. ', 'I/E. ', 'INT ', 'EXT '];
+
+const REVISION_COLORS: Record<RevisionColor, { bg: string; text: string; label: string }> = {
+  white: { bg: 'bg-white', text: 'text-stone-900', label: 'White (Original)' },
+  blue: { bg: 'bg-blue-100', text: 'text-blue-900', label: 'Blue (1st Revision)' },
+  pink: { bg: 'bg-pink-100', text: 'text-pink-900', label: 'Pink (2nd Revision)' },
+  yellow: { bg: 'bg-yellow-100', text: 'text-yellow-900', label: 'Yellow (3rd Revision)' },
+  green: { bg: 'bg-green-100', text: 'text-green-900', label: 'Green (4th Revision)' },
+  goldenrod: { bg: 'bg-amber-100', text: 'text-amber-900', label: 'Goldenrod (5th Revision)' },
+  buff: { bg: 'bg-orange-100', text: 'text-orange-900', label: 'Buff (6th Revision)' },
+  salmon: { bg: 'bg-red-100', text: 'text-red-900', label: 'Salmon (7th Revision)' },
+  cherry: { bg: 'bg-rose-200', text: 'text-rose-900', label: 'Cherry (8th Revision)' },
+};
+
+// ============================================
+// MAIN COMPONENT
+// ============================================
 
 const ScriptEditor: React.FC = () => {
   const { 
@@ -93,13 +186,17 @@ const ScriptEditor: React.FC = () => {
   } = useStory();
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const lineNumbersRef = useRef<HTMLDivElement>(null);
+  const editorContainerRef = useRef<HTMLDivElement>(null);
   const activeScriptSource = sources.find(s => s.type === 'script');
   
   // Core state
   const [content, setContent] = useState('');
   const [cursorPosition, setCursorPosition] = useState(0);
   const [currentElement, setCurrentElement] = useState<ScriptElement>('action');
+  
+  // View mode
+  const [showNavigator, setShowNavigator] = useState(true);
+  const [navigatorTab, setNavigatorTab] = useState<'scenes' | 'characters' | 'notes' | 'bookmarks'>('scenes');
   
   // UI state
   const [showFindReplace, setShowFindReplace] = useState(false);
@@ -112,110 +209,398 @@ const ScriptEditor: React.FC = () => {
   const [exportTitle, setExportTitle] = useState('Untitled Screenplay');
   const [exportAuthor, setExportAuthor] = useState('');
   
+  // Revision mode
+  const [revisionMode, setRevisionMode] = useState(false);
+  const [currentRevisionColor, setCurrentRevisionColor] = useState<RevisionColor>('blue');
+  const [showRevisionMenu, setShowRevisionMenu] = useState(false);
+  const [revisionMarks, setRevisionMarks] = useState<Map<number, RevisionColor>>(new Map());
+  
+  // Scene management
+  const [lockedScenes, setLockedScenes] = useState<Set<number>>(new Set());
+  const [omittedScenes, setOmittedScenes] = useState<Set<number>>(new Set());
+  const [sceneNumbers] = useState<Map<number, string>>(new Map());
+  const [autoSceneNumbers] = useState(true);
+  
+  // Notes
+  const [notes, setNotes] = useState<ScriptNote[]>([]);
+  const [showNoteInput, setShowNoteInput] = useState(false);
+  const [newNoteText, setNewNoteText] = useState('');
+  
+  // Bookmarks
+  const [bookmarks, setBookmarks] = useState<Set<number>>(new Set());
+  
   // AI state
   const [isAIWorking, setIsAIWorking] = useState(false);
-  const [aiAction, setAIAction] = useState<string | null>(null);
-  const [showAIPanel, setShowAIPanel] = useState(false);
-  const [aiPrompt, setAIPrompt] = useState('');
-  
-  // Analysis state
-  const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [lastAnalyzedContent, setLastAnalyzedContent] = useState<string>('');
+  const [, setAIAction] = useState<string | null>(null);
   
   // Selection state
   const [selectionStart, setSelectionStart] = useState(0);
   const [selectionEnd, setSelectionEnd] = useState(0);
   const selectedText = content.substring(selectionStart, selectionEnd);
+  
+  // Auto-complete state
+  const [showAutoComplete, setShowAutoComplete] = useState(false);
+  const [autoCompleteOptions, setAutoCompleteOptions] = useState<string[]>([]);
+  const [autoCompleteIndex, setAutoCompleteIndex] = useState(0);
+  const [autoCompleteType, setAutoCompleteType] = useState<'character' | 'scene' | 'transition'>('character');
+  
+  // Table Read state
+  const [isTableReading, setIsTableReading] = useState(false);
 
   const isDark = theme === 'dark';
 
-  // Load content
+  // ============================================
+  // LOAD CONTENT
+  // ============================================
+  
   useEffect(() => {
     if (activeScriptSource) {
       setContent(activeScriptSource.content);
     }
   }, [activeScriptSource?.id]);
 
+  // ============================================
+  // COMPUTED VALUES
+  // ============================================
+
   // Stats
   const stats = useMemo(() => {
     const text = content.trim();
-    if (!text) return { words: 0, chars: 0, pages: 0, readTime: 0 };
+    if (!text) return { words: 0, chars: 0, pages: 0, readTime: 0, dialoguePercent: 0 };
+    
     const words = text.split(/\s+/).length;
     const chars = text.length;
-    const pages = Math.ceil(words / 250);
+    const lines = text.split('\n').length;
+    // Standard: 56 lines per page in screenplay format
+    const pages = Math.ceil(lines / 56);
     const readTime = Math.ceil(pages); // 1 page = ~1 min screen time
-    return { words, chars, pages, readTime };
+    
+    // Calculate dialogue percentage
+    const dialogueLines = text.split('\n').filter(line => {
+      const trimmed = line.trim();
+      return trimmed && !trimmed.match(/^(INT\.|EXT\.|INT\/EXT|I\/E\.)/) && 
+             !trimmed.match(/^[A-Z][A-Z\s]+$/) &&
+             !TRANSITIONS.some(t => trimmed.includes(t));
+    }).length;
+    const dialoguePercent = lines > 0 ? Math.round((dialogueLines / lines) * 100) : 0;
+    
+    return { words, chars, pages, readTime, dialoguePercent };
   }, [content]);
 
-  // Scene detection - supports optional scene numbers like "1 EXT." or "1. EXT."
-  const scenes = useMemo(() => {
-    const regex = /^(?:\d+\.?\s+)?(?:INT\.|EXT\.|INT\/EXT|I\/E\.|INT |EXT |I\/E ).+$/gim;
-    const matches: { index: number; text: string; lineNumber: number }[] = [];
+  // Scene detection with numbers
+  const scenes = useMemo((): SceneData[] => {
+    const regex = /^(?:(\d+[A-Z]?)\.?\s+)?(?:INT\.|EXT\.|INT\/EXT|I\/E\.|INT |EXT |I\/E ).+$/gim;
+    const matches: SceneData[] = [];
     const lines = content.split('\n');
     let charIndex = 0;
+    let autoNum = 1;
     
     lines.forEach((line, lineNum) => {
       const trimmed = line.trim();
-      if (regex.test(trimmed)) {
+      regex.lastIndex = 0;
+      const match = regex.exec(trimmed);
+      if (match || /^(?:INT\.|EXT\.|INT\/EXT|I\/E\.)/.test(trimmed.toUpperCase())) {
+        const sceneNum = sceneNumbers.get(lineNum) || (autoSceneNumbers ? String(autoNum++) : undefined);
         matches.push({
           index: charIndex,
           text: trimmed,
-          lineNumber: lineNum + 1
+          lineNumber: lineNum + 1,
+          sceneNumber: sceneNum,
+          locked: lockedScenes.has(lineNum),
+          omitted: omittedScenes.has(lineNum)
         });
       }
       charIndex += line.length + 1;
-      regex.lastIndex = 0;
     });
     
     return matches;
+  }, [content, lockedScenes, omittedScenes, sceneNumbers, autoSceneNumbers]);
+
+  // Character detection with stats
+  const characterStats = useMemo((): CharacterStats[] => {
+    const charMap = new Map<string, CharacterStats>();
+    const lines = content.split('\n');
+    
+    lines.forEach((line, lineNum) => {
+      const trimmed = line.trim();
+      // Character name pattern: ALL CAPS, optionally with (V.O.), (O.S.), etc.
+      const charMatch = trimmed.match(/^([A-Z][A-Z\s.']+)(?:\s*\(.*\))?$/);
+      if (charMatch && charMatch[1]) {
+        const name = charMatch[1].trim();
+        if (!TRANSITIONS.includes(name) && name.length < 30 && name.length > 1) {
+          if (!charMap.has(name)) {
+            charMap.set(name, {
+              name,
+              dialogueCount: 0,
+              wordCount: 0,
+              firstAppearance: lineNum + 1
+            });
+          }
+          const charStats = charMap.get(name);
+          if (charStats) {
+            charStats.dialogueCount++;
+            
+            // Count words in following dialogue
+            let i = lineNum + 1;
+            while (i < lines.length) {
+              const nextLine = lines[i]?.trim() || '';
+              if (!nextLine || nextLine.match(/^[A-Z][A-Z\s.']+(?:\s*\(.*\))?$/)) break;
+              if (!nextLine.startsWith('(') || !nextLine.endsWith(')')) {
+                charStats.wordCount += nextLine.split(/\s+/).length;
+              }
+              i++;
+            }
+          }
+        }
+      }
+    });
+    
+    return Array.from(charMap.values()).sort((a, b) => b.dialogueCount - a.dialogueCount);
   }, [content]);
 
-  // Character detection
-  const characters = useMemo(() => {
-    const regex = /^([A-Z][A-Z\s]+)(?:\s*\(.*\))?$/gm;
-    const charSet = new Set<string>();
-    let m;
-    while ((m = regex.exec(content)) !== null) {
-      const name = m[1]?.trim();
-      if (name && !TRANSITIONS.includes(name) && name.length < 30) {
-        charSet.add(name);
+  const characters = useMemo(() => characterStats.map(c => c.name), [characterStats]);
+
+  // Get current line info
+  const currentLineInfo = useMemo((): { lineIndex: number; lineText: string; lineStart: number; lineEnd: number; column: number } => {
+    const lines = content.split('\n');
+    let charCount = 0;
+    for (let i = 0; i < lines.length; i++) {
+      const lineLength = lines[i]?.length ?? 0;
+      if (charCount + lineLength >= cursorPosition) {
+        return {
+          lineIndex: i,
+          lineText: lines[i] ?? '',
+          lineStart: charCount,
+          lineEnd: charCount + lineLength,
+          column: cursorPosition - charCount
+        };
+      }
+      charCount += lineLength + 1;
+    }
+    return { lineIndex: 0, lineText: '', lineStart: 0, lineEnd: 0, column: 0 };
+  }, [content, cursorPosition]);
+
+  // ============================================
+  // ELEMENT DETECTION
+  // ============================================
+
+  useEffect(() => {
+    const lineText = currentLineInfo.lineText || '';
+    const line = lineText.trim().toUpperCase();
+    
+    if (/^(INT\.|EXT\.|INT\/EXT|I\/E\.)/.test(line)) {
+      setCurrentElement('scene');
+    } else if (/^[A-Z][A-Z\s.']+$/.test(line) && line.length < 30 && line.length > 1) {
+      setCurrentElement('character');
+    } else if (/^\(.*\)$/.test(lineText.trim())) {
+      setCurrentElement('parenthetical');
+    } else if (TRANSITIONS.some(t => line.includes(t))) {
+      setCurrentElement('transition');
+    } else if (line.startsWith('ANGLE ON') || line.startsWith('CLOSE ON') || line.startsWith('POV') || line.startsWith('INSERT')) {
+      setCurrentElement('shot');
+    }
+  }, [currentLineInfo]);
+
+  // ============================================
+  // AUTO-COMPLETE
+  // ============================================
+
+  useEffect(() => {
+    const line = currentLineInfo.lineText;
+    const lineUpper = line.toUpperCase().trim();
+    
+    // Check for character auto-complete (after empty line or at start)
+    if (lineUpper.length >= 2 && lineUpper === lineUpper.toUpperCase() && !/\s/.test(lineUpper.slice(-1))) {
+      const matches = characters.filter(c => c.startsWith(lineUpper));
+      if (matches.length > 0 && matches[0] !== lineUpper) {
+        setAutoCompleteOptions(matches);
+        setAutoCompleteType('character');
+        setShowAutoComplete(true);
+        setAutoCompleteIndex(0);
+        return;
       }
     }
-    return Array.from(charSet).sort();
-  }, [content]);
-
-  const isStale = useMemo(() => content !== lastAnalyzedContent && lastAnalyzedContent !== '', [content, lastAnalyzedContent]);
-
-  // Auto-detect current element based on cursor position
-  useEffect(() => {
-    const contentLines = content.substring(0, cursorPosition).split('\n');
-    const currentLine = contentLines[contentLines.length - 1] || '';
     
-    if (/^(INT\.|EXT\.|INT\/EXT|I\/E\.)/.test(currentLine.toUpperCase())) {
-      setCurrentElement('scene');
-    } else if (/^[A-Z][A-Z\s]+$/.test(currentLine.trim()) && currentLine.trim().length < 30) {
-      setCurrentElement('character');
-    } else if (/^\(.*\)$/.test(currentLine.trim())) {
-      setCurrentElement('parenthetical');
-    } else if (TRANSITIONS.some(t => currentLine.toUpperCase().includes(t))) {
-      setCurrentElement('transition');
+    // Check for scene heading auto-complete
+    if (lineUpper.startsWith('INT') || lineUpper.startsWith('EXT') || lineUpper.startsWith('I/E')) {
+      const suggestions = SCENE_PREFIXES.filter(p => p.startsWith(lineUpper) || lineUpper.startsWith(p.trim()));
+      if (suggestions.length > 0 && !SCENE_PREFIXES.some(p => lineUpper.startsWith(p))) {
+        setAutoCompleteOptions(suggestions);
+        setAutoCompleteType('scene');
+        setShowAutoComplete(true);
+        setAutoCompleteIndex(0);
+        return;
+      }
     }
-  }, [cursorPosition, content]);
+    
+    // Check for transition auto-complete
+    if (lineUpper.endsWith(':') || lineUpper.includes('CUT') || lineUpper.includes('FADE') || lineUpper.includes('DISSOLVE')) {
+      const matches = TRANSITIONS.filter(t => t.startsWith(lineUpper) || lineUpper.includes(t.split(' ')[0]));
+      if (matches.length > 0) {
+        setAutoCompleteOptions(matches);
+        setAutoCompleteType('transition');
+        setShowAutoComplete(true);
+        setAutoCompleteIndex(0);
+        return;
+      }
+    }
+    
+    setShowAutoComplete(false);
+  }, [currentLineInfo.lineText, characters]);
 
-  // Handle save
+  const applyAutoComplete = (option: string) => {
+    const lines = content.split('\n');
+    lines[currentLineInfo.lineIndex] = option + (autoCompleteType === 'scene' ? '' : '');
+    const newContent = lines.join('\n');
+    setContent(newContent);
+    setShowAutoComplete(false);
+    
+    // Move cursor to end of line
+    setTimeout(() => {
+      if (textareaRef.current) {
+        const newPos = currentLineInfo.lineStart + option.length;
+        textareaRef.current.setSelectionRange(newPos, newPos);
+        textareaRef.current.focus();
+      }
+    }, 0);
+  };
+
+  // ============================================
+  // SMART TAB HANDLING (Final Draft style)
+  // ============================================
+
+  const handleTab = useCallback((e: React.KeyboardEvent) => {
+    e.preventDefault();
+    const line = currentLineInfo.lineText.trim();
+    
+    // Determine next element based on context
+    let nextElement: ScriptElement = 'action';
+    
+    if (line === '') {
+      // Empty line: cycle through common elements
+      const cycle: ScriptElement[] = ['action', 'character', 'scene', 'transition'];
+      const currentIdx = cycle.indexOf(currentElement);
+      nextElement = cycle[(currentIdx + 1) % cycle.length];
+    } else {
+      // Non-empty line: use the defined next element
+      nextElement = ELEMENT_STYLES[currentElement].nextElement || 'action';
+    }
+    
+    setCurrentElement(nextElement);
+    
+    // Insert a new line if needed
+    if (line !== '') {
+      const newContent = content.substring(0, cursorPosition) + '\n' + content.substring(cursorPosition);
+      setContent(newContent);
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.setSelectionRange(cursorPosition + 1, cursorPosition + 1);
+        }
+      }, 0);
+    }
+  }, [currentLineInfo, currentElement, content, cursorPosition]);
+
+  // ============================================
+  // KEY HANDLERS
+  // ============================================
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Auto-complete navigation
+    if (showAutoComplete) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setAutoCompleteIndex(i => Math.min(i + 1, autoCompleteOptions.length - 1));
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setAutoCompleteIndex(i => Math.max(i - 1, 0));
+        return;
+      }
+      if (e.key === 'Enter' || e.key === 'Tab') {
+        e.preventDefault();
+        applyAutoComplete(autoCompleteOptions[autoCompleteIndex]);
+        return;
+      }
+      if (e.key === 'Escape') {
+        setShowAutoComplete(false);
+        return;
+      }
+    }
+    
+    // Tab for element cycling
+    if (e.key === 'Tab') {
+      handleTab(e);
+      return;
+    }
+    
+    // Enter handling for smart formatting
+    if (e.key === 'Enter') {
+      const line = currentLineInfo.lineText.trim();
+      
+      // After character name, prepare for dialogue
+      if (currentElement === 'character' && line.match(/^[A-Z][A-Z\s.']+$/)) {
+        setCurrentElement('dialogue');
+      }
+      // After dialogue, prepare for next character or action
+      else if (currentElement === 'dialogue' && line) {
+        setCurrentElement('character');
+      }
+      // After parenthetical, back to dialogue
+      else if (currentElement === 'parenthetical') {
+        setCurrentElement('dialogue');
+      }
+      // After scene heading, action
+      else if (currentElement === 'scene') {
+        setCurrentElement('action');
+      }
+      // After transition, scene heading
+      else if (currentElement === 'transition') {
+        setCurrentElement('scene');
+      }
+      
+      // Handle revision marks
+      if (revisionMode) {
+        setRevisionMarks(prev => {
+          const newMarks = new Map(prev);
+          newMarks.set(currentLineInfo.lineIndex + 1, currentRevisionColor);
+          return newMarks;
+        });
+      }
+    }
+    
+    // Parenthetical shortcut
+    if (e.key === '(' && currentElement === 'dialogue') {
+      e.preventDefault();
+      const pos = cursorPosition;
+      const newContent = content.substring(0, pos) + '()' + content.substring(pos);
+      setContent(newContent);
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.setSelectionRange(pos + 1, pos + 1);
+        }
+      }, 0);
+      setCurrentElement('parenthetical');
+      return;
+    }
+  }, [showAutoComplete, autoCompleteOptions, autoCompleteIndex, handleTab, currentLineInfo, currentElement, cursorPosition, content, revisionMode, currentRevisionColor]);
+
+  // ============================================
+  // SAVE HANDLING
+  // ============================================
+
   const handleSave = useCallback(() => {
     if (activeScriptSource) {
       updateSource(activeScriptSource.id, { content });
     } else if (content.trim()) {
       addSource({
-        title: "Untitled Script",
+        title: exportTitle || "Untitled Script",
         content: content,
         type: "script",
         tags: [],
       });
     }
-  }, [activeScriptSource, content, updateSource, addSource]);
+  }, [activeScriptSource, content, updateSource, addSource, exportTitle]);
 
   // Auto-save
   useEffect(() => {
@@ -230,7 +615,10 @@ const ScriptEditor: React.FC = () => {
     return () => clearTimeout(timer);
   }, [content, activeScriptSource, settings.autoSave, settings.autoSaveInterval, handleSave]);
 
-  // Insert element prefix
+  // ============================================
+  // ELEMENT INSERTION
+  // ============================================
+
   const insertElement = (element: ScriptElement) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -240,18 +628,7 @@ const ScriptEditor: React.FC = () => {
     const currentLineEnd = content.indexOf('\n', start);
     const actualEnd = currentLineEnd === -1 ? content.length : currentLineEnd;
     
-    let prefix = '';
-    switch (element) {
-      case 'scene':
-        prefix = 'INT. ';
-        break;
-      case 'character':
-        // Move cursor with proper formatting
-        break;
-      case 'transition':
-        prefix = 'CUT TO:';
-        break;
-    }
+    let prefix = ELEMENT_STYLES[element].prefix || '';
     
     if (prefix) {
       const newContent = content.substring(0, currentLineStart) + prefix + content.substring(actualEnd);
@@ -266,7 +643,106 @@ const ScriptEditor: React.FC = () => {
     setShowElementMenu(false);
   };
 
-  // Find & Replace
+  // ============================================
+  // SCENE MANAGEMENT
+  // ============================================
+
+  const toggleSceneLock = (lineNumber: number) => {
+    setLockedScenes(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(lineNumber)) {
+        newSet.delete(lineNumber);
+      } else {
+        newSet.add(lineNumber);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSceneOmit = (lineNumber: number) => {
+    setOmittedScenes(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(lineNumber)) {
+        newSet.delete(lineNumber);
+      } else {
+        newSet.add(lineNumber);
+      }
+      return newSet;
+    });
+  };
+
+  // ============================================
+  // NOTES
+  // ============================================
+
+  const addNote = () => {
+    if (!newNoteText.trim()) return;
+    const note: ScriptNote = {
+      id: crypto.randomUUID(),
+      lineNumber: currentLineInfo.lineIndex + 1,
+      text: newNoteText,
+      resolved: false,
+      createdAt: Date.now()
+    };
+    setNotes(prev => [...prev, note]);
+    setNewNoteText('');
+    setShowNoteInput(false);
+  };
+
+  const toggleNoteResolved = (id: string) => {
+    setNotes(prev => prev.map(n => n.id === id ? { ...n, resolved: !n.resolved } : n));
+  };
+
+  const deleteNote = (id: string) => {
+    setNotes(prev => prev.filter(n => n.id !== id));
+  };
+
+  // ============================================
+  // BOOKMARKS
+  // ============================================
+
+  const toggleBookmark = () => {
+    setBookmarks(prev => {
+      const newSet = new Set(prev);
+      const line = currentLineInfo.lineIndex;
+      if (newSet.has(line)) {
+        newSet.delete(line);
+      } else {
+        newSet.add(line);
+      }
+      return newSet;
+    });
+  };
+
+  // ============================================
+  // NAVIGATION
+  // ============================================
+
+  const scrollToLine = (lineNumber: number) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    
+    const lines = content.split('\n');
+    let charIndex = 0;
+    for (let i = 0; i < lineNumber - 1 && i < lines.length; i++) {
+      charIndex += lines[i].length + 1;
+    }
+    
+    textarea.focus();
+    textarea.setSelectionRange(charIndex, charIndex);
+    
+    // Calculate scroll position
+    const lineHeight = 24;
+    const scrollTop = Math.max(0, (lineNumber - 3) * lineHeight);
+    if (editorContainerRef.current) {
+      editorContainerRef.current.scrollTop = scrollTop;
+    }
+  };
+
+  // ============================================
+  // FIND & REPLACE
+  // ============================================
+
   const handleFind = () => {
     if (!findText) return;
     const index = content.toLowerCase().indexOf(findText.toLowerCase(), cursorPosition);
@@ -286,20 +762,10 @@ const ScriptEditor: React.FC = () => {
     setContent(content.replace(regex, replaceText));
   };
 
-  // Scroll to scene
-  const scrollToScene = (index: number) => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.focus();
-      textarea.setSelectionRange(index, index);
-      const textBefore = textarea.value.substring(0, index);
-      const lineCount = textBefore.split(/\r\n|\r|\n/).length;
-      const lineHeight = 28;
-      textarea.scrollTop = Math.max(0, (lineCount - 2) * lineHeight);
-    }
-  };
+  // ============================================
+  // ANALYSIS
+  // ============================================
 
-  // Run analysis
   const runAnalysis = async () => {
     if (!content.trim()) return;
     setIsAnalyzing(true);
@@ -314,7 +780,10 @@ const ScriptEditor: React.FC = () => {
     }
   };
 
-  // AI Functions
+  // ============================================
+  // AI FUNCTIONS
+  // ============================================
+
   const handleAIContinue = async () => {
     setIsAIWorking(true);
     setAIAction('continue');
@@ -371,65 +840,44 @@ const ScriptEditor: React.FC = () => {
     }
   };
 
-  const handleAICustom = async () => {
-    if (!aiPrompt.trim()) return;
-    setIsAIWorking(true);
-    setAIAction('custom');
-    try {
-      const result = await continueWriting(
-        `${content}\n\n[AI INSTRUCTION: ${aiPrompt}]\n`,
-        sources
-      );
-      if (result) {
-        const textarea = textareaRef.current;
-        if (textarea) {
-          const pos = textarea.selectionStart;
-          setContent(content.substring(0, pos) + '\n' + result + content.substring(pos));
-        }
-      }
-      setAIPrompt('');
-      setShowAIPanel(false);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsAIWorking(false);
-      setAIAction(null);
-    }
+  // ============================================
+  // TABLE READ
+  // ============================================
+
+  const startTableRead = () => {
+    setIsTableReading(true);
+    setTableReadLine(0);
+    // TODO: Implement text-to-speech with character voices
   };
 
-  // Keyboard shortcuts
+  const stopTableRead = () => {
+    setIsTableReading(false);
+    setTableReadLine(0);
+  };
+
+  // ============================================
+  // KEYBOARD SHORTCUTS
+  // ============================================
+
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey) {
         switch (e.key) {
           case 'f':
             e.preventDefault();
             setShowFindReplace(!showFindReplace);
             break;
-          case '1':
+          case 'b':
             e.preventDefault();
-            insertElement('scene');
+            toggleBookmark();
             break;
-          case '2':
-            e.preventDefault();
-            insertElement('action');
-            break;
-          case '3':
-            e.preventDefault();
-            insertElement('character');
-            break;
-          case '4':
-            e.preventDefault();
-            insertElement('dialogue');
-            break;
-          case '5':
-            e.preventDefault();
-            insertElement('parenthetical');
-            break;
-          case '6':
-            e.preventDefault();
-            insertElement('transition');
-            break;
+          case '1': e.preventDefault(); insertElement('scene'); break;
+          case '2': e.preventDefault(); insertElement('action'); break;
+          case '3': e.preventDefault(); insertElement('character'); break;
+          case '4': e.preventDefault(); insertElement('dialogue'); break;
+          case '5': e.preventDefault(); insertElement('parenthetical'); break;
+          case '6': e.preventDefault(); insertElement('transition'); break;
+          case '7': e.preventDefault(); insertElement('shot'); break;
         }
       }
       if (e.key === 'Escape') {
@@ -437,24 +885,268 @@ const ScriptEditor: React.FC = () => {
         setShowElementMenu(false);
         setShowAIMenu(false);
         setFocusMode(false);
+        setShowAutoComplete(false);
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, [showFindReplace]);
+
+  // ============================================
+  // STYLING
+  // ============================================
 
   const getFontSize = () => {
     switch (settings.fontSize) {
-      case 'small': return 'text-sm';
-      case 'large': return 'text-lg';
-      default: return 'text-base';
+      case 'small': return 'text-[12px]';
+      case 'large': return 'text-[15px]';
+      default: return 'text-[13px]';
     }
   };
 
-  const getFontFamily = () => 'font-mono'; // Screenplays always use mono
+  const getLineStyle = (lineIndex: number): React.CSSProperties => {
+    const style = ELEMENT_STYLES[currentElement];
+    const line = content.split('\n')[lineIndex] || '';
+    const trimmed = line.trim().toUpperCase();
+    
+    // Detect element type for this specific line
+    let marginLeft = '0';
+    let marginRight = '0';
+    let textAlign: 'left' | 'center' | 'right' = 'left';
+    
+    if (/^(INT\.|EXT\.|INT\/EXT|I\/E\.)/.test(trimmed)) {
+      // Scene heading
+    } else if (/^[A-Z][A-Z\s.']+(?:\s*\(.*\))?$/.test(trimmed) && !TRANSITIONS.includes(trimmed)) {
+      marginLeft = '37%';
+    } else if (TRANSITIONS.some(t => trimmed.includes(t))) {
+      textAlign = 'right';
+    }
+    
+    return { marginLeft, marginRight, textAlign };
+  };
+
+  // ============================================
+  // RENDER
+  // ============================================
 
   return (
     <div className={cn("flex h-full gap-3", focusMode && "fixed inset-0 z-50 p-4 bg-stone-950")}>
+      {/* Navigator Panel */}
+      {showNavigator && !focusMode && (
+        <div className={cn(
+          "w-56 flex flex-col h-full rounded-xl border overflow-hidden shrink-0",
+          isDark ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200/60'
+        )}>
+          {/* Navigator Tabs */}
+          <div className={cn(
+            "h-10 flex items-center border-b shrink-0",
+            isDark ? 'border-stone-800' : 'border-stone-100'
+          )}>
+            {(['scenes', 'characters', 'notes', 'bookmarks'] as const).map(tab => (
+              <button
+                key={tab}
+                onClick={() => setNavigatorTab(tab)}
+                className={cn(
+                  "flex-1 h-full flex items-center justify-center transition-colors",
+                  navigatorTab === tab
+                    ? isDark ? 'text-white bg-stone-800' : 'text-stone-900 bg-stone-100'
+                    : isDark ? 'text-stone-500 hover:text-white' : 'text-stone-400 hover:text-stone-900'
+                )}
+              >
+                {tab === 'scenes' && <Film size={14} />}
+                {tab === 'characters' && <Users size={14} />}
+                {tab === 'notes' && <StickyNote size={14} />}
+                {tab === 'bookmarks' && <Bookmark size={14} />}
+              </button>
+            ))}
+          </div>
+          
+          {/* Navigator Content */}
+          <div className="flex-1 overflow-y-auto p-2">
+            {/* Scenes Tab */}
+            {navigatorTab === 'scenes' && (
+              <div className="space-y-0.5">
+                {scenes.length === 0 ? (
+                  <div className={cn("text-center py-8", isDark ? 'text-stone-600' : 'text-stone-400')}>
+                    <Film size={24} className="mx-auto mb-2 opacity-50" />
+                    <p className="text-xs">No scenes yet</p>
+                    <p className="text-[10px] mt-1 opacity-60">Start with INT. or EXT.</p>
+                  </div>
+                ) : (
+                  scenes.map((scene, i) => (
+                    <button
+                      key={i}
+                      onClick={() => scrollToLine(scene.lineNumber)}
+                      className={cn(
+                        "w-full text-left p-2 rounded-lg transition-all group",
+                        scene.omitted && 'opacity-40',
+                        isDark ? 'hover:bg-stone-800' : 'hover:bg-stone-50'
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className={cn(
+                          "text-[10px] font-mono min-w-[1.5rem]",
+                          isDark ? 'text-stone-600' : 'text-stone-400'
+                        )}>
+                          {scene.sceneNumber || i + 1}
+                        </span>
+                        {scene.locked && <Lock size={10} className="text-amber-500" />}
+                        <span className={cn(
+                          "text-[11px] font-medium truncate flex-1",
+                          scene.omitted && 'line-through',
+                          isDark ? 'text-stone-300' : 'text-stone-700'
+                        )}>
+                          {scene.text.replace(/^\d+\.?\s*/, '')}
+                        </span>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+            
+            {/* Characters Tab */}
+            {navigatorTab === 'characters' && (
+              <div className="space-y-1">
+                {characterStats.length === 0 ? (
+                  <div className={cn("text-center py-8", isDark ? 'text-stone-600' : 'text-stone-400')}>
+                    <Users size={24} className="mx-auto mb-2 opacity-50" />
+                    <p className="text-xs">No characters yet</p>
+                  </div>
+                ) : (
+                  characterStats.map((char, i) => (
+                    <div
+                      key={i}
+                      className={cn(
+                        "p-2 rounded-lg",
+                        isDark ? 'bg-stone-800/50' : 'bg-stone-50'
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className={cn(
+                          "text-xs font-medium",
+                          isDark ? 'text-white' : 'text-stone-900'
+                        )}>
+                          {char.name}
+                        </span>
+                        <span className={cn(
+                          "text-[10px] font-mono",
+                          isDark ? 'text-stone-500' : 'text-stone-400'
+                        )}>
+                          {char.dialogueCount} lines
+                        </span>
+                      </div>
+                      <div className={cn(
+                        "text-[10px] mt-1",
+                        isDark ? 'text-stone-500' : 'text-stone-400'
+                      )}>
+                        {char.wordCount} words • First: L{char.firstAppearance}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+            
+            {/* Notes Tab */}
+            {navigatorTab === 'notes' && (
+              <div className="space-y-1">
+                <button
+                  onClick={() => setShowNoteInput(true)}
+                  className={cn(
+                    "w-full p-2 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition-colors",
+                    isDark ? 'bg-stone-800 text-stone-300 hover:bg-stone-700' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                  )}
+                >
+                  <Plus size={12} />
+                  Add Note
+                </button>
+                {notes.map(note => (
+                  <div
+                    key={note.id}
+                    className={cn(
+                      "p-2 rounded-lg group",
+                      note.resolved ? 'opacity-50' : '',
+                      isDark ? 'bg-amber-500/10' : 'bg-amber-50'
+                    )}
+                  >
+                    <div className="flex items-start gap-2">
+                      <button onClick={() => toggleNoteResolved(note.id)}>
+                        {note.resolved ? (
+                          <CheckCircle size={12} className="text-green-500 mt-0.5" />
+                        ) : (
+                          <StickyNote size={12} className="text-amber-500 mt-0.5" />
+                        )}
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <p className={cn(
+                          "text-[11px]",
+                          note.resolved && 'line-through',
+                          isDark ? 'text-stone-300' : 'text-stone-700'
+                        )}>
+                          {note.text}
+                        </p>
+                        <button
+                          onClick={() => scrollToLine(note.lineNumber)}
+                          className={cn(
+                            "text-[10px] mt-1",
+                            isDark ? 'text-stone-500 hover:text-white' : 'text-stone-400 hover:text-stone-900'
+                          )}
+                        >
+                          Line {note.lineNumber}
+                        </button>
+                      </div>
+                      <button
+                        onClick={() => deleteNote(note.id)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X size={12} className={isDark ? 'text-stone-500' : 'text-stone-400'} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {/* Bookmarks Tab */}
+            {navigatorTab === 'bookmarks' && (
+              <div className="space-y-0.5">
+                {bookmarks.size === 0 ? (
+                  <div className={cn("text-center py-8", isDark ? 'text-stone-600' : 'text-stone-400')}>
+                    <Bookmark size={24} className="mx-auto mb-2 opacity-50" />
+                    <p className="text-xs">No bookmarks</p>
+                    <p className="text-[10px] mt-1 opacity-60">Press ⌘B to bookmark</p>
+                  </div>
+                ) : (
+                  Array.from(bookmarks).sort((a, b) => a - b).map(lineNum => {
+                    const lines = content.split('\n');
+                    const lineText = lines[lineNum] || '';
+                    return (
+                      <button
+                        key={lineNum}
+                        onClick={() => scrollToLine(lineNum + 1)}
+                        className={cn(
+                          "w-full text-left p-2 rounded-lg transition-all flex items-center gap-2",
+                          isDark ? 'hover:bg-stone-800' : 'hover:bg-stone-50'
+                        )}
+                      >
+                        <Bookmark size={12} className="text-blue-500 shrink-0" />
+                        <span className={cn(
+                          "text-[11px] truncate",
+                          isDark ? 'text-stone-300' : 'text-stone-700'
+                        )}>
+                          {lineText.trim() || `Line ${lineNum + 1}`}
+                        </span>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Main Editor */}
       <div className={cn(
         "flex-1 flex flex-col h-full rounded-xl border overflow-hidden",
@@ -466,14 +1158,30 @@ const ScriptEditor: React.FC = () => {
           "h-11 flex items-center justify-between px-3 border-b shrink-0 gap-2",
           isDark ? 'border-stone-800' : 'border-stone-100'
         )}>
-          {/* Left: Element Selector & Formatting */}
+          {/* Left: Element Selector & Actions */}
           <div className="flex items-center gap-1">
+            {/* Navigator Toggle */}
+            <button
+              onClick={() => setShowNavigator(!showNavigator)}
+              className={cn(
+                "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                showNavigator
+                  ? isDark ? 'bg-stone-700 text-white' : 'bg-stone-200 text-stone-900'
+                  : isDark ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-stone-100 text-stone-500'
+              )}
+              title="Toggle Navigator"
+            >
+              <List size={14} />
+            </button>
+            
+            <div className={cn("w-px h-5 mx-1", isDark ? 'bg-stone-700' : 'bg-stone-200')} />
+
             {/* Element Type Dropdown */}
             <div className="relative">
               <button
                 onClick={() => setShowElementMenu(!showElementMenu)}
                 className={cn(
-                  "h-8 px-3 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors",
+                  "h-8 px-3 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors min-w-[120px]",
                   isDark 
                     ? 'bg-stone-800 text-stone-300 hover:bg-stone-700' 
                     : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
@@ -481,15 +1189,15 @@ const ScriptEditor: React.FC = () => {
               >
                 {ELEMENT_STYLES[currentElement].icon}
                 {ELEMENT_STYLES[currentElement].label}
-                <ChevronDown size={12} />
+                <ChevronDown size={12} className="ml-auto" />
               </button>
               
               {showElementMenu && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowElementMenu(false)} />
                   <div className={cn(
-                    "absolute top-full left-0 mt-1 w-52 rounded-xl shadow-lg z-50 border overflow-hidden",
-                    isDark ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200'
+                    "absolute top-full left-0 mt-1 w-56 rounded-xl shadow-xl z-50 border overflow-hidden",
+                    isDark ? 'bg-stone-900 border-stone-700' : 'bg-white border-stone-200'
                   )}>
                     {(Object.entries(ELEMENT_STYLES) as [ScriptElement, ElementStyle][]).map(([key, style]) => (
                       <button
@@ -501,13 +1209,13 @@ const ScriptEditor: React.FC = () => {
                           currentElement === key && (isDark ? 'bg-stone-800' : 'bg-stone-100')
                         )}
                       >
-                        <span className="flex items-center gap-2">
+                        <span className="flex items-center gap-2.5">
                           {style.icon}
                           {style.label}
                         </span>
                         <span className={cn(
-                          "text-xs font-mono",
-                          isDark ? 'text-stone-500' : 'text-stone-400'
+                          "text-[10px] font-mono",
+                          isDark ? 'text-stone-600' : 'text-stone-400'
                         )}>{style.shortcut}</span>
                       </button>
                     ))}
@@ -518,39 +1226,72 @@ const ScriptEditor: React.FC = () => {
 
             <div className={cn("w-px h-5 mx-1", isDark ? 'bg-stone-700' : 'bg-stone-200')} />
 
-            {/* Quick Insert Buttons */}
-            <button
-              onClick={() => insertElement('scene')}
-              className={cn(
-                "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-                isDark ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-stone-100 text-stone-500'
+            {/* Revision Mode */}
+            <div className="relative">
+              <button
+                onClick={() => setShowRevisionMenu(!showRevisionMenu)}
+                className={cn(
+                  "h-8 px-3 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors",
+                  revisionMode
+                    ? `${REVISION_COLORS[currentRevisionColor].bg} ${REVISION_COLORS[currentRevisionColor].text}`
+                    : isDark 
+                      ? 'hover:bg-stone-800 text-stone-400' 
+                      : 'hover:bg-stone-100 text-stone-500'
+                )}
+                title="Revision Mode"
+              >
+                <FileEdit size={14} />
+                {revisionMode && <span className="hidden sm:inline">Revision</span>}
+              </button>
+              
+              {showRevisionMenu && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowRevisionMenu(false)} />
+                  <div className={cn(
+                    "absolute top-full left-0 mt-1 w-52 rounded-xl shadow-xl z-50 border overflow-hidden",
+                    isDark ? 'bg-stone-900 border-stone-700' : 'bg-white border-stone-200'
+                  )}>
+                    <div className={cn(
+                      "px-3 py-2 border-b",
+                      isDark ? 'border-stone-800' : 'border-stone-100'
+                    )}>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={revisionMode}
+                          onChange={(e) => setRevisionMode(e.target.checked)}
+                          className="rounded"
+                        />
+                        <span className={cn(
+                          "text-xs font-medium",
+                          isDark ? 'text-white' : 'text-stone-900'
+                        )}>Revision Mode</span>
+                      </label>
+                    </div>
+                    <div className="p-1">
+                      {(Object.entries(REVISION_COLORS) as [RevisionColor, typeof REVISION_COLORS[RevisionColor]][]).map(([color, config]) => (
+                        <button
+                          key={color}
+                          onClick={() => {
+                            setCurrentRevisionColor(color);
+                            setRevisionMode(true);
+                            setShowRevisionMenu(false);
+                          }}
+                          className={cn(
+                            "w-full px-3 py-2 rounded-lg text-xs flex items-center gap-2 transition-colors",
+                            isDark ? 'hover:bg-stone-800' : 'hover:bg-stone-50',
+                            currentRevisionColor === color && revisionMode && 'ring-2 ring-blue-500'
+                          )}
+                        >
+                          <div className={cn("w-4 h-4 rounded", config.bg, "border border-black/10")} />
+                          <span className={isDark ? 'text-stone-300' : 'text-stone-700'}>{config.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
               )}
-              title="Scene Heading (⌘1)"
-            >
-              <Film size={14} />
-            </button>
-            <button
-              onClick={() => insertElement('character')}
-              className={cn(
-                "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-                isDark ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-stone-100 text-stone-500'
-              )}
-              title="Character (⌘3)"
-            >
-              <User size={14} />
-            </button>
-            <button
-              onClick={() => insertElement('transition')}
-              className={cn(
-                "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-                isDark ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-stone-100 text-stone-500'
-              )}
-              title="Transition (⌘6)"
-            >
-              <ArrowRight size={14} />
-            </button>
-
-            <div className={cn("w-px h-5 mx-1", isDark ? 'bg-stone-700' : 'bg-stone-200')} />
+            </div>
 
             {/* Find/Replace */}
             <button
@@ -565,40 +1306,57 @@ const ScriptEditor: React.FC = () => {
             >
               <Search size={14} />
             </button>
+
+            {/* Add Note */}
+            <button
+              onClick={() => setShowNoteInput(!showNoteInput)}
+              className={cn(
+                "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                isDark ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-stone-100 text-stone-500'
+              )}
+              title="Add Note"
+            >
+              <StickyNote size={14} />
+            </button>
           </div>
 
           {/* Center: Stats */}
           <div className={cn(
-            "flex items-center gap-6 text-xs",
-            isDark ? 'text-stone-400' : 'text-stone-500'
+            "hidden lg:flex items-center gap-4 text-[11px] font-mono",
+            isDark ? 'text-stone-500' : 'text-stone-400'
           )}>
-            {settings.showWordCount && (
-              <>
-                <span className="font-mono">
-                  <span className="opacity-60">Scenes</span>{' '}
-                  <span className={isDark ? 'text-white' : 'text-stone-900'}>{scenes.length}</span>
-                </span>
-                <span className="font-mono">
-                  <span className="opacity-60">Words</span>{' '}
-                  <span className={isDark ? 'text-white' : 'text-stone-900'}>{stats.words}</span>
-                </span>
-              </>
-            )}
-            {settings.showPageCount && (
-              <>
-                <span className="font-mono">
-                  <span className="opacity-60">Pages</span>{' '}
-                  <span className={isDark ? 'text-white' : 'text-stone-900'}>~{stats.pages}</span>
-                </span>
-                <span className="font-mono">
-                  <span className="opacity-60">~{stats.readTime} min</span>
-                </span>
-              </>
-            )}
+            <span>
+              <span className="opacity-60">Scenes</span>{' '}
+              <span className={isDark ? 'text-white' : 'text-stone-900'}>{scenes.length}</span>
+            </span>
+            <span>
+              <span className="opacity-60">Pages</span>{' '}
+              <span className={isDark ? 'text-white' : 'text-stone-900'}>{stats.pages}</span>
+            </span>
+            <span>
+              <span className="opacity-60">~{stats.readTime}min</span>
+            </span>
           </div>
 
           {/* Right: Actions */}
           <div className="flex items-center gap-1">
+            {/* Table Read */}
+            <button
+              onClick={isTableReading ? stopTableRead : startTableRead}
+              className={cn(
+                "h-8 px-3 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors",
+                isTableReading
+                  ? 'bg-green-500 text-white'
+                  : isDark 
+                    ? 'hover:bg-stone-800 text-stone-400' 
+                    : 'hover:bg-stone-100 text-stone-500'
+              )}
+              title="Table Read"
+            >
+              {isTableReading ? <Pause size={14} /> : <Play size={14} />}
+              <span className="hidden sm:inline">{isTableReading ? 'Stop' : 'Read'}</span>
+            </button>
+
             {/* AI Menu */}
             <div className="relative">
               <button
@@ -617,15 +1375,14 @@ const ScriptEditor: React.FC = () => {
                   <Sparkles size={14} />
                 )}
                 AI
-                <ChevronDown size={12} />
               </button>
               
               {showAIMenu && !isAIWorking && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowAIMenu(false)} />
                   <div className={cn(
-                    "absolute top-full right-0 mt-1 w-56 rounded-xl shadow-lg z-50 border overflow-hidden",
-                    isDark ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200'
+                    "absolute top-full right-0 mt-1 w-56 rounded-xl shadow-xl z-50 border overflow-hidden",
+                    isDark ? 'bg-stone-900 border-stone-700' : 'bg-white border-stone-200'
                   )}>
                     <button
                       onClick={() => { handleAIContinue(); setShowAIMenu(false); }}
@@ -658,17 +1415,6 @@ const ScriptEditor: React.FC = () => {
                     >
                       <MessageSquare size={14} />
                       Generate Dialogue
-                    </button>
-                    <div className={cn("h-px mx-2", isDark ? 'bg-stone-800' : 'bg-stone-100')} />
-                    <button
-                      onClick={() => { setShowAIPanel(true); setShowAIMenu(false); }}
-                      className={cn(
-                        "w-full px-3 py-2.5 text-sm flex items-center gap-3 transition-colors",
-                        isDark ? 'hover:bg-stone-800 text-stone-300' : 'hover:bg-stone-50 text-stone-700'
-                      )}
-                    >
-                      <Sparkles size={14} />
-                      Custom Prompt...
                     </button>
                   </div>
                 </>
@@ -704,195 +1450,6 @@ const ScriptEditor: React.FC = () => {
             </button>
           </div>
         </div>
-
-        {/* Export Modal */}
-        {showExportModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-            <div className={cn(
-              "w-full max-w-md rounded-2xl shadow-2xl animate-in zoom-in-95 fade-in duration-200",
-              isDark ? 'bg-stone-900' : 'bg-white'
-            )}>
-              {/* Header */}
-              <div className={cn(
-                "h-14 px-6 flex items-center justify-between border-b",
-                isDark ? 'border-stone-800' : 'border-stone-100'
-              )}>
-                <h3 className={cn(
-                  "font-semibold",
-                  isDark ? 'text-white' : 'text-stone-900'
-                )}>Export Screenplay</h3>
-                <button
-                  onClick={() => setShowExportModal(false)}
-                  className={cn(
-                    "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-                    isDark ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-stone-100 text-stone-500'
-                  )}
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              {/* Form */}
-              <div className="p-6 space-y-4">
-                <div>
-                  <label className={cn(
-                    "block text-xs font-medium mb-2",
-                    isDark ? 'text-stone-400' : 'text-stone-500'
-                  )}>Title</label>
-                  <input
-                    type="text"
-                    value={exportTitle}
-                    onChange={(e) => setExportTitle(e.target.value)}
-                    className={cn(
-                      "w-full h-10 px-4 rounded-lg text-sm outline-none border transition-all",
-                      isDark 
-                        ? 'bg-stone-800 border-stone-700 text-white focus:ring-2 focus:ring-white/10'
-                        : 'bg-stone-50 border-stone-200 text-stone-900 focus:ring-2 focus:ring-stone-900/10'
-                    )}
-                  />
-                </div>
-                <div>
-                  <label className={cn(
-                    "block text-xs font-medium mb-2",
-                    isDark ? 'text-stone-400' : 'text-stone-500'
-                  )}>Author</label>
-                  <input
-                    type="text"
-                    value={exportAuthor}
-                    onChange={(e) => setExportAuthor(e.target.value)}
-                    placeholder="Optional"
-                    className={cn(
-                      "w-full h-10 px-4 rounded-lg text-sm outline-none border transition-all",
-                      isDark 
-                        ? 'bg-stone-800 border-stone-700 text-white placeholder:text-stone-600 focus:ring-2 focus:ring-white/10'
-                        : 'bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400 focus:ring-2 focus:ring-stone-900/10'
-                    )}
-                  />
-                </div>
-
-                {/* Export Formats */}
-                <div className="pt-2">
-                  <label className={cn(
-                    "block text-xs font-medium mb-3",
-                    isDark ? 'text-stone-400' : 'text-stone-500'
-                  )}>Export Format</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {/* PDF */}
-                    <button
-                      onClick={() => {
-                        exportToPDF(content, { title: exportTitle, author: exportAuthor });
-                        setShowExportModal(false);
-                      }}
-                      className={cn(
-                        "p-4 rounded-xl border transition-all text-left hover:scale-[1.02] active:scale-[0.98]",
-                        isDark 
-                          ? 'bg-stone-800 border-stone-700 hover:border-stone-600'
-                          : 'bg-stone-50 border-stone-200 hover:border-stone-300'
-                      )}
-                    >
-                      <div className={cn(
-                        "w-10 h-10 rounded-lg flex items-center justify-center mb-3",
-                        isDark ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-600'
-                      )}>
-                        <FileText size={20} />
-                      </div>
-                      <div className={cn("font-medium text-sm", isDark ? 'text-white' : 'text-stone-900')}>
-                        PDF
-                      </div>
-                      <div className={cn("text-xs mt-0.5", isDark ? 'text-stone-500' : 'text-stone-400')}>
-                        Industry standard format
-                      </div>
-                    </button>
-
-                    {/* Fountain */}
-                    <button
-                      onClick={() => {
-                        exportToFountain(content, exportTitle);
-                        setShowExportModal(false);
-                      }}
-                      className={cn(
-                        "p-4 rounded-xl border transition-all text-left hover:scale-[1.02] active:scale-[0.98]",
-                        isDark 
-                          ? 'bg-stone-800 border-stone-700 hover:border-stone-600'
-                          : 'bg-stone-50 border-stone-200 hover:border-stone-300'
-                      )}
-                    >
-                      <div className={cn(
-                        "w-10 h-10 rounded-lg flex items-center justify-center mb-3",
-                        isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'
-                      )}>
-                        <Download size={20} />
-                      </div>
-                      <div className={cn("font-medium text-sm", isDark ? 'text-white' : 'text-stone-900')}>
-                        Fountain
-                      </div>
-                      <div className={cn("text-xs mt-0.5", isDark ? 'text-stone-500' : 'text-stone-400')}>
-                        Plain text screenplay
-                      </div>
-                    </button>
-
-                    {/* Final Draft */}
-                    <button
-                      onClick={() => {
-                        exportToFDX(content, exportTitle);
-                        setShowExportModal(false);
-                      }}
-                      className={cn(
-                        "p-4 rounded-xl border transition-all text-left hover:scale-[1.02] active:scale-[0.98]",
-                        isDark 
-                          ? 'bg-stone-800 border-stone-700 hover:border-stone-600'
-                          : 'bg-stone-50 border-stone-200 hover:border-stone-300'
-                      )}
-                    >
-                      <div className={cn(
-                        "w-10 h-10 rounded-lg flex items-center justify-center mb-3",
-                        isDark ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-600'
-                      )}>
-                        <Film size={20} />
-                      </div>
-                      <div className={cn("font-medium text-sm", isDark ? 'text-white' : 'text-stone-900')}>
-                        Final Draft
-                      </div>
-                      <div className={cn("text-xs mt-0.5", isDark ? 'text-stone-500' : 'text-stone-400')}>
-                        .fdx format
-                      </div>
-                    </button>
-
-                    {/* Story Bible */}
-                    <button
-                      onClick={() => {
-                        const beatSheet = JSON.parse(localStorage.getItem('storyverse-beatsheet') || '{}');
-                        const outline = JSON.parse(localStorage.getItem('storyverse-outline') || '[]');
-                        const notes = JSON.parse(localStorage.getItem('storyverse-notes') || '[]');
-                        exportStoryBiblePDF(sources, beatSheet, outline, notes, exportTitle);
-                        setShowExportModal(false);
-                      }}
-                      className={cn(
-                        "p-4 rounded-xl border transition-all text-left hover:scale-[1.02] active:scale-[0.98]",
-                        isDark 
-                          ? 'bg-stone-800 border-stone-700 hover:border-stone-600'
-                          : 'bg-stone-50 border-stone-200 hover:border-stone-300'
-                      )}
-                    >
-                      <div className={cn(
-                        "w-10 h-10 rounded-lg flex items-center justify-center mb-3",
-                        isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-600'
-                      )}>
-                        <BookOpen size={20} />
-                      </div>
-                      <div className={cn("font-medium text-sm", isDark ? 'text-white' : 'text-stone-900')}>
-                        Story Bible
-                      </div>
-                      <div className={cn("text-xs mt-0.5", isDark ? 'text-stone-500' : 'text-stone-400')}>
-                        All sources as PDF
-                      </div>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Find/Replace Bar */}
         {showFindReplace && (
@@ -957,40 +1514,39 @@ const ScriptEditor: React.FC = () => {
           </div>
         )}
 
-        {/* AI Custom Prompt Panel */}
-        {showAIPanel && (
+        {/* Note Input */}
+        {showNoteInput && (
           <div className={cn(
-            "h-14 flex items-center gap-2 px-4 border-b shrink-0",
-            isDark ? 'bg-stone-800/50 border-stone-800' : 'bg-stone-50 border-stone-100'
+            "h-12 flex items-center gap-2 px-4 border-b shrink-0",
+            isDark ? 'bg-amber-500/10 border-stone-800' : 'bg-amber-50 border-stone-100'
           )}>
-            <Sparkles size={14} className={isDark ? 'text-stone-400' : 'text-stone-500'} />
+            <StickyNote size={14} className="text-amber-500" />
             <input
               type="text"
-              value={aiPrompt}
-              onChange={(e) => setAIPrompt(e.target.value)}
-              placeholder="Describe what you want the AI to write..."
+              value={newNoteText}
+              onChange={(e) => setNewNoteText(e.target.value)}
+              placeholder={`Add note at line ${currentLineInfo.lineIndex + 1}...`}
               className={cn(
-                "flex-1 h-9 px-3 rounded-lg text-sm outline-none",
+                "flex-1 h-8 px-3 rounded-lg text-sm outline-none",
                 isDark 
                   ? 'bg-stone-900 text-white placeholder:text-stone-600' 
                   : 'bg-white text-stone-900 placeholder:text-stone-400'
               )}
-              onKeyDown={(e) => e.key === 'Enter' && handleAICustom()}
+              onKeyDown={(e) => e.key === 'Enter' && addNote()}
               autoFocus
             />
             <button
-              onClick={handleAICustom}
-              disabled={isAIWorking || !aiPrompt.trim()}
+              onClick={addNote}
+              disabled={!newNoteText.trim()}
               className={cn(
-                "h-9 px-4 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors disabled:opacity-50",
-                isDark ? 'bg-white text-stone-900 hover:bg-stone-100' : 'bg-stone-900 text-white hover:bg-stone-800'
+                "h-8 px-4 rounded-lg text-xs font-medium transition-colors disabled:opacity-40",
+                isDark ? 'bg-amber-500 text-white hover:bg-amber-400' : 'bg-amber-500 text-white hover:bg-amber-400'
               )}
             >
-              {isAIWorking ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
-              Generate
+              Add Note
             </button>
             <button
-              onClick={() => setShowAIPanel(false)}
+              onClick={() => { setShowNoteInput(false); setNewNoteText(''); }}
               className={cn(
                 "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
                 isDark ? 'hover:bg-stone-700 text-stone-400' : 'hover:bg-stone-200 text-stone-500'
@@ -1001,77 +1557,123 @@ const ScriptEditor: React.FC = () => {
           </div>
         )}
         
-        {/* Editor - Clean Single-Page Layout with synchronized scrolling */}
-        <div className="flex-1 flex overflow-hidden relative">
-          {/* Scrollable Container for both line numbers and editor */}
+        {/* Editor Area */}
+        <div 
+          ref={editorContainerRef}
+          className="flex-1 flex overflow-auto relative"
+        >
+          {/* Line Numbers */}
           <div 
-            className="flex-1 flex overflow-auto"
-            onScroll={(e) => {
-              // Sync line numbers scroll with container
-              if (lineNumbersRef.current) {
-                lineNumbersRef.current.style.transform = `translateY(-${e.currentTarget.scrollTop}px)`;
-              }
-            }}
+            className={cn(
+              "w-14 shrink-0 select-none border-r sticky left-0 z-10",
+              isDark ? 'bg-stone-900 text-stone-600 border-stone-800' : 'bg-stone-50 text-stone-400 border-stone-200'
+            )}
           >
-            {/* Line Numbers - Fixed position, moves via transform */}
-            <div 
-              className={cn(
-                "w-12 shrink-0 select-none border-r sticky left-0 z-10",
-                isDark ? 'bg-stone-900 text-stone-500 border-stone-800' : 'bg-stone-50 text-stone-400 border-stone-200'
-              )}
-            >
-              <div ref={lineNumbersRef} className="pt-3">
-                {content.split('\n').map((_, i) => (
+            <div className="pt-3">
+              {content.split('\n').map((line, i) => {
+                const hasNote = notes.some(n => n.lineNumber === i + 1);
+                const hasBookmark = bookmarks.has(i);
+                const revColor = revisionMarks.get(i);
+                
+                return (
                   <div 
                     key={i} 
                     className={cn(
-                      "text-[11px] font-mono leading-6 h-6 flex items-center justify-end pr-3",
-                      // Page break indicator every 55 lines
-                      (i + 1) % 55 === 0 && (isDark ? 'bg-stone-800/50' : 'bg-stone-200/50')
+                      "text-[11px] font-mono leading-6 h-6 flex items-center justify-end pr-2 gap-1 relative",
+                      (i + 1) % 56 === 0 && 'border-b border-dashed',
+                      revColor && REVISION_COLORS[revColor].bg,
+                      isDark && (i + 1) % 56 === 0 ? 'border-stone-700' : 'border-stone-300'
                     )}
                   >
-                    {i + 1}
+                    {hasBookmark && (
+                      <Bookmark size={8} className="text-blue-500 absolute left-1" fill="currentColor" />
+                    )}
+                    {hasNote && (
+                      <StickyNote size={8} className="text-amber-500" />
+                    )}
+                    <span>{i + 1}</span>
+                    {revColor && (
+                      <span className="text-[8px]">*</span>
+                    )}
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
+          </div>
 
-            {/* Textarea */}
-            <div className={cn(
-              "flex-1 min-w-0",
-              isDark ? 'bg-stone-900' : 'bg-white'
-            )}>
-              <textarea
-                ref={textareaRef}
-                id="script-editor-textarea"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                onSelect={(e) => {
-                  const target = e.target as HTMLTextAreaElement;
-                  setCursorPosition(target.selectionStart);
-                  setSelectionStart(target.selectionStart);
-                  setSelectionEnd(target.selectionEnd);
-                }}
-                className={cn(
-                  "w-full min-h-full py-3 px-4 resize-none outline-none leading-6",
-                  getFontSize(),
-                  getFontFamily(),
-                  isDark 
-                    ? 'bg-stone-900 text-stone-100 placeholder:text-stone-500 caret-white' 
-                    : 'bg-white text-stone-800 placeholder:text-stone-400 caret-stone-900'
-                )}
-                style={{ minHeight: `${Math.max(content.split('\n').length + 10, 30) * 24}px` }}
-                placeholder="FADE IN:
+          {/* Textarea */}
+          <div className={cn(
+            "flex-1 min-w-0 relative",
+            isDark ? 'bg-stone-900' : 'bg-white'
+          )}>
+            <textarea
+              ref={textareaRef}
+              id="script-editor-textarea"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              onSelect={(e) => {
+                const target = e.target as HTMLTextAreaElement;
+                setCursorPosition(target.selectionStart);
+                setSelectionStart(target.selectionStart);
+                setSelectionEnd(target.selectionEnd);
+              }}
+              onKeyDown={handleKeyDown}
+              className={cn(
+                "w-full min-h-full py-3 px-6 resize-none outline-none leading-6 font-mono",
+                getFontSize(),
+                isDark 
+                  ? 'bg-stone-900 text-stone-100 placeholder:text-stone-600 caret-white' 
+                  : 'bg-white text-stone-800 placeholder:text-stone-400 caret-stone-900'
+              )}
+              style={{ 
+                minHeight: `${Math.max(content.split('\n').length + 10, 30) * 24}px`,
+                tabSize: 4
+              }}
+              placeholder={`FADE IN:
 
-EXT. LOCATION - DAY
+INT. LOCATION - DAY
 
 Description of the scene...
 
                     CHARACTER
-          Dialogue goes here."
-                spellCheck={false}
-              />
-            </div>
+          Dialogue goes here.
+
+Press TAB to cycle through elements.
+Type character names in CAPS for auto-complete.`}
+              spellCheck={false}
+            />
+
+            {/* Auto-complete Popup */}
+            {showAutoComplete && autoCompleteOptions.length > 0 && (
+              <div
+                className={cn(
+                  "absolute z-50 w-64 rounded-xl shadow-xl border overflow-hidden",
+                  isDark ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-200'
+                )}
+                style={{
+                  top: `${(currentLineInfo.lineIndex + 1) * 24 + 12}px`,
+                  left: '24px'
+                }}
+              >
+                {autoCompleteOptions.slice(0, 8).map((option, i) => (
+                  <button
+                    key={option}
+                    onClick={() => applyAutoComplete(option)}
+                    className={cn(
+                      "w-full px-3 py-2 text-sm text-left transition-colors flex items-center gap-2",
+                      i === autoCompleteIndex
+                        ? isDark ? 'bg-stone-700 text-white' : 'bg-stone-100 text-stone-900'
+                        : isDark ? 'text-stone-300 hover:bg-stone-700' : 'text-stone-700 hover:bg-stone-50'
+                    )}
+                  >
+                    {autoCompleteType === 'character' && <User size={12} />}
+                    {autoCompleteType === 'scene' && <Film size={12} />}
+                    {autoCompleteType === 'transition' && <ArrowRight size={12} />}
+                    {option}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -1081,235 +1683,146 @@ Description of the scene...
           isDark ? 'border-stone-800 text-stone-500' : 'border-stone-100 text-stone-400'
         )}>
           <div className="flex items-center gap-4">
-            <span>Line {content.substring(0, cursorPosition).split('\n').length}</span>
-            <span>•</span>
-            <span>{activeScriptSource ? activeScriptSource.title : "Untitled"}</span>
+            <span>Line {currentLineInfo.lineIndex + 1}:{currentLineInfo.column}</span>
+            <span className="flex items-center gap-1">
+              {ELEMENT_STYLES[currentElement].icon}
+              {ELEMENT_STYLES[currentElement].label}
+            </span>
+            {revisionMode && (
+              <span className={cn(
+                "px-1.5 py-0.5 rounded text-[10px] font-medium",
+                REVISION_COLORS[currentRevisionColor].bg,
+                REVISION_COLORS[currentRevisionColor].text
+              )}>
+                Revision
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-4">
             <span>{characters.length} Characters</span>
+            <span>{stats.words} Words</span>
             {isAIWorking && (
               <span className="flex items-center gap-1.5">
                 <Loader2 size={12} className="animate-spin" />
-                AI {aiAction}...
+                AI working...
               </span>
             )}
           </div>
         </div>
       </div>
 
-      {/* Right Sidebar */}
-      {!focusMode && (
-        <div className="w-64 flex flex-col gap-2 h-full overflow-hidden">
-          
-          {/* Analyze Button */}
+      {/* Export Modal - simplified for now */}
+      {showExportModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6">
           <div className={cn(
-            "p-3 rounded-xl border shrink-0",
-            isDark ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200/60'
+            "w-full max-w-md rounded-2xl shadow-2xl",
+            isDark ? 'bg-stone-900' : 'bg-white'
           )}>
-            <h3 className={cn(
-              "text-[11px] font-semibold mb-2 flex items-center gap-1.5 uppercase tracking-wide",
-              isDark ? 'text-stone-400' : 'text-stone-500'
-            )}>
-              <Activity size={12} strokeWidth={2} />
-              Script Analysis
-            </h3>
-            <button
-              onClick={runAnalysis}
-              disabled={isAnalyzing || !content.trim()}
-              className={cn(
-                "w-full h-9 rounded-lg text-xs font-medium disabled:opacity-40 flex items-center justify-center gap-2 transition-all duration-200",
-                isStale 
-                  ? isDark ? 'bg-stone-800 text-stone-300 hover:bg-stone-700' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
-                  : isDark ? 'bg-white text-stone-900 hover:bg-stone-100' : 'bg-stone-900 text-white hover:bg-stone-800'
-              )}
-            >
-              {isAnalyzing ? (
-                <RefreshCw size={13} className="animate-spin" strokeWidth={2} />
-              ) : (
-                <BarChart2 size={13} strokeWidth={2} />
-              )}
-              {isAnalyzing ? "Analyzing..." : isStale ? "Update" : "Analyze"}
-            </button>
-          </div>
-
-          {/* Tension Graph */}
-          <div className={cn(
-            "p-3 rounded-xl border shrink-0",
-            isDark ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200/60'
-          )}>
-            <div className="flex justify-between items-center mb-2">
-              <span className={cn(
-                "text-[11px] font-semibold uppercase flex items-center gap-1.5",
-                isDark ? 'text-stone-400' : 'text-stone-500'
-              )}>
-                <TrendingUp size={12} strokeWidth={2} />
-                Tension Arc
-              </span>
-              {analysis && !isStale && (
-                <span className={cn(
-                  "text-[10px] font-medium px-1.5 py-0.5 rounded",
-                  isDark ? 'bg-stone-800 text-stone-300' : 'bg-stone-100 text-stone-600'
-                )}>
-                  {analysis.pacingScore}/100
-                </span>
-              )}
-            </div>
-            
-            {!analysis && !isAnalyzing ? (
-              <div className={cn(
-                "h-16 flex flex-col items-center justify-center gap-2",
-                isDark ? 'text-stone-600' : 'text-stone-300'
-              )}>
-                <BarChart2 size={18} strokeWidth={1.5} />
-                <p className={cn(
-                  "text-[10px] text-center",
-                  isDark ? 'text-stone-500' : 'text-stone-400'
-                )}>
-                  Run analysis to generate<br/>the tension graph
-                </p>
-              </div>
-            ) : (
-              <div className="h-16 w-full flex items-end justify-between gap-1 relative">
-                {(analysis ? analysis.tensionArc : [10, 20, 15, 30, 40, 35, 50, 60, 45, 20]).map((val, i) => (
-                  <div key={i} className="flex-1 flex flex-col justify-end group relative h-full">
-                    <div 
-                      className={cn(
-                        "w-full rounded-t transition-all duration-500 ease-out",
-                        isStale || !analysis 
-                          ? isDark ? 'bg-stone-700' : 'bg-stone-200'
-                          : isDark ? 'bg-white group-hover:bg-stone-300' : 'bg-stone-900 group-hover:bg-stone-700'
-                      )}
-                      style={{ height: `${val}%` }}
-                    />
-                  </div>
-                ))}
-                {isAnalyzing && (
-                  <div className={cn(
-                    "absolute inset-0 flex items-center justify-center",
-                    isDark ? 'bg-stone-900/80' : 'bg-white/80'
-                  )}>
-                    <RefreshCw size={20} className={cn(
-                      "animate-spin",
-                      isDark ? 'text-stone-400' : 'text-stone-400'
-                    )} strokeWidth={2} />
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Suggestions */}
-          {analysis && !isStale && (
             <div className={cn(
-              "p-3 rounded-xl border shrink-0",
-              isDark ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200/60'
+              "h-14 px-6 flex items-center justify-between border-b",
+              isDark ? 'border-stone-800' : 'border-stone-100'
             )}>
-              <span className={cn(
-                "text-[11px] font-semibold uppercase block mb-2",
-                isDark ? 'text-stone-400' : 'text-stone-500'
-              )}>Notes</span>
-              <ul className="space-y-1.5">
-                {analysis.suggestions.slice(0, 2).map((s, i) => (
-                  <li key={i} className={cn(
-                    "text-[11px] flex gap-2 items-start leading-relaxed",
-                    isDark ? 'text-stone-300' : 'text-stone-600'
-                  )}>
-                    <CheckCircle size={12} className={cn(
-                      "shrink-0 mt-0.5",
-                      isDark ? 'text-stone-500' : 'text-stone-400'
-                    )} strokeWidth={2} />
-                    {s}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Characters */}
-          {characters.length > 0 && (
-            <div className={cn(
-              "p-3 rounded-xl border shrink-0",
-              isDark ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200/60'
-            )}>
-              <h3 className={cn(
-                "text-[11px] font-semibold mb-2 flex items-center gap-1.5 uppercase tracking-wide",
-                isDark ? 'text-stone-400' : 'text-stone-500'
-              )}>
-                <User size={12} strokeWidth={2} />
-                Characters ({characters.length})
+              <h3 className={cn("font-semibold", isDark ? 'text-white' : 'text-stone-900')}>
+                Export Screenplay
               </h3>
-              <div className="flex flex-wrap gap-1">
-                {characters.slice(0, 8).map((char, i) => (
-                  <span key={i} className={cn(
-                    "px-1.5 py-0.5 rounded text-[10px] font-medium",
-                    isDark ? 'bg-stone-800 text-stone-300' : 'bg-stone-100 text-stone-600'
-                  )}>
-                    {char}
-                  </span>
-                ))}
-                {characters.length > 8 && (
-                  <span className={cn(
-                    "px-1.5 py-0.5 rounded text-[10px]",
-                    isDark ? 'text-stone-500' : 'text-stone-400'
-                  )}>
-                    +{characters.length - 8}
-                  </span>
+              <button
+                onClick={() => setShowExportModal(false)}
+                className={cn(
+                  "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                  isDark ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-stone-100 text-stone-500'
                 )}
-              </div>
+              >
+                <X size={16} />
+              </button>
             </div>
-          )}
-
-          {/* Scenes List */}
-          <div className={cn(
-            "p-3 rounded-xl border flex-1 flex flex-col min-h-0 overflow-hidden",
-            isDark ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200/60'
-          )}>
-            <h3 className={cn(
-              "text-[11px] font-semibold mb-2 flex items-center gap-1.5 uppercase tracking-wide shrink-0",
-              isDark ? 'text-stone-400' : 'text-stone-500'
-            )}>
-              <Film size={12} strokeWidth={2} />
-              Scenes ({scenes.length})
-            </h3>
-            <div className="overflow-y-auto flex-1 -mx-1 px-1 space-y-0.5">
-              {scenes.length === 0 ? (
-                <div className={cn(
-                  "h-full flex flex-col items-center justify-center text-center py-4",
-                  isDark ? 'text-stone-600' : 'text-stone-300'
-                )}>
-                  <Hash size={16} className="mb-1.5" strokeWidth={1.5} />
-                  <p className={cn(
-                    "text-[10px]",
-                    isDark ? 'text-stone-500' : 'text-stone-400'
-                  )}>
-                    Use standard headings<br/>(INT. / EXT.)
-                  </p>
-                </div>
-              ) : (
-                scenes.map((scene, i) => (
-                  <button 
-                    key={i}
-                    onClick={() => scrollToScene(scene.index)}
-                    className={cn(
-                      "w-full text-left group flex items-center gap-2 py-1.5 px-2 rounded-lg transition-all duration-150",
-                      isDark ? 'hover:bg-stone-800' : 'hover:bg-stone-50'
-                    )}
-                  >
-                    <span className={cn(
-                      "text-[10px] font-mono min-w-[1.2em] transition-colors",
-                      isDark ? 'text-stone-600 group-hover:text-stone-400' : 'text-stone-300 group-hover:text-stone-500'
-                    )}>
-                      {i + 1}
-                    </span>
-                    <span className={cn(
-                      "text-[11px] font-medium truncate font-mono transition-colors",
-                      isDark ? 'text-stone-400 group-hover:text-white' : 'text-stone-600 group-hover:text-stone-900'
-                    )}>
-                      {scene.text}
-                    </span>
-                  </button>
-                ))
-              )}
+            <div className="p-6 space-y-4">
+              <div>
+                <label className={cn("block text-xs font-medium mb-2", isDark ? 'text-stone-400' : 'text-stone-500')}>
+                  Title
+                </label>
+                <input
+                  type="text"
+                  value={exportTitle}
+                  onChange={(e) => setExportTitle(e.target.value)}
+                  className={cn(
+                    "w-full h-10 px-4 rounded-lg text-sm outline-none border",
+                    isDark 
+                      ? 'bg-stone-800 border-stone-700 text-white'
+                      : 'bg-stone-50 border-stone-200 text-stone-900'
+                  )}
+                />
+              </div>
+              <div>
+                <label className={cn("block text-xs font-medium mb-2", isDark ? 'text-stone-400' : 'text-stone-500')}>
+                  Author
+                </label>
+                <input
+                  type="text"
+                  value={exportAuthor}
+                  onChange={(e) => setExportAuthor(e.target.value)}
+                  placeholder="Optional"
+                  className={cn(
+                    "w-full h-10 px-4 rounded-lg text-sm outline-none border",
+                    isDark 
+                      ? 'bg-stone-800 border-stone-700 text-white placeholder:text-stone-600'
+                      : 'bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400'
+                  )}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button
+                  onClick={() => { exportToPDF(content, { title: exportTitle, author: exportAuthor }); setShowExportModal(false); }}
+                  className={cn(
+                    "p-4 rounded-xl border transition-all text-left",
+                    isDark ? 'bg-stone-800 border-stone-700 hover:border-stone-600' : 'bg-stone-50 border-stone-200 hover:border-stone-300'
+                  )}
+                >
+                  <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center mb-3", isDark ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-600')}>
+                    <FileText size={20} />
+                  </div>
+                  <div className={cn("font-medium text-sm", isDark ? 'text-white' : 'text-stone-900')}>PDF</div>
+                  <div className={cn("text-xs mt-0.5", isDark ? 'text-stone-500' : 'text-stone-400')}>Industry standard</div>
+                </button>
+                <button
+                  onClick={() => { exportToFountain(content, exportTitle); setShowExportModal(false); }}
+                  className={cn(
+                    "p-4 rounded-xl border transition-all text-left",
+                    isDark ? 'bg-stone-800 border-stone-700 hover:border-stone-600' : 'bg-stone-50 border-stone-200 hover:border-stone-300'
+                  )}
+                >
+                  <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center mb-3", isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600')}>
+                    <Download size={20} />
+                  </div>
+                  <div className={cn("font-medium text-sm", isDark ? 'text-white' : 'text-stone-900')}>Fountain</div>
+                  <div className={cn("text-xs mt-0.5", isDark ? 'text-stone-500' : 'text-stone-400')}>Plain text</div>
+                </button>
+                <button
+                  onClick={() => { exportToFDX(content, exportTitle); setShowExportModal(false); }}
+                  className={cn(
+                    "p-4 rounded-xl border transition-all text-left",
+                    isDark ? 'bg-stone-800 border-stone-700 hover:border-stone-600' : 'bg-stone-50 border-stone-200 hover:border-stone-300'
+                  )}
+                >
+                  <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center mb-3", isDark ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-600')}>
+                    <Film size={20} />
+                  </div>
+                  <div className={cn("font-medium text-sm", isDark ? 'text-white' : 'text-stone-900')}>Final Draft</div>
+                  <div className={cn("text-xs mt-0.5", isDark ? 'text-stone-500' : 'text-stone-400')}>.fdx format</div>
+                </button>
+                <button
+                  onClick={() => { setShowExportModal(false); setShowTitlePageModal(true); }}
+                  className={cn(
+                    "p-4 rounded-xl border transition-all text-left",
+                    isDark ? 'bg-stone-800 border-stone-700 hover:border-stone-600' : 'bg-stone-50 border-stone-200 hover:border-stone-300'
+                  )}
+                >
+                  <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center mb-3", isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-600')}>
+                    <BookOpen size={20} />
+                  </div>
+                  <div className={cn("font-medium text-sm", isDark ? 'text-white' : 'text-stone-900')}>Title Page</div>
+                  <div className={cn("text-xs mt-0.5", isDark ? 'text-stone-500' : 'text-stone-400')}>Generate cover</div>
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -137,8 +137,8 @@ const SettingsModal: React.FC = () => {
   ];
 
   return (
-    <div className="fixed inset-0 bg-stone-900/50 dark:bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-      <div className="bg-white dark:bg-stone-900 rounded-2xl w-full max-w-2xl shadow-floating flex flex-col max-h-[85vh] animate-in zoom-in-95 fade-in duration-200">
+    <div className="fixed inset-0 bg-stone-900/50 dark:bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6">
+      <div className="bg-white dark:bg-stone-900 rounded-2xl w-full max-w-2xl shadow-floating flex flex-col overflow-hidden h-[90vh] sm:h-[80vh] lg:h-[640px] max-h-[95vh] animate-in zoom-in-95 fade-in duration-200">
         
         {/* Header */}
         <div className="h-14 px-6 flex justify-between items-center border-b border-stone-100 dark:border-stone-800 shrink-0">
@@ -151,9 +151,9 @@ const SettingsModal: React.FC = () => {
           </button>
         </div>
 
-        <div className="flex flex-1 min-h-0">
+        <div className="flex flex-1 min-h-0 gap-6">
           {/* Sidebar */}
-          <div className="w-48 border-r border-stone-100 dark:border-stone-800 p-3 space-y-1 shrink-0">
+          <div className="w-48 border-r border-stone-100 dark:border-stone-800 p-3 space-y-1 shrink-0 overflow-y-auto">
             {tabs.map(tab => (
               <button
                 key={tab.id}
@@ -172,7 +172,10 @@ const SettingsModal: React.FC = () => {
           </div>
 
           {/* Content */}
-          <div className="flex-1 p-6 overflow-y-auto">
+          <div 
+            className="flex-1 p-6 pr-5 pb-8 overflow-y-auto"
+            style={{ scrollbarGutter: 'stable both-edges' }}
+          >
             {activeTab === 'general' && (
               <div className="space-y-6">
                 <div>

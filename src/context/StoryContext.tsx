@@ -46,6 +46,8 @@ interface StoryContextType {
 
   // Sources
   sources: Source[];
+  activeSourceId: string | null;
+  setActiveSourceId: (id: string | null) => void;
   addSource: (source: Omit<Source, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateSource: (id: string, updates: Partial<Source>) => void;
   deleteSource: (id: string) => void;
@@ -199,6 +201,7 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
 
   const [activeScriptId, setActiveScriptId] = useState<string | null>(null);
+  const [activeSourceId, setActiveSourceId] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -1310,6 +1313,8 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     // Sources
     sources,
+    activeSourceId,
+    setActiveSourceId,
     addSource,
     updateSource,
     deleteSource,

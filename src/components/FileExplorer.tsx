@@ -60,6 +60,7 @@ const FileExplorer: React.FC = () => {
     addSource,
     deleteSource,
     updateSource,
+    setActiveSourceId,
     theme,
     currentProject
   } = useStory();
@@ -106,7 +107,9 @@ const FileExplorer: React.FC = () => {
       const source = sources.find(s => s.id === sourceId);
       if (source) {
         if (source.type === 'script') {
-          // Navigate to editor for scripts
+          // Set active source and navigate to editor for scripts
+          setActiveSourceId(sourceId);
+          setSelectedId(nodeId);
           navigate('/app');
         } else {
           // For other sources, show in a preview/edit mode
@@ -114,7 +117,7 @@ const FileExplorer: React.FC = () => {
         }
       }
     }
-  }, [navigate, sources, routeMap]);
+  }, [navigate, sources, routeMap, setActiveSourceId]);
 
   // Build folder structure
   const folderStructure = useMemo((): FolderNode[] => {

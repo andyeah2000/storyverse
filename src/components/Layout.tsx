@@ -153,6 +153,13 @@ const Layout: React.FC = () => {
     { to: '/app/mood-board', icon: <ImageIcon size={18} strokeWidth={1.75} />, label: 'Mood Board' },
   ];
 
+  const mobileNavItems = [
+    { to: '/app', icon: <PenTool size={18} strokeWidth={1.75} />, label: 'Write', end: true },
+    { to: '/app/beats', icon: <Sparkles size={18} strokeWidth={1.75} />, label: 'Beats' },
+    { to: '/app/co-writer', icon: <MessageSquare size={18} strokeWidth={1.75} />, label: 'Chat' },
+    { to: '/app/notes', icon: <StickyNote size={18} strokeWidth={1.75} />, label: 'Notes' },
+  ];
+
   return (
     <div className={cn(
       "flex h-screen w-screen font-sans overflow-hidden transition-colors duration-300",
@@ -546,13 +553,19 @@ const Layout: React.FC = () => {
 
         {/* Workspace */}
         <main className={cn(
-          "flex-1 overflow-hidden relative transition-colors",
+          "flex-1 overflow-hidden relative transition-colors pb-24 lg:pb-0",
           theme === 'dark' ? 'bg-stone-950' : 'bg-stone-100'
         )}>
-          <div className="h-full w-full max-w-[1920px] mx-auto p-4">
+          <div className="h-full w-full max-w-[1920px] mx-auto px-3 sm:px-4 pt-3 sm:pt-4">
             <Outlet />
           </div>
         </main>
+
+        <MobileNavDock 
+          items={mobileNavItems}
+          theme={theme}
+          hidden={mobileMenuOpen || sidebarOpen}
+        />
       </div>
 
       {/* Settings Modal */}
@@ -731,6 +744,49 @@ const NavButton: React.FC<NavButtonProps> = ({ to, icon, label, theme, end }) =>
       {icon}
       <span className="hidden xl:inline">{label}</span>
     </NavLink>
+  );
+};
+
+interface MobileNavDockProps {
+  items: { to: string; icon: React.ReactNode; label: string; end?: boolean }[];
+  theme: 'light' | 'dark';
+  hidden: boolean;
+}
+
+const MobileNavDock: React.FC<MobileNavDockProps> = ({ items, theme, hidden }) => {
+  return (
+    <div
+      className={cn(
+        "lg:hidden fixed bottom-0 left-0 right-0 border-t px-2 pb-[env(safe-area-inset-bottom)] pt-2 z-30 transition-transform duration-300 backdrop-blur-lg",
+        theme === 'dark'
+          ? 'bg-stone-950/90 border-stone-800/70'
+          : 'bg-white/95 border-stone-200',
+        hidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
+      )}
+    >
+      <nav className="grid grid-cols-4 gap-2">
+        {items.map(item => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            end={item.end}
+            className={({ isActive }) => cn(
+              "flex flex-col items-center justify-center gap-1 py-2 rounded-2xl text-[11px] font-medium transition-colors",
+              isActive
+                ? theme === 'dark'
+                  ? 'bg-white text-stone-900'
+                  : 'bg-stone-900 text-white'
+                : theme === 'dark'
+                  ? 'text-stone-400 hover:bg-stone-900'
+                  : 'text-stone-500 hover:bg-stone-100'
+            )}
+          >
+            <span className="h-5 flex items-center">{item.icon}</span>
+            {item.label}
+          </NavLink>
+        ))}
+      </nav>
+    </div>
   );
 };
 

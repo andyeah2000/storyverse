@@ -9,7 +9,9 @@ import {
   Play,
   Check,
   Moon,
-  Sun
+  Sun,
+  Menu,
+  X
 } from 'lucide-react';
 
 const LandingPage: React.FC = () => {
@@ -17,12 +19,20 @@ const LandingPage: React.FC = () => {
   const theme = useTheme();
   const isDark = theme === 'dark';
   const [scrolled, setScrolled] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileNavOpen ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileNavOpen]);
 
   const toggleTheme = () => {
     const current = localStorage.getItem('storyverse_settings');
@@ -31,6 +41,13 @@ const LandingPage: React.FC = () => {
     localStorage.setItem('storyverse_settings', JSON.stringify({ ...settings, theme: newTheme }));
     window.location.reload();
   };
+
+  const navLinks = [
+    { label: 'Features', href: '#features', type: 'anchor' as const },
+    { label: 'Pricing', href: '/pricing', type: 'route' as const },
+    { label: 'About', href: '/about', type: 'route' as const },
+    { label: 'Contact', href: '/contact', type: 'route' as const },
+  ];
 
   return (
     <div className={`min-h-screen selection:bg-current selection:text-white overflow-x-hidden transition-colors duration-300 ${
@@ -45,7 +62,7 @@ const LandingPage: React.FC = () => {
             : 'bg-[#FAFAF9]/90 backdrop-blur-xl'
           : ''
       }`}>
-        <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
               isDark ? 'bg-white' : 'bg-stone-900'
@@ -58,6 +75,32 @@ const LandingPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-3">
+              {navLinks.map(link => (
+                link.type === 'anchor' ? (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    className={`text-sm font-medium transition-colors ${
+                      isDark ? 'text-stone-400 hover:text-white' : 'text-stone-500 hover:text-stone-900'
+                    }`}
+                  >
+                    {link.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={link.label}
+                    to={link.href}
+                    className={`text-sm font-medium transition-colors ${
+                      isDark ? 'text-stone-400 hover:text-white' : 'text-stone-500 hover:text-stone-900'
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                )
+              ))}
+            </div>
+
             <button
               onClick={toggleTheme}
               className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
@@ -66,27 +109,121 @@ const LandingPage: React.FC = () => {
             >
               {isDark ? <Sun size={18} className="text-stone-400" /> : <Moon size={18} className="text-stone-500" />}
             </button>
-            <button 
-              onClick={() => navigate('/login')}
-              className={`h-10 px-5 rounded-full text-sm font-medium transition-colors ${
-                isDark ? 'text-stone-400 hover:text-white' : 'text-stone-500 hover:text-stone-900'
+            <div className="hidden md:flex items-center gap-2">
+              <button 
+                onClick={() => navigate('/login')}
+                className={`h-10 px-5 rounded-full text-sm font-medium transition-colors ${
+                  isDark ? 'text-stone-400 hover:text-white' : 'text-stone-500 hover:text-stone-900'
+                }`}
+              >
+                Sign In
+              </button>
+              <button 
+                onClick={() => navigate('/signup')}
+                className={`h-10 px-5 rounded-full text-sm font-medium transition-colors ${
+                  isDark 
+                    ? 'bg-white text-stone-900 hover:bg-stone-100' 
+                    : 'bg-stone-900 text-white hover:bg-stone-800'
+                }`}
+              >
+                Get Started
+              </button>
+            </div>
+
+            <button
+              onClick={() => setMobileNavOpen(true)}
+              className={`md:hidden w-11 h-11 rounded-full flex items-center justify-center transition-colors ${
+                isDark ? 'hover:bg-stone-800' : 'hover:bg-stone-200/80'
               }`}
+              aria-label="Open menu"
             >
-              Sign In
-            </button>
-            <button 
-              onClick={() => navigate('/signup')}
-              className={`h-10 px-5 rounded-full text-sm font-medium transition-colors ${
-                isDark 
-                  ? 'bg-white text-stone-900 hover:bg-stone-100' 
-                  : 'bg-stone-900 text-white hover:bg-stone-800'
-              }`}
-            >
-              Get Started
+              <Menu size={20} className={isDark ? 'text-white' : 'text-stone-900'} />
             </button>
           </div>
         </div>
       </nav>
+
+      {/* Mobile Nav Sheet */}
+      {mobileNavOpen && (
+        <>
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden animate-in fade-in duration-200"
+            onClick={() => setMobileNavOpen(false)}
+          />
+          <div className={`fixed top-0 right-0 bottom-0 w-full max-w-sm z-50 md:hidden animate-in slide-in-from-right duration-300 ${
+            isDark ? 'bg-[#0c0a09]' : 'bg-white'
+          }`}>
+            <div className="h-16 px-6 flex items-center justify-between">
+              <span className="text-base font-semibold">Menu</span>
+              <button
+                onClick={() => setMobileNavOpen(false)}
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                  isDark ? 'hover:bg-stone-800' : 'hover:bg-stone-100'
+                }`}
+                aria-label="Close menu"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="px-6 py-4 space-y-3 overflow-y-auto h-[calc(100%-4rem)] pb-10">
+              <div className="space-y-2">
+                {navLinks.map(link => (
+                  link.type === 'anchor' ? (
+                    <a
+                      key={link.label}
+                      href={link.href}
+                      onClick={() => setMobileNavOpen(false)}
+                      className={`block px-4 py-3 rounded-2xl text-base font-medium transition-colors ${
+                        isDark ? 'text-stone-200 hover:bg-stone-800' : 'text-stone-600 hover:bg-stone-100'
+                      }`}
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link
+                      key={link.label}
+                      to={link.href}
+                      onClick={() => setMobileNavOpen(false)}
+                      className={`block px-4 py-3 rounded-2xl text-base font-medium transition-colors ${
+                        isDark ? 'text-stone-200 hover:bg-stone-800' : 'text-stone-600 hover:bg-stone-100'
+                      }`}
+                    >
+                      {link.label}
+                    </Link>
+                  )
+                ))}
+              </div>
+              <div className="pt-2 space-y-2 border-t border-stone-200/40 dark:border-white/5">
+                <button 
+                  onClick={() => {
+                    navigate('/login');
+                    setMobileNavOpen(false);
+                  }}
+                  className={`w-full h-12 rounded-xl text-sm font-semibold transition-all ${
+                    isDark ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-100 text-stone-900 hover:bg-stone-200'
+                  }`}
+                >
+                  Sign In
+                </button>
+                <button 
+                  onClick={() => {
+                    navigate('/signup');
+                    setMobileNavOpen(false);
+                  }}
+                  className={`w-full h-12 rounded-xl text-sm font-semibold transition-all ${
+                    isDark ? 'bg-white text-stone-900 hover:bg-stone-100' : 'bg-stone-900 text-white hover:bg-stone-800'
+                  }`}
+                >
+                  Get Started
+                </button>
+              </div>
+              <div className="text-xs text-stone-500 dark:text-stone-400 pt-4">
+                © {new Date().getFullYear()} StoryVerse. All rights reserved.
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Hero */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -105,7 +242,7 @@ const LandingPage: React.FC = () => {
         </div>
 
         {/* Content */}
-        <div className="relative z-10 max-w-4xl mx-auto text-center px-6 pt-32 pb-24">
+        <div className="relative z-10 max-w-4xl mx-auto text-center px-4 sm:px-6 pt-32 pb-24">
           <p className={`text-sm font-medium tracking-widest uppercase mb-6 animate-fade-in ${
             isDark ? 'text-stone-500' : 'text-stone-400'
           }`}>
@@ -125,10 +262,10 @@ const LandingPage: React.FC = () => {
             Build characters, structure plots, and write scripts through natural conversation.
           </p>
 
-          <div className="flex items-center justify-center gap-4 animate-slide-up" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 animate-slide-up" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
             <button 
               onClick={() => navigate('/signup')}
-              className={`group h-14 px-8 rounded-full font-semibold flex items-center gap-3 transition-all shadow-lg hover-lift press-effect ${
+              className={`group h-14 w-full sm:w-auto px-8 rounded-full font-semibold flex items-center justify-center gap-3 transition-all shadow-lg hover-lift press-effect ${
                 isDark 
                   ? 'bg-white text-stone-900 hover:bg-stone-100 shadow-white/5' 
                   : 'bg-stone-900 text-white hover:bg-stone-800 shadow-black/10'
@@ -137,7 +274,7 @@ const LandingPage: React.FC = () => {
               Start Writing
               <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </button>
-            <button className={`h-14 px-6 rounded-full border font-medium flex items-center gap-2 backdrop-blur-sm transition-all hover-scale press-effect ${
+            <button className={`h-14 w-full sm:w-auto px-6 rounded-full border font-medium flex items-center justify-center gap-2 backdrop-blur-sm transition-all hover-scale press-effect ${
               isDark 
                 ? 'border-stone-800 text-stone-400 hover:border-stone-700 hover:bg-stone-900/50' 
                 : 'border-stone-200 text-stone-500 hover:border-stone-300 hover:bg-white/50'
@@ -161,7 +298,7 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Visual Showcase */}
-      <section className="py-24 px-6">
+      <section id="features" className="py-20 sm:py-24 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-8 items-center">
             {/* Sci-Fi Image */}

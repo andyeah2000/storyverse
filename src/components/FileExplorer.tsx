@@ -20,12 +20,8 @@ import {
   Image as ImageIcon,
   Plus,
   Search,
-  Upload,
   Trash2,
-  Edit3,
-  Copy,
-  X,
-  RefreshCw
+  X
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -65,16 +61,17 @@ const FileExplorer: React.FC = () => {
     currentProject
   } = useStory();
 
+  const isDark = theme === 'dark';
+
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
-    new Set(['story-bible', 'workspace'])
+    new Set(['story-bible', 'scripts', 'workspace'])
   );
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; nodeId: string } | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
   const [isCreating, setIsCreating] = useState<string | null>(null);
   const [newItemName, setNewItemName] = useState('');
   const [editingFile, setEditingFile] = useState<Source | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; nodeId: string } | null>(null);
 
   // Route mapping for workspace items
   const routeMap: Record<string, string> = {
@@ -88,31 +85,26 @@ const FileExplorer: React.FC = () => {
   };
 
   // Handle file/view open on double-click
-  const handleFileOpen = useCallback((nodeId: string, _nodeData?: unknown) => {
-    // Check if it's a workspace route item
+  const handleFileOpen = useCallback((nodeId: string) => {
     if (routeMap[nodeId]) {
       navigate(routeMap[nodeId]);
       return;
     }
 
-    // Check if it's a note
     if (nodeId.startsWith('note-')) {
       navigate('/app/notes');
       return;
     }
 
-    // Check if it's a source file - open in editor
     if (nodeId.startsWith('source-')) {
       const sourceId = nodeId.replace('source-', '');
       const source = sources.find(s => s.id === sourceId);
       if (source) {
         if (source.type === 'script') {
-          // Set active source and navigate to editor for scripts
           setActiveSourceId(sourceId);
           setSelectedId(nodeId);
           navigate('/app');
         } else {
-          // For other sources, show in a preview/edit mode
           setEditingFile(source);
         }
       }
@@ -136,14 +128,14 @@ const FileExplorer: React.FC = () => {
         id: 'story-bible',
         name: 'Story Bible',
         type: 'folder',
-        icon: <BookOpen size={14} />,
-        count: sources.length,
+        icon: <BookOpen size={13} />,
+        count: characters.length + locations.length + lore.length + factions.length + concepts.length + events.length,
         children: [
           {
             id: 'characters',
             name: 'Characters',
             type: 'folder',
-            icon: <User size={14} />,
+            icon: <User size={13} />,
             count: characters.length,
             color: 'text-blue-500',
             children: characters.map(s => ({
@@ -158,9 +150,9 @@ const FileExplorer: React.FC = () => {
             id: 'locations',
             name: 'Locations',
             type: 'folder',
-            icon: <MapPin size={14} />,
+            icon: <MapPin size={13} />,
             count: locations.length,
-            color: 'text-green-500',
+            color: 'text-emerald-500',
             children: locations.map(s => ({
               id: `source-${s.id}`,
               name: s.title,
@@ -173,9 +165,9 @@ const FileExplorer: React.FC = () => {
             id: 'factions',
             name: 'Factions',
             type: 'folder',
-            icon: <Crown size={14} />,
+            icon: <Crown size={13} />,
             count: factions.length,
-            color: 'text-purple-500',
+            color: 'text-violet-500',
             children: factions.map(s => ({
               id: `source-${s.id}`,
               name: s.title,
@@ -188,7 +180,7 @@ const FileExplorer: React.FC = () => {
             id: 'lore',
             name: 'Lore',
             type: 'folder',
-            icon: <BookOpen size={14} />,
+            icon: <BookOpen size={13} />,
             count: lore.length,
             color: 'text-amber-500',
             children: lore.map(s => ({
@@ -203,7 +195,7 @@ const FileExplorer: React.FC = () => {
             id: 'concepts',
             name: 'Concepts',
             type: 'folder',
-            icon: <Lightbulb size={14} />,
+            icon: <Lightbulb size={13} />,
             count: concepts.length,
             color: 'text-yellow-500',
             children: concepts.map(s => ({
@@ -218,9 +210,9 @@ const FileExplorer: React.FC = () => {
             id: 'events',
             name: 'Events',
             type: 'folder',
-            icon: <Sword size={14} />,
+            icon: <Sword size={13} />,
             count: events.length,
-            color: 'text-red-500',
+            color: 'text-rose-500',
             children: events.map(s => ({
               id: `source-${s.id}`,
               name: s.title,
@@ -235,7 +227,7 @@ const FileExplorer: React.FC = () => {
         id: 'scripts',
         name: 'Scripts',
         type: 'folder',
-        icon: <FileText size={14} />,
+        icon: <FileText size={13} />,
         count: scripts.length,
         children: scripts.map(s => ({
           id: `source-${s.id}`,
@@ -249,53 +241,47 @@ const FileExplorer: React.FC = () => {
         id: 'workspace',
         name: 'Workspace',
         type: 'folder',
-        icon: <Folder size={14} />,
+        icon: <Folder size={13} />,
         children: [
           {
             id: 'beat-sheet',
             name: 'Beat Sheet',
             type: 'file',
-            icon: <Layers size={14} />,
+            icon: <Layers size={13} />,
             data: { type: 'beatSheet', content: beatSheet },
-            count: filledBeats
+            count: filledBeats || undefined
           },
           {
             id: 'outline',
             name: 'Outline',
             type: 'file',
-            icon: <Layers size={14} />,
+            icon: <Layers size={13} />,
             data: { type: 'outline', content: outline },
-            count: outline.length
+            count: outline.length || undefined
           },
           {
             id: 'story-map',
             name: 'Story Map',
             type: 'file',
-            icon: <Map size={14} />,
+            icon: <Map size={13} />,
             data: { type: 'storyMap', content: storyMap },
-            count: storyMap.length
+            count: storyMap.length || undefined
           },
           {
             id: 'notes-folder',
             name: 'Notes',
-            type: 'folder',
-            icon: <StickyNote size={14} />,
-            count: notes.length,
-            children: notes.map(n => ({
-              id: `note-${n.id}`,
-              name: n.title || 'Untitled Note',
-              type: 'file' as const,
-              icon: <StickyNote size={12} />,
-              data: n
-            }))
+            type: 'file',
+            icon: <StickyNote size={13} />,
+            data: { type: 'notes', content: notes },
+            count: notes.length || undefined
           },
           {
             id: 'mood-board',
             name: 'Mood Board',
             type: 'file',
-            icon: <ImageIcon size={14} />,
+            icon: <ImageIcon size={13} />,
             data: { type: 'moodBoard', content: moodBoard },
-            count: moodBoard?.length || 0
+            count: moodBoard?.length || undefined
           }
         ]
       }
@@ -333,41 +319,26 @@ const FileExplorer: React.FC = () => {
     });
   };
 
-  const handleContextMenu = (e: React.MouseEvent, nodeId: string) => {
-    e.preventDefault();
-    setContextMenu({ x: e.clientX, y: e.clientY, nodeId });
+  const getTypeFromFolderId = (id: string): Source['type'] => {
+    const map: Record<string, Source['type']> = {
+      'characters': 'character',
+      'locations': 'location',
+      'factions': 'faction',
+      'lore': 'lore',
+      'concepts': 'concept',
+      'events': 'event',
+      'scripts': 'script'
+    };
+    return map[id] || 'lore';
   };
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    
-    const files = Array.from(e.dataTransfer.files);
-    files.forEach(file => {
-      if (file.size > 5 * 1024 * 1024) return;
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const text = event.target?.result as string;
-        if (text && !text.includes('\0')) {
-          addSource({
-            title: file.name.replace(/\.[^/.]+$/, ''),
-            content: text,
-            type: 'script',
-            tags: []
-          });
-        }
-      };
-      reader.readAsText(file);
-    });
-  }, [addSource]);
-
-  const handleCreateItem = (parentId: string, type: Source['type']) => {
+  const handleCreateItem = (parentId: string) => {
     if (!newItemName.trim()) return;
     
     addSource({
       title: newItemName.trim(),
       content: '',
-      type,
+      type: getTypeFromFolderId(parentId),
       tags: []
     });
     
@@ -376,78 +347,199 @@ const FileExplorer: React.FC = () => {
     setExpandedFolders(prev => new Set([...prev, parentId]));
   };
 
+  const handleContextMenu = (e: React.MouseEvent, nodeId: string) => {
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY, nodeId });
+  };
+
+  const handleDeleteItem = () => {
+    if (!contextMenu) return;
+    const id = contextMenu.nodeId.replace('source-', '');
+    deleteSource(id);
+    setContextMenu(null);
+  };
+
+  // ============================================
+  // RENDER TREE NODE
+  // ============================================
+
+  const renderNode = (node: FolderNode, depth: number) => {
+    const isExpanded = expandedFolders.has(node.id);
+    const isSelected = selectedId === node.id;
+    const isFolder = node.type === 'folder';
+    const hasChildren = node.children && node.children.length > 0;
+    const isWorkspaceItem = ['beat-sheet', 'outline', 'story-map', 'notes-folder', 'mood-board'].includes(node.id);
+
+    return (
+      <div key={node.id}>
+        <div
+          className={cn(
+            "flex items-center h-7 rounded-md cursor-pointer group transition-colors",
+            isSelected
+              ? isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-500/10 text-blue-600'
+              : isDark ? 'hover:bg-white/5 text-stone-400' : 'hover:bg-black/5 text-stone-600'
+          )}
+          style={{ paddingLeft: `${depth * 12 + 6}px`, paddingRight: '6px' }}
+          onClick={() => {
+            if (isFolder && !isWorkspaceItem) onToggle(node.id);
+            setSelectedId(node.id);
+          }}
+          onDoubleClick={() => {
+            if (!isFolder || isWorkspaceItem) {
+              handleFileOpen(node.id);
+            }
+          }}
+          onContextMenu={(e) => node.data && handleContextMenu(e, node.id)}
+        >
+          {/* Arrow */}
+          <span className="w-4 h-4 flex items-center justify-center shrink-0">
+            {isFolder && hasChildren && (
+              <ChevronRight 
+                size={10} 
+                className={cn(
+                  "transition-transform duration-150",
+                  isExpanded && "rotate-90",
+                  isDark ? 'text-stone-500' : 'text-stone-400'
+                )} 
+              />
+            )}
+          </span>
+
+          {/* Icon */}
+          <span className={cn(
+            "w-4 h-4 flex items-center justify-center shrink-0",
+            node.color || (isDark ? 'text-stone-500' : 'text-stone-400')
+          )}>
+            {isFolder 
+              ? (isExpanded ? <FolderOpen size={13} /> : <Folder size={13} />)
+              : node.icon || <File size={13} />
+            }
+          </span>
+
+          {/* Name */}
+          <span className={cn(
+            "flex-1 text-[11px] font-medium ml-1.5 truncate",
+            isSelected 
+              ? isDark ? 'text-blue-300' : 'text-blue-700'
+              : isDark ? 'text-stone-300' : 'text-stone-700'
+          )}>
+            {node.name}
+          </span>
+
+          {/* Count */}
+          {node.count !== undefined && node.count > 0 && (
+            <span className={cn(
+              "text-[9px] font-medium min-w-[16px] h-4 px-1 rounded flex items-center justify-center",
+              isDark ? 'bg-white/10 text-stone-500' : 'bg-black/5 text-stone-400'
+            )}>
+              {node.count}
+            </span>
+          )}
+
+          {/* Add Button */}
+          {isFolder && !isWorkspaceItem && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setIsCreating(node.id); setExpandedFolders(prev => new Set([...prev, node.id])); }}
+              className={cn(
+                "w-5 h-5 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity ml-0.5",
+                isDark ? 'hover:bg-white/10 text-stone-500' : 'hover:bg-black/10 text-stone-400'
+              )}
+            >
+              <Plus size={10} />
+            </button>
+          )}
+        </div>
+
+        {/* Create Input */}
+        {isCreating === node.id && (
+          <div 
+            className="flex items-center h-7"
+            style={{ paddingLeft: `${(depth + 1) * 12 + 6}px`, paddingRight: '6px' }}
+          >
+            <span className="w-4 h-4 shrink-0" />
+            <File size={12} className={isDark ? 'text-stone-500' : 'text-stone-400'} />
+            <input
+              type="text"
+              value={newItemName}
+              onChange={(e) => setNewItemName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleCreateItem(node.id);
+                if (e.key === 'Escape') { setIsCreating(null); setNewItemName(''); }
+              }}
+              onBlur={() => { setIsCreating(null); setNewItemName(''); }}
+              autoFocus
+              placeholder="Name..."
+              className={cn(
+                "flex-1 h-5 px-1.5 ml-1.5 text-[11px] outline-none rounded",
+                isDark
+                  ? 'bg-white/10 text-white placeholder:text-stone-600'
+                  : 'bg-black/5 text-stone-900 placeholder:text-stone-400'
+              )}
+            />
+          </div>
+        )}
+
+        {/* Children */}
+        {isFolder && isExpanded && node.children?.map(child => renderNode(child, depth + 1))}
+      </div>
+    );
+  };
+
+  const onToggle = toggleFolder;
+
+  // ============================================
+  // MAIN RENDER
+  // ============================================
+
   return (
     <div 
       className={cn(
-        "w-72 border-r flex flex-col h-full shrink-0 transition-all duration-300 select-none",
-        theme === 'dark' 
+        "w-60 min-w-60 max-w-60 border-r flex flex-col h-full select-none",
+        isDark 
           ? 'bg-stone-900 border-stone-800' 
-          : 'bg-white border-stone-200/60',
-        isDragging && (theme === 'dark' ? 'ring-2 ring-inset ring-blue-500/50' : 'ring-2 ring-inset ring-blue-400/50')
+          : 'bg-stone-50/50 border-stone-200'
       )}
-      onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-      onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false); }}
-      onDrop={handleDrop}
       onClick={() => setContextMenu(null)}
     >
       {/* Header */}
       <div className={cn(
-        "h-12 px-4 flex items-center justify-between border-b shrink-0",
-        theme === 'dark' ? 'border-stone-800' : 'border-stone-200/60'
+        "h-10 px-3 flex items-center gap-2 border-b shrink-0",
+        isDark ? 'border-stone-800' : 'border-stone-200'
       )}>
-        <div className="flex items-center gap-2">
-          <Folder size={14} className="text-stone-400" />
-          <span className={cn(
-            "text-sm font-semibold tracking-tight",
-            theme === 'dark' ? 'text-white' : 'text-stone-900'
-          )}>
-            {currentProject?.name || 'Explorer'}
-          </span>
-        </div>
-        <div className="flex items-center gap-1">
-          <button 
-            className={cn(
-              "w-6 h-6 rounded flex items-center justify-center transition-colors",
-              theme === 'dark' ? 'hover:bg-stone-800 text-stone-500' : 'hover:bg-stone-100 text-stone-400'
-            )}
-            title="Refresh"
-          >
-            <RefreshCw size={12} />
-          </button>
-          <button 
-            className={cn(
-              "w-6 h-6 rounded flex items-center justify-center transition-colors",
-              theme === 'dark' ? 'hover:bg-stone-800 text-stone-500' : 'hover:bg-stone-100 text-stone-400'
-            )}
-            title="Collapse All"
-            onClick={() => setExpandedFolders(new Set())}
-          >
-            <ChevronRight size={12} />
-          </button>
-        </div>
+        <span className={cn(
+          "text-[11px] font-semibold uppercase tracking-wider",
+          isDark ? 'text-stone-500' : 'text-stone-400'
+        )}>
+          {currentProject?.name || 'Project'}
+        </span>
       </div>
 
       {/* Search */}
-      <div className="px-3 py-2">
+      <div className="px-2 py-2">
         <div className="relative">
-          <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-400" />
+          <Search size={11} className={cn(
+            "absolute left-2 top-1/2 -translate-y-1/2",
+            isDark ? 'text-stone-600' : 'text-stone-400'
+          )} />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search files..."
+            placeholder="Search..."
             className={cn(
-              "w-full h-7 pl-7 pr-3 rounded text-xs outline-none transition-all",
-              theme === 'dark'
-                ? 'bg-stone-800 border-stone-700 text-white placeholder:text-stone-500 focus:ring-1 focus:ring-white/20'
-                : 'bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400 focus:ring-1 focus:ring-stone-900/10',
-              'border'
+              "w-full h-7 pl-6 pr-2 rounded-md text-[11px] outline-none transition-colors",
+              isDark
+                ? 'bg-white/5 text-white placeholder:text-stone-600 focus:bg-white/10'
+                : 'bg-black/5 text-stone-900 placeholder:text-stone-400 focus:bg-black/10'
             )}
           />
           {searchQuery && (
             <button 
               onClick={() => setSearchQuery('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+              className={cn(
+                "absolute right-1.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded flex items-center justify-center",
+                isDark ? 'hover:bg-white/10 text-stone-500' : 'hover:bg-black/10 text-stone-400'
+              )}
             >
               <X size={10} />
             </button>
@@ -456,86 +548,67 @@ const FileExplorer: React.FC = () => {
       </div>
 
       {/* Tree */}
-      <div className="flex-1 overflow-y-auto px-1 pb-3">
-        {filteredStructure.map(node => (
-          <TreeNode 
-            key={node.id}
-            node={node}
-            depth={0}
-            theme={theme}
-            expandedFolders={expandedFolders}
-            selectedId={selectedId}
-            isCreating={isCreating}
-            newItemName={newItemName}
-            onToggle={toggleFolder}
-            onSelect={setSelectedId}
-            onDoubleClick={handleFileOpen}
-            onContextMenu={handleContextMenu}
-            onStartCreate={setIsCreating}
-            onCreateItem={handleCreateItem}
-            onNewItemNameChange={setNewItemName}
-            onCancelCreate={() => { setIsCreating(null); setNewItemName(''); }}
-          />
-        ))}
+      <div className="flex-1 overflow-y-auto px-1.5 pb-2">
+        {filteredStructure.map(node => renderNode(node, 0))}
       </div>
 
-      {/* File Preview/Edit Modal */}
+      {/* File Preview Modal */}
       {editingFile && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-8">
           <div className={cn(
-            "w-full max-w-2xl max-h-[80vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col",
-            theme === 'dark' ? 'bg-stone-900' : 'bg-white'
+            "w-full max-w-xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]",
+            isDark ? 'bg-stone-900' : 'bg-white'
           )}>
             <div className={cn(
-              "h-14 px-6 flex items-center justify-between border-b shrink-0",
-              theme === 'dark' ? 'border-stone-800' : 'border-stone-100'
+              "h-12 px-4 flex items-center justify-between border-b shrink-0",
+              isDark ? 'border-stone-800' : 'border-stone-100'
             )}>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <span className={cn(
-                  "px-2 py-0.5 rounded text-xs font-medium capitalize",
-                  theme === 'dark' ? 'bg-stone-800 text-stone-300' : 'bg-stone-100 text-stone-600'
+                  "px-1.5 py-0.5 rounded text-[10px] font-medium uppercase",
+                  isDark ? 'bg-white/10 text-stone-400' : 'bg-black/5 text-stone-500'
                 )}>
                   {editingFile.type}
                 </span>
-                <h3 className={cn(
-                  "font-semibold",
-                  theme === 'dark' ? 'text-white' : 'text-stone-900'
+                <span className={cn(
+                  "text-sm font-medium",
+                  isDark ? 'text-white' : 'text-stone-900'
                 )}>
                   {editingFile.title}
-                </h3>
+                </span>
               </div>
               <button
                 onClick={() => setEditingFile(null)}
                 className={cn(
-                  "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-                  theme === 'dark' ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-stone-100 text-stone-500'
+                  "w-7 h-7 rounded-md flex items-center justify-center transition-colors",
+                  isDark ? 'hover:bg-white/10 text-stone-400' : 'hover:bg-black/5 text-stone-500'
                 )}
               >
-                <X size={16} />
+                <X size={14} />
               </button>
             </div>
-            <div className="flex-1 overflow-auto p-6">
+            <div className="flex-1 overflow-auto p-4">
               <textarea
                 value={editingFile.content}
                 onChange={(e) => setEditingFile({ ...editingFile, content: e.target.value })}
                 className={cn(
-                  "w-full h-full min-h-[300px] p-4 rounded-xl text-sm outline-none resize-none border",
-                  theme === 'dark'
-                    ? 'bg-stone-800 border-stone-700 text-stone-100 placeholder:text-stone-500'
-                    : 'bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400'
+                  "w-full h-full min-h-[240px] p-3 rounded-lg text-sm outline-none resize-none",
+                  isDark
+                    ? 'bg-white/5 text-stone-100 placeholder:text-stone-600'
+                    : 'bg-stone-50 text-stone-900 placeholder:text-stone-400'
                 )}
-                placeholder="Enter content..."
+                placeholder="Content..."
               />
             </div>
             <div className={cn(
-              "h-14 px-6 flex items-center justify-end gap-3 border-t shrink-0",
-              theme === 'dark' ? 'border-stone-800' : 'border-stone-100'
+              "h-12 px-4 flex items-center justify-end gap-2 border-t shrink-0",
+              isDark ? 'border-stone-800' : 'border-stone-100'
             )}>
               <button
                 onClick={() => setEditingFile(null)}
                 className={cn(
-                  "h-9 px-4 rounded-lg text-sm font-medium transition-colors",
-                  theme === 'dark' ? 'text-stone-400 hover:bg-stone-800' : 'text-stone-600 hover:bg-stone-100'
+                  "h-8 px-3 rounded-md text-xs font-medium transition-colors",
+                  isDark ? 'text-stone-400 hover:bg-white/5' : 'text-stone-600 hover:bg-black/5'
                 )}
               >
                 Cancel
@@ -546,8 +619,8 @@ const FileExplorer: React.FC = () => {
                   setEditingFile(null);
                 }}
                 className={cn(
-                  "h-9 px-4 rounded-lg text-sm font-medium transition-colors",
-                  theme === 'dark' ? 'bg-white text-stone-900 hover:bg-stone-100' : 'bg-stone-900 text-white hover:bg-stone-800'
+                  "h-8 px-3 rounded-md text-xs font-medium transition-colors",
+                  isDark ? 'bg-white text-stone-900 hover:bg-stone-100' : 'bg-stone-900 text-white hover:bg-stone-800'
                 )}
               >
                 Save
@@ -557,353 +630,31 @@ const FileExplorer: React.FC = () => {
         </div>
       )}
 
-      {/* Quick Actions */}
-      <div className={cn(
-        "p-2 border-t flex gap-1",
-        theme === 'dark' ? 'border-stone-800' : 'border-stone-200/60'
-      )}>
-        <QuickAddButton 
-          icon={<User size={12} />} 
-          label="Character" 
-          theme={theme}
-          onClick={() => { setIsCreating('characters'); setExpandedFolders(prev => new Set([...prev, 'story-bible', 'characters'])); }}
-        />
-        <QuickAddButton 
-          icon={<MapPin size={12} />} 
-          label="Location" 
-          theme={theme}
-          onClick={() => { setIsCreating('locations'); setExpandedFolders(prev => new Set([...prev, 'story-bible', 'locations'])); }}
-        />
-        <QuickAddButton 
-          icon={<FileText size={12} />} 
-          label="Script" 
-          theme={theme}
-          onClick={() => { setIsCreating('scripts'); setExpandedFolders(prev => new Set([...prev, 'scripts'])); }}
-        />
-        <QuickAddButton 
-          icon={<BookOpen size={12} />} 
-          label="Lore" 
-          theme={theme}
-          onClick={() => { setIsCreating('lore'); setExpandedFolders(prev => new Set([...prev, 'story-bible', 'lore'])); }}
-        />
-      </div>
-
       {/* Context Menu */}
       {contextMenu && (
-        <ContextMenu 
-          x={contextMenu.x} 
-          y={contextMenu.y} 
-          theme={theme}
-          onClose={() => setContextMenu(null)}
-          onDelete={() => {
-            const id = contextMenu.nodeId.replace('source-', '');
-            deleteSource(id);
-            setContextMenu(null);
-          }}
-        />
-      )}
-
-      {/* Drop Overlay */}
-      {isDragging && (
-        <div className={cn(
-          "absolute inset-4 z-50 flex flex-col items-center justify-center border-2 border-dashed rounded-xl pointer-events-none",
-          theme === 'dark' 
-            ? 'bg-stone-800/90 border-blue-500' 
-            : 'bg-white/90 border-blue-400'
-        )}>
-          <Upload size={24} className="text-blue-500 mb-2" />
-          <p className={cn(
-            "text-sm font-medium",
-            theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
-          )}>Drop files to import</p>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// ============================================
-// TREE NODE
-// ============================================
-
-interface TreeNodeProps {
-  node: FolderNode;
-  depth: number;
-  theme: 'light' | 'dark';
-  expandedFolders: Set<string>;
-  selectedId: string | null;
-  isCreating: string | null;
-  newItemName: string;
-  onToggle: (id: string) => void;
-  onSelect: (id: string) => void;
-  onDoubleClick: (id: string, data?: any) => void;
-  onContextMenu: (e: React.MouseEvent, id: string) => void;
-  onStartCreate: (folderId: string) => void;
-  onCreateItem: (parentId: string, type: Source['type']) => void;
-  onNewItemNameChange: (name: string) => void;
-  onCancelCreate: () => void;
-}
-
-const TreeNode: React.FC<TreeNodeProps> = ({
-  node,
-  depth,
-  theme,
-  expandedFolders,
-  selectedId,
-  isCreating,
-  newItemName,
-  onToggle,
-  onSelect,
-  onDoubleClick,
-  onContextMenu,
-  onStartCreate,
-  onCreateItem,
-  onNewItemNameChange,
-  onCancelCreate
-}) => {
-  const isExpanded = expandedFolders.has(node.id);
-  const isSelected = selectedId === node.id;
-  const isFolder = node.type === 'folder';
-  const hasChildren = node.children && node.children.length > 0;
-
-  // Check if this is a navigable workspace item
-  const isWorkspaceItem = ['beat-sheet', 'outline', 'story-map', 'notes-folder', 'mood-board'].includes(node.id);
-
-  const getTypeFromFolderId = (id: string): Source['type'] => {
-    switch (id) {
-      case 'characters': return 'character';
-      case 'locations': return 'location';
-      case 'factions': return 'faction';
-      case 'lore': return 'lore';
-      case 'concepts': return 'concept';
-      case 'events': return 'event';
-      case 'scripts': return 'script';
-      default: return 'lore';
-    }
-  };
-
-  return (
-    <div>
-      <div
-        className={cn(
-          "flex items-center h-7 px-2 rounded cursor-pointer group transition-colors",
-          isSelected
-            ? theme === 'dark' ? 'bg-stone-700' : 'bg-stone-200'
-            : theme === 'dark' ? 'hover:bg-stone-800' : 'hover:bg-stone-100',
-          // Highlight navigable items
-          isWorkspaceItem && !isSelected && (theme === 'dark' ? 'hover:bg-stone-700/50' : 'hover:bg-stone-150')
-        )}
-        style={{ paddingLeft: `${depth * 12 + 8}px` }}
-        onClick={() => {
-          if (isFolder && !isWorkspaceItem) onToggle(node.id);
-          onSelect(node.id);
-        }}
-        onDoubleClick={() => {
-          // Double-click opens files or navigates to views
-          if (!isFolder || isWorkspaceItem) {
-            onDoubleClick(node.id, node.data);
-          }
-        }}
-        onContextMenu={(e) => node.data && onContextMenu(e, node.id)}
-      >
-        {/* Expand/Collapse Arrow */}
-        <span className="w-4 h-4 flex items-center justify-center shrink-0">
-          {isFolder && hasChildren && (
-            <span className={cn(
-              "transition-transform",
-              isExpanded && "rotate-90"
-            )}>
-              <ChevronRight size={10} className="text-stone-400" />
-            </span>
-          )}
-        </span>
-
-        {/* Icon */}
-        <span className={cn(
-          "w-4 h-4 flex items-center justify-center shrink-0 mr-1.5",
-          node.color || (theme === 'dark' ? 'text-stone-400' : 'text-stone-500')
-        )}>
-          {isFolder 
-            ? (isExpanded ? <FolderOpen size={14} /> : <Folder size={14} />)
-            : node.icon || <File size={14} />
-          }
-        </span>
-
-        {/* Name */}
-        <span className={cn(
-          "flex-1 text-xs truncate",
-          theme === 'dark' ? 'text-stone-300' : 'text-stone-700'
-        )}>
-          {node.name}
-        </span>
-
-        {/* Count Badge */}
-        {node.count !== undefined && node.count > 0 && (
-          <span className={cn(
-            "text-[10px] px-1.5 rounded",
-            theme === 'dark' ? 'bg-stone-700 text-stone-400' : 'bg-stone-200 text-stone-500'
-          )}>
-            {node.count}
-          </span>
-        )}
-
-        {/* Folder Actions */}
-        {isFolder && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onStartCreate(node.id); }}
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setContextMenu(null)} />
+          <div 
             className={cn(
-              "w-5 h-5 flex items-center justify-center rounded opacity-0 group-hover:opacity-100 transition-opacity ml-1",
-              theme === 'dark' ? 'hover:bg-stone-600 text-stone-400' : 'hover:bg-stone-300 text-stone-500'
+              "fixed z-50 w-36 rounded-lg shadow-xl border overflow-hidden py-1",
+              isDark ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-200'
             )}
+            style={{ left: contextMenu.x, top: contextMenu.y }}
           >
-            <Plus size={10} />
-          </button>
-        )}
-      </div>
-
-      {/* New Item Input */}
-      {isCreating === node.id && (
-        <div 
-          className="flex items-center h-7 px-2"
-          style={{ paddingLeft: `${(depth + 1) * 12 + 8}px` }}
-        >
-          <span className="w-4 h-4 shrink-0" />
-          <File size={12} className="text-stone-400 mr-1.5 shrink-0" />
-          <input
-            type="text"
-            value={newItemName}
-            onChange={(e) => onNewItemNameChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') onCreateItem(node.id, getTypeFromFolderId(node.id));
-              if (e.key === 'Escape') onCancelCreate();
-            }}
-            onBlur={onCancelCreate}
-            autoFocus
-            placeholder="New item..."
-            className={cn(
-              "flex-1 h-5 px-1 text-xs outline-none rounded",
-              theme === 'dark'
-                ? 'bg-stone-700 text-white placeholder:text-stone-500'
-                : 'bg-stone-100 text-stone-900 placeholder:text-stone-400'
-            )}
-          />
-        </div>
+            <button
+              onClick={handleDeleteItem}
+              className={cn(
+                "w-full px-3 py-1.5 text-xs flex items-center gap-2 transition-colors text-red-500 hover:bg-red-500/10"
+              )}
+            >
+              <Trash2 size={11} />
+              Delete
+            </button>
+          </div>
+        </>
       )}
-
-      {/* Children */}
-      {isFolder && isExpanded && node.children?.map(child => (
-        <TreeNode
-          key={child.id}
-          node={child}
-          depth={depth + 1}
-          theme={theme}
-          expandedFolders={expandedFolders}
-          selectedId={selectedId}
-          isCreating={isCreating}
-          newItemName={newItemName}
-          onToggle={onToggle}
-          onSelect={onSelect}
-          onDoubleClick={onDoubleClick}
-          onContextMenu={onContextMenu}
-          onStartCreate={onStartCreate}
-          onCreateItem={onCreateItem}
-          onNewItemNameChange={onNewItemNameChange}
-          onCancelCreate={onCancelCreate}
-        />
-      ))}
     </div>
   );
 };
-
-// ============================================
-// QUICK ADD BUTTON
-// ============================================
-
-interface QuickAddButtonProps {
-  icon: React.ReactNode;
-  label: string;
-  theme: 'light' | 'dark';
-  onClick: () => void;
-}
-
-const QuickAddButton: React.FC<QuickAddButtonProps> = ({ icon, label, theme, onClick }) => (
-  <button
-    onClick={onClick}
-    className={cn(
-      "flex-1 h-7 rounded flex items-center justify-center gap-1 text-[10px] font-medium transition-colors",
-      theme === 'dark'
-        ? 'bg-stone-800 text-stone-400 hover:bg-stone-700 hover:text-stone-300'
-        : 'bg-stone-100 text-stone-500 hover:bg-stone-200 hover:text-stone-700'
-    )}
-    title={`Add ${label}`}
-  >
-    {icon}
-  </button>
-);
-
-// ============================================
-// CONTEXT MENU
-// ============================================
-
-interface ContextMenuProps {
-  x: number;
-  y: number;
-  theme: 'light' | 'dark';
-  onClose: () => void;
-  onDelete: () => void;
-}
-
-const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, theme, onClose, onDelete }) => (
-  <>
-    <div className="fixed inset-0 z-40" onClick={onClose} />
-    <div 
-      className={cn(
-        "fixed z-50 w-44 rounded-lg shadow-lg border overflow-hidden py-1",
-        theme === 'dark' ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-200'
-      )}
-      style={{ left: x, top: y }}
-    >
-      <ContextMenuItem icon={<Edit3 size={12} />} label="Rename" theme={theme} onClick={onClose} />
-      <ContextMenuItem icon={<Copy size={12} />} label="Duplicate" theme={theme} onClick={onClose} />
-      <div className={cn(
-        "h-px mx-2 my-1",
-        theme === 'dark' ? 'bg-stone-700' : 'bg-stone-100'
-      )} />
-      <ContextMenuItem 
-        icon={<Trash2 size={12} />} 
-        label="Delete" 
-        theme={theme} 
-        danger 
-        onClick={onDelete} 
-      />
-    </div>
-  </>
-);
-
-interface ContextMenuItemProps {
-  icon: React.ReactNode;
-  label: string;
-  theme: 'light' | 'dark';
-  danger?: boolean;
-  onClick: () => void;
-}
-
-const ContextMenuItem: React.FC<ContextMenuItemProps> = ({ icon, label, theme, danger, onClick }) => (
-  <button
-    onClick={onClick}
-    className={cn(
-      "w-full px-3 py-1.5 text-xs flex items-center gap-2 transition-colors",
-      danger
-        ? 'text-red-500 hover:bg-red-500/10'
-        : theme === 'dark'
-          ? 'text-stone-300 hover:bg-stone-700'
-          : 'text-stone-700 hover:bg-stone-100'
-    )}
-  >
-    {icon}
-    {label}
-  </button>
-);
 
 export default FileExplorer;
-

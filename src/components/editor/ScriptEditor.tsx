@@ -612,7 +612,7 @@ ${titlePage.contact ? `\n\n${titlePage.contact}` : ''}
 
   return (
     <div className={cn(
-      "flex h-full gap-3",
+      "flex h-full gap-2",
       focusMode && "fixed inset-0 z-50 p-4 bg-stone-950"
     )}>
       {/* Navigator */}

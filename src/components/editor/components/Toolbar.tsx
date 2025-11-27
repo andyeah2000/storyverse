@@ -107,42 +107,40 @@ const Toolbar: React.FC<ToolbarProps> = ({
 
   return (
     <div className={cn(
-      "h-12 flex items-center justify-between px-4 border-b shrink-0 gap-3",
+      "h-11 flex items-center justify-between px-3 border-b shrink-0 gap-2",
       isDark ? 'border-stone-800 bg-stone-900/50' : 'border-stone-200 bg-white'
     )}>
       {/* Left Section: Navigator + Element Selector */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 shrink-0">
         {/* Navigator Toggle */}
         <button
           onClick={onToggleNavigator}
           className={cn(
-            "w-9 h-9 rounded-lg flex items-center justify-center transition-all",
+            "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
             showNavigator
               ? isDark ? 'bg-stone-700 text-white' : 'bg-stone-200 text-stone-900'
               : isDark ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-stone-100 text-stone-500'
           )}
           title="Toggle Navigator (⌘\\)"
         >
-          <List size={16} />
+          <List size={15} />
         </button>
-
-        <div className={cn("w-px h-6", isDark ? 'bg-stone-700' : 'bg-stone-200')} />
 
         {/* Element Type Dropdown */}
         <div className="relative">
           <button
             onClick={() => setShowElementMenu(!showElementMenu)}
             className={cn(
-              "h-9 px-4 rounded-lg text-sm font-medium flex items-center gap-2.5 transition-all min-w-[140px]",
+              "h-8 px-2.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors w-[120px]",
               isDark 
-                ? 'bg-stone-800 text-stone-200 hover:bg-stone-700 border border-stone-700' 
-                : 'bg-stone-100 text-stone-800 hover:bg-stone-200 border border-stone-200'
+                ? 'bg-stone-800 text-stone-200 hover:bg-stone-700' 
+                : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
             )}
           >
             {ICONS[currentStyle.icon]}
-            <span className="flex-1 text-left">{currentStyle.label}</span>
-            <ChevronDown size={14} className={cn(
-              "transition-transform",
+            <span className="flex-1 text-left truncate">{currentStyle.label}</span>
+            <ChevronDown size={12} className={cn(
+              "transition-transform shrink-0",
               showElementMenu && "rotate-180"
             )} />
           </button>
@@ -151,14 +149,14 @@ const Toolbar: React.FC<ToolbarProps> = ({
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowElementMenu(false)} />
               <div className={cn(
-                "absolute top-full left-0 mt-2 w-60 rounded-xl shadow-2xl z-50 border overflow-hidden",
+                "absolute top-full left-0 mt-1.5 w-52 rounded-lg shadow-xl z-50 border overflow-hidden",
                 isDark ? 'bg-stone-900 border-stone-700' : 'bg-white border-stone-200'
               )}>
                 <div className={cn(
-                  "px-3 py-2 text-[10px] font-semibold uppercase tracking-wider",
+                  "px-3 py-1.5 text-[9px] font-semibold uppercase tracking-wider",
                   isDark ? 'text-stone-500 bg-stone-800/50' : 'text-stone-400 bg-stone-50'
                 )}>
-                  Script Elements
+                  Elements
                 </div>
                 {(Object.entries(ELEMENT_STYLES) as [ScriptElement, typeof ELEMENT_STYLES[ScriptElement]][]).map(([key, style]) => (
                   <button
@@ -168,18 +166,18 @@ const Toolbar: React.FC<ToolbarProps> = ({
                       setShowElementMenu(false);
                     }}
                     className={cn(
-                      "w-full px-4 py-3 text-sm flex items-center justify-between transition-all",
-                      isDark ? 'hover:bg-stone-800 text-stone-300' : 'hover:bg-stone-50 text-stone-700',
+                      "w-full px-3 py-2 text-xs flex items-center justify-between transition-colors",
+                      isDark ? 'hover:bg-stone-800 text-stone-300' : 'hover:bg-stone-50 text-stone-600',
                       currentElement === key && (isDark ? 'bg-stone-800 text-white' : 'bg-stone-100 text-stone-900')
                     )}
                   >
-                    <span className="flex items-center gap-3">
+                    <span className="flex items-center gap-2">
                       {ICONS[style.icon]}
                       {style.label}
                     </span>
                     <span className={cn(
-                      "text-[11px] font-mono px-2 py-0.5 rounded",
-                      isDark ? 'text-stone-500 bg-stone-800' : 'text-stone-400 bg-stone-100'
+                      "text-[10px] font-mono",
+                      isDark ? 'text-stone-600' : 'text-stone-400'
                     )}>
                       {style.shortcut}
                     </span>
@@ -190,39 +188,36 @@ const Toolbar: React.FC<ToolbarProps> = ({
           )}
         </div>
 
-        <div className={cn("w-px h-6", isDark ? 'bg-stone-700' : 'bg-stone-200')} />
-
         {/* Revision Mode */}
         <div className="relative">
           <button
             onClick={() => setShowRevisionMenu(!showRevisionMenu)}
             className={cn(
-              "h-9 px-3 rounded-lg text-sm font-medium flex items-center gap-2 transition-all",
+              "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
               revisionMode
-                ? `${REVISION_COLORS[currentRevisionColor].bg} ${REVISION_COLORS[currentRevisionColor].text} ${REVISION_COLORS[currentRevisionColor].border} border`
+                ? `${REVISION_COLORS[currentRevisionColor].bg} ${REVISION_COLORS[currentRevisionColor].text}`
                 : isDark 
                   ? 'hover:bg-stone-800 text-stone-400' 
                   : 'hover:bg-stone-100 text-stone-500'
             )}
             title="Revision Mode"
           >
-            <FileEdit size={15} />
-            {revisionMode && <span className="hidden sm:inline">Rev</span>}
+            <FileEdit size={14} />
           </button>
           
           {showRevisionMenu && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowRevisionMenu(false)} />
               <div className={cn(
-                "absolute top-full left-0 mt-2 w-56 rounded-xl shadow-2xl z-50 border overflow-hidden",
+                "absolute top-full left-0 mt-1.5 w-48 rounded-lg shadow-xl z-50 border overflow-hidden",
                 isDark ? 'bg-stone-900 border-stone-700' : 'bg-white border-stone-200'
               )}>
                 <div className={cn(
-                  "px-4 py-3 border-b flex items-center justify-between",
+                  "px-3 py-2 border-b flex items-center justify-between",
                   isDark ? 'border-stone-800' : 'border-stone-100'
                 )}>
-                  <span className={cn("text-sm font-medium", isDark ? 'text-white' : 'text-stone-900')}>
-                    Revision Mode
+                  <span className={cn("text-xs font-medium", isDark ? 'text-white' : 'text-stone-900')}>
+                    Revision
                   </span>
                   <label className="relative inline-flex cursor-pointer">
                     <input
@@ -232,17 +227,17 @@ const Toolbar: React.FC<ToolbarProps> = ({
                       className="sr-only peer"
                     />
                     <div className={cn(
-                      "w-10 h-6 rounded-full peer transition-colors",
+                      "w-8 h-5 rounded-full peer transition-colors",
                       isDark 
                         ? 'bg-stone-700 peer-checked:bg-blue-600' 
                         : 'bg-stone-200 peer-checked:bg-blue-600',
                       "after:content-[''] after:absolute after:top-0.5 after:left-0.5",
-                      "after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all",
-                      "peer-checked:after:translate-x-4"
+                      "after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all",
+                      "peer-checked:after:translate-x-3"
                     )} />
                   </label>
                 </div>
-                <div className="p-2 max-h-64 overflow-y-auto">
+                <div className="p-1.5">
                   {(Object.entries(REVISION_COLORS) as [RevisionColor, typeof REVISION_COLORS[RevisionColor]][]).map(([color, config]) => (
                     <button
                       key={color}
@@ -251,18 +246,17 @@ const Toolbar: React.FC<ToolbarProps> = ({
                         setShowRevisionMenu(false);
                       }}
                       className={cn(
-                        "w-full px-3 py-2.5 rounded-lg text-sm flex items-center gap-3 transition-all",
+                        "w-full px-2.5 py-1.5 rounded text-xs flex items-center gap-2 transition-colors",
                         isDark ? 'hover:bg-stone-800' : 'hover:bg-stone-50',
-                        currentRevisionColor === color && revisionMode && 'ring-2 ring-blue-500 ring-offset-2',
-                        isDark && currentRevisionColor === color && revisionMode && 'ring-offset-stone-900'
+                        currentRevisionColor === color && revisionMode && (isDark ? 'bg-stone-800' : 'bg-stone-100')
                       )}
                     >
                       <div className={cn(
-                        "w-5 h-5 rounded-md border",
+                        "w-4 h-4 rounded border",
                         config.bg,
                         config.border
                       )} />
-                      <span className={isDark ? 'text-stone-300' : 'text-stone-700'}>
+                      <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>
                         {config.label}
                       </span>
                     </button>
@@ -277,56 +271,54 @@ const Toolbar: React.FC<ToolbarProps> = ({
         <button
           onClick={onToggleFindReplace}
           className={cn(
-            "w-9 h-9 rounded-lg flex items-center justify-center transition-all",
+            "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
             isDark ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-stone-100 text-stone-500'
           )}
           title="Find & Replace (⌘F)"
         >
-          <Search size={15} />
+          <Search size={14} />
         </button>
 
         {/* Add Note */}
         <button
           onClick={onToggleNoteInput}
           className={cn(
-            "w-9 h-9 rounded-lg flex items-center justify-center transition-all",
+            "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
             isDark ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-stone-100 text-stone-500'
           )}
           title="Add Note (⌘M)"
         >
-          <StickyNote size={15} />
+          <StickyNote size={14} />
         </button>
       </div>
 
       {/* Center Section: Stats */}
       <div className={cn(
-        "hidden lg:flex items-center gap-6 text-[12px] font-mono",
+        "hidden lg:flex items-center gap-4 text-[11px] font-mono shrink-0",
         isDark ? 'text-stone-500' : 'text-stone-400'
       )}>
-        <div className="flex items-center gap-2">
-          <span className="opacity-70">Scenes</span>
-          <span className={cn("font-semibold", isDark ? 'text-white' : 'text-stone-900')}>
+        <div className="flex items-center gap-1.5">
+          <span className="opacity-60">Scenes</span>
+          <span className={cn("font-semibold", isDark ? 'text-stone-300' : 'text-stone-700')}>
             {stats.sceneCount}
           </span>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="opacity-70">Pages</span>
-          <span className={cn("font-semibold", isDark ? 'text-white' : 'text-stone-900')}>
+        <div className="flex items-center gap-1.5">
+          <span className="opacity-60">Pages</span>
+          <span className={cn("font-semibold", isDark ? 'text-stone-300' : 'text-stone-700')}>
             {stats.pages}
           </span>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="opacity-70">~{stats.readTime}min</span>
-        </div>
+        <span className="opacity-60">~{stats.readTime}min</span>
       </div>
 
       {/* Right Section: Actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 shrink-0">
         {/* Table Read */}
         <button
           onClick={onToggleTableRead}
           className={cn(
-            "h-9 px-4 rounded-lg text-sm font-medium flex items-center gap-2 transition-all",
+            "h-8 px-3 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors",
             isTableReading
               ? 'bg-green-500 text-white hover:bg-green-400'
               : isDark 
@@ -335,7 +327,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
           )}
           title="Table Read"
         >
-          {isTableReading ? <Pause size={14} /> : <Play size={14} />}
+          {isTableReading ? <Pause size={13} /> : <Play size={13} />}
           <span className="hidden sm:inline">{isTableReading ? 'Stop' : 'Read'}</span>
         </button>
 
@@ -345,7 +337,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
             onClick={() => setShowAIMenu(!showAIMenu)}
             disabled={isAIWorking}
             className={cn(
-              "h-9 px-4 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all",
+              "h-8 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors",
               isDark 
                 ? 'bg-white text-stone-900 hover:bg-stone-100' 
                 : 'bg-stone-900 text-white hover:bg-stone-800',
@@ -353,9 +345,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
             )}
           >
             {isAIWorking ? (
-              <Loader2 size={14} className="animate-spin" />
+              <Loader2 size={13} className="animate-spin" />
             ) : (
-              <Sparkles size={14} />
+              <Sparkles size={13} />
             )}
             AI
           </button>
@@ -364,39 +356,39 @@ const Toolbar: React.FC<ToolbarProps> = ({
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowAIMenu(false)} />
               <div className={cn(
-                "absolute top-full right-0 mt-2 w-60 rounded-xl shadow-2xl z-50 border overflow-hidden",
+                "absolute top-full right-0 mt-1.5 w-48 rounded-lg shadow-xl z-50 border overflow-hidden",
                 isDark ? 'bg-stone-900 border-stone-700' : 'bg-white border-stone-200'
               )}>
                 <button
                   onClick={() => { onAIContinue(); setShowAIMenu(false); }}
                   className={cn(
-                    "w-full px-4 py-3 text-sm flex items-center gap-3 transition-all",
-                    isDark ? 'hover:bg-stone-800 text-stone-300' : 'hover:bg-stone-50 text-stone-700'
+                    "w-full px-3 py-2 text-xs flex items-center gap-2 transition-colors",
+                    isDark ? 'hover:bg-stone-800 text-stone-300' : 'hover:bg-stone-50 text-stone-600'
                   )}
                 >
-                  <PenLine size={15} />
+                  <PenLine size={13} />
                   Continue Writing
                 </button>
                 {hasSelection && (
                   <button
                     onClick={() => { onAIRewrite(); setShowAIMenu(false); }}
                     className={cn(
-                      "w-full px-4 py-3 text-sm flex items-center gap-3 transition-all",
-                      isDark ? 'hover:bg-stone-800 text-stone-300' : 'hover:bg-stone-50 text-stone-700'
+                      "w-full px-3 py-2 text-xs flex items-center gap-2 transition-colors",
+                      isDark ? 'hover:bg-stone-800 text-stone-300' : 'hover:bg-stone-50 text-stone-600'
                     )}
                   >
-                    <Wand2 size={15} />
+                    <Wand2 size={13} />
                     Rewrite Selection
                   </button>
                 )}
                 <button
                   onClick={() => { onAIDialogue(); setShowAIMenu(false); }}
                   className={cn(
-                    "w-full px-4 py-3 text-sm flex items-center gap-3 transition-all",
-                    isDark ? 'hover:bg-stone-800 text-stone-300' : 'hover:bg-stone-50 text-stone-700'
+                    "w-full px-3 py-2 text-xs flex items-center gap-2 transition-colors",
+                    isDark ? 'hover:bg-stone-800 text-stone-300' : 'hover:bg-stone-50 text-stone-600'
                   )}
                 >
-                  <MessageSquare size={15} />
+                  <MessageSquare size={13} />
                   Generate Dialogue
                 </button>
               </div>
@@ -404,32 +396,30 @@ const Toolbar: React.FC<ToolbarProps> = ({
           )}
         </div>
 
-        <div className={cn("w-px h-6 mx-1", isDark ? 'bg-stone-700' : 'bg-stone-200')} />
-
         {/* Focus Mode */}
         <button
           onClick={onToggleFocus}
           className={cn(
-            "w-9 h-9 rounded-lg flex items-center justify-center transition-all",
+            "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
             focusMode
               ? isDark ? 'bg-stone-700 text-white' : 'bg-stone-200 text-stone-900'
               : isDark ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-stone-100 text-stone-500'
           )}
           title="Focus Mode (⌘↵)"
         >
-          {focusMode ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+          {focusMode ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
         </button>
 
         {/* Export */}
         <button
           onClick={onExport}
           className={cn(
-            "w-9 h-9 rounded-lg flex items-center justify-center transition-all",
+            "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
             isDark ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-stone-100 text-stone-500'
           )}
           title="Export (⌘E)"
         >
-          <Download size={16} />
+          <Download size={14} />
         </button>
       </div>
     </div>

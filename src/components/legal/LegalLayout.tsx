@@ -179,14 +179,14 @@ const LegalLayout: React.FC<LegalLayoutProps> = ({
                 );
               })}
             </div>
-          </nav>
-        </div>
-      </aside>
+              </nav>
+            </div>
+          </aside>
 
       {/* Content */}
       <main className="flex-1 py-10 px-4 sm:px-6 lg:pl-60">
         <div className="max-w-3xl mx-auto">
-          {/* Mobile TOC */}
+            {/* Mobile TOC */}
             <div className="lg:hidden mb-8">
               <p className={cn(
                 'text-[10px] uppercase tracking-[0.2em] font-medium mb-3',
@@ -201,20 +201,20 @@ const LegalLayout: React.FC<LegalLayoutProps> = ({
                   const isActive = activeId === section.id;
                   
                   return (
-                    <button
-                      key={section.id}
-                      onClick={() => handleScrollTo(section.id)}
-                      className={cn(
+                  <button
+                    key={section.id}
+                    onClick={() => handleScrollTo(section.id)}
+                    className={cn(
                         'flex items-center gap-2 px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 shrink-0',
                         isActive
-                          ? isDark
+                        ? isDark
                             ? 'bg-white text-stone-900 shadow-sm'
                             : 'bg-stone-900 text-white shadow-sm'
-                          : isDark
+                        : isDark
                             ? 'bg-stone-800/60 text-stone-400 hover:text-white hover:bg-stone-800'
                             : 'bg-stone-100 text-stone-500 hover:text-stone-900 hover:bg-stone-200'
-                      )}
-                    >
+                    )}
+                  >
                       <span className={cn(
                         'w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold',
                         isActive
@@ -228,13 +228,13 @@ const LegalLayout: React.FC<LegalLayoutProps> = ({
                         {sectionNumber || (index + 1)}
                       </span>
                       {displayTitle}
-                    </button>
+                  </button>
                   );
                 })}
               </div>
             </div>
 
-            <div className="mb-10">
+              <div className="mb-10">
                 <p className={cn(
                   'text-xs uppercase tracking-[0.3em] mb-4',
                   isDark ? 'text-stone-500' : 'text-stone-400'
@@ -269,7 +269,7 @@ const LegalLayout: React.FC<LegalLayoutProps> = ({
                     </div>
                   </section>
                 ))}
-            </div>
+          </div>
         </div>
       </main>
 
@@ -288,10 +288,10 @@ const LegalLayout: React.FC<LegalLayoutProps> = ({
             </div>
             <span className={cn('text-sm font-medium', isDark ? 'text-white' : 'text-stone-900')}>StoryVerse</span>
           </div>
-          <div className={cn(
+        <div className={cn(
             'flex items-center gap-6 text-sm',
             isDark ? 'text-stone-500' : 'text-stone-500'
-          )}>
+        )}>
             <Link to="/about" className={cn('transition-colors', isDark ? 'hover:text-white' : 'hover:text-stone-900')}>
               About
             </Link>

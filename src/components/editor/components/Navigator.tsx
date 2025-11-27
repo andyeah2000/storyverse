@@ -90,7 +90,7 @@ const Navigator: React.FC<NavigatorProps> = ({
 
   return (
     <div className={cn(
-      "w-60 flex flex-col h-full rounded-xl border overflow-hidden shrink-0",
+      "w-56 min-w-56 max-w-56 flex flex-col h-full rounded-xl border overflow-hidden",
       isDark ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200'
     )}>
       {/* Tabs */}
@@ -146,39 +146,31 @@ const Navigator: React.FC<NavigatorProps> = ({
                   key={scene.id}
                   onClick={() => onSceneClick(scene.lineNumber)}
                   className={cn(
-                    "w-full text-left p-2.5 rounded-lg transition-all group",
+                    "w-full text-left px-2 py-2 rounded-lg transition-colors group",
                     scene.omitted && 'opacity-40',
-                    isDark ? 'hover:bg-stone-800' : 'hover:bg-stone-50'
+                    isDark ? 'hover:bg-stone-800/60' : 'hover:bg-stone-50'
                   )}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-start gap-1.5">
                     <span className={cn(
-                      "text-[11px] font-mono min-w-[2rem] font-semibold",
+                      "text-[10px] font-mono w-5 shrink-0 font-semibold pt-0.5",
                       isDark ? 'text-stone-500' : 'text-stone-400'
                     )}>
                       {scene.sceneNumber}
                     </span>
                     {scene.locked && (
-                      <Lock size={11} className="text-amber-500" />
+                      <Lock size={10} className="text-amber-500 shrink-0 mt-0.5" />
                     )}
                     <span className={cn(
-                      "text-[12px] font-medium truncate flex-1 transition-colors",
+                      "text-[11px] font-medium leading-tight break-words transition-colors",
                       scene.omitted && 'line-through',
                       isDark 
-                        ? 'text-stone-300 group-hover:text-white' 
-                        : 'text-stone-700 group-hover:text-stone-900'
-                    )}>
+                        ? 'text-stone-400 group-hover:text-white' 
+                        : 'text-stone-600 group-hover:text-stone-900'
+                    )} style={{ wordBreak: 'break-word', hyphens: 'auto' }}>
                       {scene.text}
                     </span>
                   </div>
-                  {scene.synopsis && (
-                    <p className={cn(
-                      "text-[11px] mt-1 ml-8 line-clamp-2",
-                      isDark ? 'text-stone-500' : 'text-stone-400'
-                    )}>
-                      {scene.synopsis}
-                    </p>
-                  )}
                 </button>
               ))
             )}

@@ -67,13 +67,13 @@ const StatusBar: React.FC<StatusBarProps> = ({
 
   return (
     <div className={cn(
-      "h-8 flex items-center justify-between px-4 border-t shrink-0 text-[11px] font-mono",
+      "h-7 flex items-center justify-between px-3 border-t shrink-0 text-[10px] font-mono",
       isDark ? 'border-stone-800 bg-stone-900/50 text-stone-500' : 'border-stone-200 bg-stone-50 text-stone-400'
     )}>
       {/* Left Section */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         {/* Line:Column */}
-        <span className="flex items-center gap-1.5">
+        <span className="flex items-center gap-1">
           <span className="opacity-60">Ln</span>
           <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>
             {currentLineInfo.lineIndex + 1}
@@ -90,7 +90,7 @@ const StatusBar: React.FC<StatusBarProps> = ({
 
         {/* Current Element */}
         <span className={cn(
-          "flex items-center gap-1.5 px-2 py-0.5 rounded",
+          "flex items-center gap-1 px-1.5 py-0.5 rounded",
           isDark ? 'bg-stone-800' : 'bg-stone-200'
         )}>
           {ICONS[elementStyle.icon]}
@@ -102,19 +102,19 @@ const StatusBar: React.FC<StatusBarProps> = ({
         {/* Revision Mode Badge */}
         {revisionMode && (
           <span className={cn(
-            "px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide",
+            "px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wide",
             REVISION_COLORS[currentRevisionColor].bg,
             REVISION_COLORS[currentRevisionColor].text
           )}>
-            Rev *
+            Rev
           </span>
         )}
       </div>
 
       {/* Right Section */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         {/* Character Count */}
-        <span className="flex items-center gap-1.5">
+        <span className="flex items-center gap-1">
           <span className="opacity-60">Chars</span>
           <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>
             {stats.characterCount}
@@ -122,7 +122,7 @@ const StatusBar: React.FC<StatusBarProps> = ({
         </span>
 
         {/* Word Count */}
-        <span className="flex items-center gap-1.5">
+        <span className="flex items-center gap-1">
           <span className="opacity-60">Words</span>
           <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>
             {stats.words.toLocaleString()}
@@ -130,7 +130,7 @@ const StatusBar: React.FC<StatusBarProps> = ({
         </span>
 
         {/* Dialogue Percentage */}
-        <span className="flex items-center gap-1.5">
+        <span className="flex items-center gap-1">
           <span className="opacity-60">Dialog</span>
           <span className={isDark ? 'text-stone-300' : 'text-stone-600'}>
             {stats.dialoguePercent}%
@@ -142,30 +142,30 @@ const StatusBar: React.FC<StatusBarProps> = ({
 
         {/* Save Status */}
         {isSaving ? (
-          <span className="flex items-center gap-1.5 text-blue-500">
-            <Loader2 size={12} className="animate-spin" />
-            Saving...
+          <span className="flex items-center gap-1 text-blue-500">
+            <Loader2 size={10} className="animate-spin" />
+            Saving
           </span>
         ) : isDirty ? (
           <span className={cn(
-            "flex items-center gap-1.5",
+            "flex items-center gap-1",
             isDark ? 'text-amber-500' : 'text-amber-600'
           )}>
-            <Save size={12} />
+            <Save size={10} />
             Unsaved
           </span>
         ) : (
-          <span className="flex items-center gap-1.5 text-green-500">
-            <Save size={12} />
+          <span className="flex items-center gap-1 text-green-500">
+            <Save size={10} />
             Saved
           </span>
         )}
 
         {/* AI Status */}
         {isAIWorking && (
-          <span className="flex items-center gap-1.5 text-blue-500">
-            <Loader2 size={12} className="animate-spin" />
-            AI {aiAction}...
+          <span className="flex items-center gap-1 text-blue-500">
+            <Loader2 size={10} className="animate-spin" />
+            AI {aiAction}
           </span>
         )}
       </div>

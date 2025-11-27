@@ -36,7 +36,6 @@ const Outline = lazy(() => import('./components/Outline'));
 const Notes = lazy(() => import('./components/Notes'));
 const MoodBoard = lazy(() => import('./components/MoodBoard'));
 const MindMap = lazy(() => import('./components/MindMap'));
-const VoiceAgent = lazy(() => import('./components/VoiceAgent'));
 const Characters = lazy(() => import('./components/Characters'));
 const Wiki = lazy(() => import('./components/Wiki'));
 
@@ -82,7 +81,6 @@ const AppRoutes = () => {
               <Route path="wiki" element={<Wiki />} />
             </Route>
           </Routes>
-          <VoiceAgent />
         </Suspense>
       </AgentProvider>
     </ProtectedRoute>

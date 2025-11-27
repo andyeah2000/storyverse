@@ -76,7 +76,6 @@ const ScriptEditor: React.FC = () => {
   // NAVIGATOR STATE
   // ============================================
 
-  const [showNavigator, setShowNavigator] = useState(true);
   const [navigatorTab, setNavigatorTab] = useState<NavigatorTab>('scenes');
 
   // ============================================
@@ -577,10 +576,6 @@ ${titlePage.contact ? `\n\n${titlePage.contact}` : ''}
             e.preventDefault();
             setShowExportModal(true);
             break;
-          case '\\':
-            e.preventDefault();
-            setShowNavigator(prev => !prev);
-            break;
           case '1': e.preventDefault(); setCurrentElement('scene'); break;
           case '2': e.preventDefault(); setCurrentElement('action'); break;
           case '3': e.preventDefault(); setCurrentElement('character'); break;
@@ -613,7 +608,7 @@ ${titlePage.contact ? `\n\n${titlePage.contact}` : ''}
       focusMode && "fixed inset-0 z-50 p-4 bg-stone-950"
     )}>
       {/* Navigator */}
-      {showNavigator && !focusMode && (
+      {!focusMode && (
         <Navigator
           activeTab={navigatorTab}
           scenes={scenes}
@@ -643,14 +638,12 @@ ${titlePage.contact ? `\n\n${titlePage.contact}` : ''}
         <Toolbar
           currentElement={currentElement}
           stats={stats}
-          showNavigator={showNavigator}
           revisionMode={revisionMode}
           currentRevisionColor={currentRevisionColor}
           isTableReading={isTableReading}
           isAIWorking={isAIWorking}
           focusMode={focusMode}
           hasSelection={selectedText.length > 0}
-          onToggleNavigator={() => setShowNavigator(!showNavigator)}
           onElementChange={setCurrentElement}
           onToggleRevision={() => setRevisionMode(!revisionMode)}
           onRevisionColorChange={(color) => {

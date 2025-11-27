@@ -24,6 +24,7 @@ import {
   X
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import VoiceAgentHeader from './VoiceAgentHeader'; // Imported VoiceAgentHeader
 
 // ============================================
 // TYPES
@@ -481,11 +482,11 @@ const FileExplorer: React.FC = () => {
       className="w-56 min-w-56 max-w-56 border-r flex flex-col h-full select-none bg-stone-50/50 border-stone-200"
       onClick={() => setContextMenu(null)}
     >
-      {/* Header */}
-      <div className="h-12 px-3 flex items-center gap-2 border-b shrink-0 border-stone-200">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 truncate">
-          {currentProject?.name || 'Project'}
-        </span>
+      {/* Header with Voice Agent */}
+      <div className="h-12 px-3 flex items-center justify-between gap-2 border-b shrink-0 border-stone-200">
+        <div className="flex-1 min-w-0">
+           <VoiceAgentHeader />
+        </div>
       </div>
 
       {/* Search */}

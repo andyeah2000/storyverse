@@ -30,6 +30,7 @@ import {
 import FileExplorer from './FileExplorer';
 import SettingsModal from './SettingsModal';
 import ShareProjectModal from './ShareProjectModal';
+// VoiceAgentHeader removed from here
 import { useStory } from '../context/StoryContext';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
@@ -207,6 +208,8 @@ const Layout: React.FC = () => {
               </div>
             </div>
 
+            {/* AI Agent in Header - Removed as it's now in FileExplorer */}
+            
             {currentProject && isSupabaseMode && (
               <button
                 onClick={openShareModal}
@@ -249,18 +252,22 @@ const Layout: React.FC = () => {
           </div>
           
           {/* Center: Navigation - Hidden on mobile */}
-          <nav className="hidden lg:flex items-center gap-0.5 p-1 rounded-xl bg-stone-100/80 mx-2 flex-1 justify-center min-w-0 overflow-hidden">
-            <NavButton to="/app" icon={<PenTool size={14} strokeWidth={1.75} />} label="Editor" end />
-            <NavButton to="/app/characters" icon={<Users size={14} strokeWidth={1.75} />} label="Chars" />
-            <NavButton to="/app/wiki" icon={<Globe size={14} strokeWidth={1.75} />} label="Wiki" />
-            <NavButton to="/app/beats" icon={<Sparkles size={14} strokeWidth={1.75} />} label="Beats" />
-            <NavButton to="/app/outline" icon={<Layers size={14} strokeWidth={1.75} />} label="Outline" />
-            <NavButton to="/app/map" icon={<Map size={14} strokeWidth={1.75} />} label="Map" />
-            <NavButton to="/app/mindmap" icon={<GitBranch size={14} strokeWidth={1.75} />} label="Mind" />
-            <NavButton to="/app/co-writer" icon={<MessageSquare size={14} strokeWidth={1.75} />} label="Chat" />
-            <NavButton to="/app/table-read" icon={<Headphones size={14} strokeWidth={1.75} />} label="Audio" />
-            <NavButton to="/app/notes" icon={<StickyNote size={14} strokeWidth={1.75} />} label="Notes" />
-            <NavButton to="/app/mood-board" icon={<ImageIcon size={14} strokeWidth={1.75} />} label="Mood" />
+          <nav className="hidden lg:flex items-center gap-1 px-1 rounded-xl mx-2 flex-1 justify-center min-w-0 overflow-hidden h-full">
+            <NavButton to="/app" icon={<PenTool size={15} strokeWidth={2} />} label="Editor" end />
+            <div className="w-px h-4 bg-stone-200 mx-1 opacity-50" />
+            <NavButton to="/app/beats" icon={<Sparkles size={15} strokeWidth={2} />} label="Beats" />
+            <NavButton to="/app/outline" icon={<Layers size={15} strokeWidth={2} />} label="Outline" />
+            <div className="w-px h-4 bg-stone-200 mx-1 opacity-50" />
+            <NavButton to="/app/characters" icon={<Users size={15} strokeWidth={2} />} label="Characters" />
+            <NavButton to="/app/map" icon={<Map size={15} strokeWidth={2} />} label="Story Map" />
+            <NavButton to="/app/mindmap" icon={<GitBranch size={15} strokeWidth={2} />} label="Mind Map" />
+            <div className="w-px h-4 bg-stone-200 mx-1 opacity-50" />
+            <NavButton to="/app/wiki" icon={<Globe size={15} strokeWidth={2} />} label="Wiki" />
+            <NavButton to="/app/notes" icon={<StickyNote size={15} strokeWidth={2} />} label="Notes" />
+            <NavButton to="/app/mood-board" icon={<ImageIcon size={15} strokeWidth={2} />} label="Mood Board" />
+            <div className="w-px h-4 bg-stone-200 mx-1 opacity-50" />
+            <NavButton to="/app/co-writer" icon={<MessageSquare size={15} strokeWidth={2} />} label="Co-Writer" />
+            <NavButton to="/app/table-read" icon={<Headphones size={15} strokeWidth={2} />} label="Table Read" />
           </nav>
           
           {/* Right: Actions */}
@@ -551,10 +558,10 @@ const NavButton: React.FC<NavButtonProps> = ({ to, icon, label, end }) => {
       to={to}
       end={end}
       className={({ isActive }) => cn(
-        "px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all duration-200 whitespace-nowrap shrink-0",
+        "px-3 py-1.5 rounded-lg text-[11px] font-semibold uppercase tracking-wide flex items-center gap-2 transition-all duration-200 whitespace-nowrap shrink-0 h-8",
         isActive 
-          ? 'bg-white text-stone-900 shadow-subtle'
-          : 'text-stone-500 hover:text-stone-900 hover:bg-stone-200/50'
+          ? 'bg-stone-900 text-white shadow-sm'
+          : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
       )}
     >
       {icon}

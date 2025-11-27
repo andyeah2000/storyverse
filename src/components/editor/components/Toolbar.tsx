@@ -49,14 +49,12 @@ const ICONS: Record<string, React.ReactNode> = {
 interface ToolbarProps {
   currentElement: ScriptElement;
   stats: ScriptStats;
-  showNavigator: boolean;
   revisionMode: boolean;
   currentRevisionColor: RevisionColor;
   isTableReading: boolean;
   isAIWorking: boolean;
   focusMode: boolean;
   hasSelection: boolean;
-  onToggleNavigator: () => void;
   onElementChange: (element: ScriptElement) => void;
   onToggleRevision: () => void;
   onRevisionColorChange: (color: RevisionColor) => void;
@@ -77,14 +75,12 @@ interface ToolbarProps {
 const Toolbar: React.FC<ToolbarProps> = ({
   currentElement,
   stats,
-  showNavigator,
   revisionMode,
   currentRevisionColor,
   isTableReading,
   isAIWorking,
   focusMode,
   hasSelection,
-  onToggleNavigator,
   onElementChange,
   onToggleRevision,
   onRevisionColorChange,
@@ -103,34 +99,25 @@ const Toolbar: React.FC<ToolbarProps> = ({
 
   const currentStyle = ELEMENT_STYLES[currentElement];
 
-  return (
-    <div className="h-11 flex items-center justify-between px-3 border-b shrink-0 gap-2 border-stone-200 bg-white">
-      {/* Left Section: Navigator + Element Selector */}
-      <div className="flex items-center gap-1.5 shrink-0">
-        {/* Navigator Toggle */}
-        <button
-          onClick={onToggleNavigator}
-          className={cn(
-            "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-            showNavigator
-              ? 'bg-stone-200 text-stone-900'
-              : 'hover:bg-stone-100 text-stone-500'
-          )}
-          title="Toggle Navigator (⌘\)"
-        >
-          <List size={15} />
-        </button>
+  const Divider = () => (
+    <div className="w-px h-5 bg-stone-200 mx-1" />
+  );
 
-        {/* Element Type Dropdown */}
+  return (
+    <div className="h-12 flex items-center justify-between px-4 border-b shrink-0 gap-2 border-stone-200 bg-white/80 backdrop-blur-sm z-20 relative">
+      {/* Left Section: Writing Tools */}
+      <div className="flex items-center gap-2 shrink-0">
+        
+        {/* Element Type Selector */}
         <div className="relative">
           <button
             onClick={() => setShowElementMenu(!showElementMenu)}
-            className="h-8 px-2.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors w-[120px] bg-stone-100 text-stone-700 hover:bg-stone-200"
+            className="h-8 px-3 rounded-lg text-xs font-medium flex items-center gap-2 transition-all w-[140px] bg-stone-100 text-stone-700 hover:bg-stone-200 border border-transparent hover:border-stone-300/50"
           >
-            {ICONS[currentStyle.icon]}
-            <span className="flex-1 text-left truncate">{currentStyle.label}</span>
+            <span className="opacity-70">{ICONS[currentStyle.icon]}</span>
+            <span className="flex-1 text-left truncate font-semibold">{currentStyle.label}</span>
             <ChevronDown size={12} className={cn(
-              "transition-transform shrink-0",
+              "transition-transform shrink-0 opacity-50",
               showElementMenu && "rotate-180"
             )} />
           </button>
@@ -138,9 +125,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
           {showElementMenu && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowElementMenu(false)} />
-              <div className="absolute top-full left-0 mt-1.5 w-52 rounded-lg shadow-xl z-50 border overflow-hidden bg-white border-stone-200">
-                <div className="px-3 py-1.5 text-[9px] font-semibold uppercase tracking-wider text-stone-400 bg-stone-50">
-                  Elements
+              <div className="absolute top-full left-0 mt-1.5 w-60 rounded-xl shadow-xl z-50 border overflow-hidden bg-white border-stone-200 p-1.5">
+                <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-1">
+                  Script Elements
                 </div>
                 {(Object.entries(ELEMENT_STYLES) as [ScriptElement, typeof ELEMENT_STYLES[ScriptElement]][]).map(([key, style]) => (
                   <button
@@ -150,17 +137,19 @@ const Toolbar: React.FC<ToolbarProps> = ({
                       setShowElementMenu(false);
                     }}
                     className={cn(
-                      "w-full px-3 py-2 text-xs flex items-center justify-between transition-colors hover:bg-stone-50 text-stone-600",
-                      currentElement === key && 'bg-stone-100 text-stone-900'
+                      "w-full px-3 py-2 text-xs flex items-center justify-between rounded-lg transition-colors",
+                      currentElement === key 
+                        ? 'bg-stone-100 text-stone-900 font-medium' 
+                        : 'text-stone-600 hover:bg-stone-50'
                     )}
                   >
-                    <span className="flex items-center gap-2">
-                      {ICONS[style.icon]}
+                    <span className="flex items-center gap-2.5">
+                      <span className="opacity-70">{ICONS[style.icon]}</span>
                       {style.label}
                     </span>
-                    <span className="text-[10px] font-mono text-stone-400">
+                    <kbd className="text-[10px] font-sans text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded border border-stone-200">
                       {style.shortcut}
-                    </span>
+                    </kbd>
                   </button>
                 ))}
               </div>
@@ -173,25 +162,30 @@ const Toolbar: React.FC<ToolbarProps> = ({
           <button
             onClick={() => setShowRevisionMenu(!showRevisionMenu)}
             className={cn(
-              "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+              "h-8 px-2 rounded-lg flex items-center gap-2 transition-colors border border-transparent",
               revisionMode
-                ? `${REVISION_COLORS[currentRevisionColor].bg} ${REVISION_COLORS[currentRevisionColor].text}`
-                : 'hover:bg-stone-100 text-stone-500'
+                ? `${REVISION_COLORS[currentRevisionColor].bg} ${REVISION_COLORS[currentRevisionColor].text} border-${currentRevisionColor}-200`
+                : 'hover:bg-stone-100 text-stone-500 hover:text-stone-900'
             )}
             title="Revision Mode"
           >
-            <FileEdit size={14} />
+            <FileEdit size={15} />
+            {revisionMode && (
+              <span className="text-[10px] font-medium uppercase tracking-wide hidden sm:inline">
+                Rev
+              </span>
+            )}
           </button>
           
           {showRevisionMenu && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowRevisionMenu(false)} />
-              <div className="absolute top-full left-0 mt-1.5 w-48 rounded-lg shadow-xl z-50 border overflow-hidden bg-white border-stone-200">
-                <div className="px-3 py-2 border-b flex items-center justify-between border-stone-100">
-                  <span className="text-xs font-medium text-stone-900">
-                    Revision
+              <div className="absolute top-full left-0 mt-1.5 w-56 rounded-xl shadow-xl z-50 border overflow-hidden bg-white border-stone-200">
+                <div className="px-4 py-3 border-b flex items-center justify-between border-stone-100 bg-stone-50/50">
+                  <span className="text-xs font-semibold text-stone-900">
+                    Revision Mode
                   </span>
-                  <label className="relative inline-flex cursor-pointer">
+                  <label className="relative inline-flex cursor-pointer items-center">
                     <input
                       type="checkbox"
                       checked={revisionMode}
@@ -199,14 +193,14 @@ const Toolbar: React.FC<ToolbarProps> = ({
                       className="sr-only peer"
                     />
                     <div className={cn(
-                      "w-8 h-5 rounded-full peer transition-colors bg-stone-200 peer-checked:bg-blue-600",
-                      "after:content-[''] after:absolute after:top-0.5 after:left-0.5",
-                      "after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all",
-                      "peer-checked:after:translate-x-3"
+                      "w-9 h-5 rounded-full peer transition-all bg-stone-200 peer-checked:bg-stone-900",
+                      "after:content-[''] after:absolute after:top-[2px] after:left-[2px]",
+                      "after:bg-white after:rounded-full after:h-4 after:w-4 after:shadow-sm after:transition-all",
+                      "peer-checked:after:translate-x-4"
                     )} />
                   </label>
                 </div>
-                <div className="p-1.5">
+                <div className="p-2 grid grid-cols-1 gap-1">
                   {(Object.entries(REVISION_COLORS) as [RevisionColor, typeof REVISION_COLORS[RevisionColor]][]).map(([color, config]) => (
                     <button
                       key={color}
@@ -215,16 +209,19 @@ const Toolbar: React.FC<ToolbarProps> = ({
                         setShowRevisionMenu(false);
                       }}
                       className={cn(
-                        "w-full px-2.5 py-1.5 rounded text-xs flex items-center gap-2 transition-colors hover:bg-stone-50",
-                        currentRevisionColor === color && revisionMode && 'bg-stone-100'
+                        "w-full px-3 py-2 rounded-lg text-xs flex items-center gap-3 transition-all",
+                        currentRevisionColor === color && revisionMode 
+                          ? 'bg-stone-100 ring-1 ring-stone-200' 
+                          : 'hover:bg-stone-50'
                       )}
                     >
                       <div className={cn(
-                        "w-4 h-4 rounded border",
-                        config.bg,
-                        config.border
-                      )} />
-                      <span className="text-stone-600">
+                        "w-3 h-3 rounded-full ring-2 ring-offset-1 ring-transparent",
+                        config.bg.replace('bg-', 'bg-'), // keep bg color
+                        config.border.replace('border-', 'border-'), // keep border
+                        currentRevisionColor === color && "ring-stone-300"
+                      )} style={{ backgroundColor: color === 'white' ? '#ffffff' : undefined }} />
+                      <span className="text-stone-700 font-medium">
                         {config.label}
                       </span>
                     </button>
@@ -235,58 +232,75 @@ const Toolbar: React.FC<ToolbarProps> = ({
           )}
         </div>
 
-        {/* Find/Replace */}
-        <button
-          onClick={onToggleFindReplace}
-          className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-stone-100 text-stone-500"
-          title="Find & Replace (⌘F)"
-        >
-          <Search size={14} />
-        </button>
+        <Divider />
 
-        {/* Add Note */}
-        <button
-          onClick={onToggleNoteInput}
-          className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-stone-100 text-stone-500"
-          title="Add Note (⌘M)"
-        >
-          <StickyNote size={14} />
-        </button>
+        {/* Tools Group */}
+        <div className="flex items-center gap-1">
+          <button
+            onClick={onToggleFindReplace}
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+            title="Find & Replace (⌘F)"
+          >
+            <Search size={15} />
+          </button>
+
+          <button
+            onClick={onToggleNoteInput}
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+            title="Add Note (⌘M)"
+          >
+            <StickyNote size={15} />
+          </button>
+        </div>
       </div>
 
       {/* Center Section: Stats */}
-      <div className="hidden lg:flex items-center gap-4 text-[11px] font-mono shrink-0 text-stone-400">
-        <div className="flex items-center gap-1.5">
-          <span className="opacity-60">Scenes</span>
-          <span className="font-semibold text-stone-700">
+      <div className="hidden lg:flex items-center gap-6 text-[10px] font-medium tracking-wide uppercase shrink-0 text-stone-400 select-none">
+        <div className="flex items-center gap-2">
+          <span>Scenes</span>
+          <span className="text-stone-700 font-bold text-xs">
             {stats.sceneCount}
           </span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <span className="opacity-60">Pages</span>
-          <span className="font-semibold text-stone-700">
+        <div className="w-px h-3 bg-stone-200" />
+        <div className="flex items-center gap-2">
+          <span>Pages</span>
+          <span className="text-stone-700 font-bold text-xs">
             {stats.pages}
           </span>
         </div>
-        <span className="opacity-60">~{stats.readTime}min</span>
+        <div className="w-px h-3 bg-stone-200" />
+        <div className="flex items-center gap-2">
+          <span>Time</span>
+          <span className="text-stone-700 font-bold text-xs">
+            ~{stats.readTime}m
+          </span>
+        </div>
       </div>
 
       {/* Right Section: Actions */}
-      <div className="flex items-center gap-1.5 shrink-0">
+      <div className="flex items-center gap-2 shrink-0">
+        
         {/* Table Read */}
         <button
           onClick={onToggleTableRead}
           className={cn(
-            "h-8 px-3 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors",
+            "h-8 pl-2.5 pr-3 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all border",
             isTableReading
-              ? 'bg-green-500 text-white hover:bg-green-400'
-              : 'hover:bg-stone-100 text-stone-500'
+              ? 'bg-emerald-500 text-white border-emerald-600 shadow-sm'
+              : 'bg-white text-stone-600 border-stone-200 hover:border-stone-300 hover:bg-stone-50'
           )}
           title="Table Read"
         >
-          {isTableReading ? <Pause size={13} /> : <Play size={13} />}
-          <span className="hidden sm:inline">{isTableReading ? 'Stop' : 'Read'}</span>
+          {isTableReading ? (
+            <Pause size={12} className="fill-current" />
+          ) : (
+            <Play size={12} className="fill-current" />
+          )}
+          <span className="hidden xl:inline">Read</span>
         </button>
+
+        <Divider />
 
         {/* AI Menu */}
         <div className="relative">
@@ -294,8 +308,10 @@ const Toolbar: React.FC<ToolbarProps> = ({
             onClick={() => setShowAIMenu(!showAIMenu)}
             disabled={isAIWorking}
             className={cn(
-              "h-8 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors bg-stone-900 text-white hover:bg-stone-800",
-              isAIWorking && 'opacity-70 cursor-not-allowed'
+              "h-8 px-3 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all shadow-sm",
+              isAIWorking 
+                ? 'bg-amber-100 text-amber-700 cursor-wait' 
+                : 'bg-stone-900 text-white hover:bg-stone-800 hover:shadow'
             )}
           >
             {isAIWorking ? (
@@ -303,34 +319,37 @@ const Toolbar: React.FC<ToolbarProps> = ({
             ) : (
               <Sparkles size={13} />
             )}
-            AI
+            <span className="hidden sm:inline">AI Tools</span>
           </button>
           
           {showAIMenu && !isAIWorking && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowAIMenu(false)} />
-              <div className="absolute top-full right-0 mt-1.5 w-48 rounded-lg shadow-xl z-50 border overflow-hidden bg-white border-stone-200">
+              <div className="absolute top-full right-0 mt-1.5 w-52 rounded-xl shadow-xl z-50 border overflow-hidden bg-white border-stone-200 p-1.5">
+                <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-1">
+                  AI Assistant
+                </div>
                 <button
                   onClick={() => { onAIContinue(); setShowAIMenu(false); }}
-                  className="w-full px-3 py-2 text-xs flex items-center gap-2 transition-colors hover:bg-stone-50 text-stone-600"
+                  className="w-full px-3 py-2 text-xs flex items-center gap-3 rounded-lg transition-colors hover:bg-stone-50 text-stone-700"
                 >
-                  <PenLine size={13} />
+                  <PenLine size={14} className="text-stone-400" />
                   Continue Writing
                 </button>
                 {hasSelection && (
                   <button
                     onClick={() => { onAIRewrite(); setShowAIMenu(false); }}
-                    className="w-full px-3 py-2 text-xs flex items-center gap-2 transition-colors hover:bg-stone-50 text-stone-600"
+                    className="w-full px-3 py-2 text-xs flex items-center gap-3 rounded-lg transition-colors hover:bg-stone-50 text-stone-700"
                   >
-                    <Wand2 size={13} />
+                    <Wand2 size={14} className="text-purple-500" />
                     Rewrite Selection
                   </button>
                 )}
                 <button
                   onClick={() => { onAIDialogue(); setShowAIMenu(false); }}
-                  className="w-full px-3 py-2 text-xs flex items-center gap-2 transition-colors hover:bg-stone-50 text-stone-600"
+                  className="w-full px-3 py-2 text-xs flex items-center gap-3 rounded-lg transition-colors hover:bg-stone-50 text-stone-700"
                 >
-                  <MessageSquare size={13} />
+                  <MessageSquare size={14} className="text-blue-500" />
                   Generate Dialogue
                 </button>
               </div>
@@ -338,28 +357,31 @@ const Toolbar: React.FC<ToolbarProps> = ({
           )}
         </div>
 
-        {/* Focus Mode */}
-        <button
-          onClick={onToggleFocus}
-          className={cn(
-            "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-            focusMode
-              ? 'bg-stone-200 text-stone-900'
-              : 'hover:bg-stone-100 text-stone-500'
-          )}
-          title="Focus Mode (⌘↵)"
-        >
-          {focusMode ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-        </button>
+        <Divider />
 
-        {/* Export */}
-        <button
-          onClick={onExport}
-          className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-stone-100 text-stone-500"
-          title="Export (⌘E)"
-        >
-          <Download size={14} />
-        </button>
+        {/* Focus & Export Group */}
+        <div className="flex items-center gap-1">
+          <button
+            onClick={onToggleFocus}
+            className={cn(
+              "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+              focusMode
+                ? 'bg-stone-100 text-stone-900'
+                : 'text-stone-500 hover:bg-stone-100 hover:text-stone-900'
+            )}
+            title="Focus Mode (⌘↵)"
+          >
+            {focusMode ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+          </button>
+
+          <button
+            onClick={onExport}
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+            title="Export (⌘E)"
+          >
+            <Download size={15} />
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -280,7 +280,6 @@ export const KEYBOARD_SHORTCUTS = {
   GOTO_LINE: { key: 'g', meta: true, label: '⌘G' },
   
   // View
-  TOGGLE_NAVIGATOR: { key: '\\', meta: true, label: '⌘\\' },
   TOGGLE_INDEX_CARDS: { key: 'i', meta: true, shift: true, label: '⌘⇧I' },
   ZOOM_IN: { key: '=', meta: true, label: '⌘+' },
   ZOOM_OUT: { key: '-', meta: true, label: '⌘-' },
